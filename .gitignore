@@ -1,0 +1,14 @@
+# python temp stuff
+.ipynb_checkpoints
+__pycache__/
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+
+# logs
+logs/*
+*.log
