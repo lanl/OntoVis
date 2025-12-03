@@ -5,3 +5,9 @@ langchain-openai
 
 # plotting
 matplotlib
+
+# python stuff
+jupyterlab
+pip
+
+neo4j

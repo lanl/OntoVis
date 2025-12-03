@@ -12,3 +12,5 @@ venv/
 # logs
 logs/*
 *.log
+
+Untitled*.ipynb
