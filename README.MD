@@ -8,7 +8,7 @@ The python environment:
 uv venv .venv
 source .venv/bin/activate
 uv pip install -r requirements.txt
-uv run python -m ipykernel install --user --name ontovis --display-name "venv_OntoVis" # register the environment with Jupyter notebook 
+uv run python -m ipykernel install --user --name venv_OntoVis --display-name "venv_OntoVis" # register the environment with Jupyter notebook 
 ```
 
 neo4j setup:

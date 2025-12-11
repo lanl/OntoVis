@@ -11,3 +11,4 @@ jupyterlab
 pip
 
 neo4j
+pypdf
