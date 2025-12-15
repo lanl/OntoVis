@@ -64,7 +64,6 @@ class VisAgent:
         }
 
 
-
 def should_call_tools(state: AgentState) -> str:
     """Decide whether to call tools or continue.
 
@@ -86,10 +85,15 @@ def should_call_tools(state: AgentState) -> str:
 ##############################################################
 #### LLM setup
 
-llm = ChatOpenAI(model=config_data['vis_agent']['llm-model'], temperature=0.1, request_timeout=120)
+vis_agent_llm = ChatOpenAI(model=config_data['vis_agent']['llm-model'], temperature=0.1, request_timeout=120)
 vis_agent_prompt = config_data['vis_agent']['llm-prompt']
 
-vis_agent = VisAgent(llm=llm, base_prompt=vis_agent_prompt, tools=my_tools)
+vis_agent = VisAgent(
+    llm=vis_agent_llm,
+    base_prompt=vis_agent_prompt,
+    tools=my_tools
+)   
+
 tool_node = ToolNode(my_tools)
 
 ##############################################################

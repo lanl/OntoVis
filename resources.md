@@ -12,3 +12,6 @@ https://www.datacamp.com/tutorial/knowledge-graph-rag
 
 GraphRAG Python Package: Accelerating GenAI With Knowledge Graphs
 https://neo4j.com/blog/news/graphrag-python-package/
+
+
+I need: FastAPI + Docker
