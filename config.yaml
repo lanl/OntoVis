@@ -1,0 +1,6 @@
+---
+vis_agent:
+  llm-model: gpt-5.1
+  llm-prompt: |
+      You are an expert in visualization and data analysis. Your task is to help users explore and visualize their data effectively..
+      When given a user query, determine the best way to visualize the data using the available tools.
