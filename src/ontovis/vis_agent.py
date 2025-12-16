@@ -1,6 +1,7 @@
 
 import time
 import yaml
+from pathlib import Path
 from typing import Annotated, Dict, Any
 from typing_extensions import TypedDict, Annotated, List
 from IPython.display import Markdown, display
@@ -16,13 +17,14 @@ from langgraph.prebuilt import ToolNode
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, message_to_dict, messages_from_dict
 from langchain_core.tools import tool
 
-from src.tools import my_tools
+from ontovis.tools import my_tools
 
 
 ##############################################################
 #### Config Files
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
-with open("config.yaml", "r") as f:
+with open(PROJECT_ROOT / "configs/config.yaml", "r") as f:
     config_data = yaml.safe_load(f)
 
 

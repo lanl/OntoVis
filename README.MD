@@ -5,9 +5,12 @@ The aim of this research project is to help LLMs in making correct scientific vi
 
 The python environment:
 ```bash
+uv python install 3.11
+uv venv --python 3.11
 uv venv .venv
 source .venv/bin/activate
-uv pip install -r requirements.txt
+uv sync
+uv pip install -e .  #maybe needed
 uv run python -m ipykernel install --user --name venv_OntoVis --display-name "venv_OntoVis" # register the environment with Jupyter notebook 
 ```
 
