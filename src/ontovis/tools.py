@@ -1,11 +1,132 @@
-from langchain_openai import ChatOpenAI
-import requests
-from bs4 import BeautifulSoup
 import base64
+from bs4 import BeautifulSoup
+import json
+from pathlib import Path
+import requests
+from typing import Optional, List
 from typing_extensions import Annotated
 
-from langchain_experimental.utilities import PythonREPL
 from langchain_core.tools import tool
+from langchain_experimental.utilities import PythonREPL
+from langchain_openai import ChatOpenAI
+
+
+class CodeExecutionTool:
+    def __init__(self, api_url: str = "http://localhost:8000"):
+        self.api_url = api_url
+        self.output_dir = Path("./generated_artifacts")
+        self.output_dir.mkdir(exist_ok=True)
+    
+    def save_artifacts(self, artifacts: dict) -> List[str]:
+        """Save artifacts to disk and return file paths."""
+        saved_files = []
+        
+        for filename, base64_content in artifacts.items():
+            file_path = self.output_dir / filename
+            
+            try:
+                content = base64.b64decode(base64_content)
+                with open(file_path, "wb") as f:
+                    f.write(content)
+                saved_files.append(str(file_path))
+            except Exception as e:
+                print(f"Error saving {filename}: {e}")
+        
+        return saved_files
+
+
+@tool
+def execute_python_code(code: str, requirements: Optional[List[str]] = None, timeout: int = 30) -> str:
+    """
+    Execute Python code in a secure Docker container and retrieve generated artifacts.
+    
+    Use this tool when you need to:
+    - Generate visualizations (matplotlib, seaborn, plotly)
+    - Perform data analysis
+    - Create charts or graphs
+    - Process data and save results
+    
+    The code will run in an isolated environment. Any files generated (images, CSVs, etc.)
+    will be automatically saved and their paths returned.
+    
+    Args:
+        code: Python code to execute. Save outputs to the current directory.
+        requirements: Optional list of pip packages to install (e.g., ["pandas", "matplotlib"])
+        timeout: Maximum execution time in seconds (default: 30)
+    
+    Returns:
+        A string with execution results, including stdout, stderr, and paths to generated files.
+    
+    Example:
+        code = '''
+import matplotlib.pyplot as plt
+import numpy as np
+
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
+
+plt.figure(figsize=(10, 6))
+plt.plot(x, y)
+plt.title("Sine Wave")
+plt.savefig("sine_wave.png")
+print("Plot saved!")
+        '''
+        result = execute_python_code(code, requirements=["matplotlib", "numpy"])
+    """
+    
+    tool_instance = CodeExecutionTool()
+    
+    try:
+        response = requests.post(
+            f"{tool_instance.api_url}/execute",
+            json={
+                "code": code,
+                "language": "python",
+                "timeout": timeout,
+                "requirements": requirements or []
+            },
+            timeout=timeout + 5
+        )
+        response.raise_for_status()
+        
+        result = response.json()
+        
+        # Save artifacts
+        saved_files = []
+        if result["artifacts"]:
+            saved_files = tool_instance.save_artifacts(result["artifacts"])
+        
+        # Format response
+        output_parts = []
+        
+        if result["status"] == "success":
+            output_parts.append("✅ Code executed successfully!")
+        else:
+            output_parts.append("❌ Code execution failed!")
+        
+        if result["stdout"]:
+            output_parts.append(f"\n📝 Output:\n{result['stdout']}")
+        
+        if result["stderr"]:
+            output_parts.append(f"\n⚠️ Errors/Warnings:\n{result['stderr']}")
+        
+        if saved_files:
+            output_parts.append(f"\n📁 Generated files:")
+            for file_path in saved_files:
+                output_parts.append(f"  - {file_path}")
+        
+        output_parts.append(f"\n⏱️ Execution time: {result['execution_time']:.2f}s")
+        
+        return "\n".join(output_parts)
+        
+    except requests.exceptions.Timeout:
+        return f"❌ Code execution timed out after {timeout} seconds"
+    except requests.exceptions.RequestException as e:
+        return f"❌ Error communicating with execution server: {str(e)}"
+    except Exception as e:
+        return f"❌ Unexpected error: {str(e)}"
+
+
 
 
 @tool 
@@ -147,5 +268,6 @@ def python_repl_tool(code: Annotated[str, "Python code to execute. All generated
 my_tools = [
     web_search_tool,
     image_analysis_tool,
-    python_repl_tool
+    python_repl_tool,
+    execute_python_code
 ]

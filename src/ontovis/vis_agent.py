@@ -18,6 +18,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, mess
 from langchain_core.tools import tool
 
 from ontovis.tools import my_tools
+from ontovis.utils import CodeExecutionTool
 
 
 ##############################################################

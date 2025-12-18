@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  code-execution-api:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./generated_artifacts:/app/generated_artifacts
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    networks:
+      - ontovis-network
+
+networks:
+  ontovis-network:
+    driver: bridge

@@ -15,3 +15,8 @@ neo4j
 pypdf
 yt
 vtk
+
+fastapi 
+pydantic 
+docker
+uvicorn
