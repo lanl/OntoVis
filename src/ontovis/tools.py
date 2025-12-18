@@ -17,22 +17,9 @@ class CodeExecutionTool:
         self.output_dir = Path("./generated_artifacts")
         self.output_dir.mkdir(exist_ok=True)
     
-    def save_artifacts(self, artifacts: dict) -> List[str]:
-        """Save artifacts to disk and return file paths."""
-        saved_files = []
-        
-        for filename, base64_content in artifacts.items():
-            file_path = self.output_dir / filename
-            
-            try:
-                content = base64.b64decode(base64_content)
-                with open(file_path, "wb") as f:
-                    f.write(content)
-                saved_files.append(str(file_path))
-            except Exception as e:
-                print(f"Error saving {filename}: {e}")
-        
-        return saved_files
+    def get_artifact_paths(self, artifacts: dict) -> List[str]:
+        """Return paths to artifacts (already saved via volume mount)."""
+        return [str(self.output_dir / filename) for filename in artifacts.keys()]
 
 
 @tool
@@ -40,38 +27,7 @@ def execute_python_code(code: str, requirements: Optional[List[str]] = None, tim
     """
     Execute Python code in a secure Docker container and retrieve generated artifacts.
     
-    Use this tool when you need to:
-    - Generate visualizations (matplotlib, seaborn, plotly)
-    - Perform data analysis
-    - Create charts or graphs
-    - Process data and save results
-    
-    The code will run in an isolated environment. Any files generated (images, CSVs, etc.)
-    will be automatically saved and their paths returned.
-    
-    Args:
-        code: Python code to execute. Save outputs to the current directory.
-        requirements: Optional list of pip packages to install (e.g., ["pandas", "matplotlib"])
-        timeout: Maximum execution time in seconds (default: 30)
-    
-    Returns:
-        A string with execution results, including stdout, stderr, and paths to generated files.
-    
-    Example:
-        code = '''
-import matplotlib.pyplot as plt
-import numpy as np
-
-x = np.linspace(0, 10, 100)
-y = np.sin(x)
-
-plt.figure(figsize=(10, 6))
-plt.plot(x, y)
-plt.title("Sine Wave")
-plt.savefig("sine_wave.png")
-print("Plot saved!")
-        '''
-        result = execute_python_code(code, requirements=["matplotlib", "numpy"])
+    [... same docstring ...]
     """
     
     tool_instance = CodeExecutionTool()
@@ -91,12 +47,12 @@ print("Plot saved!")
         
         result = response.json()
         
-        # Save artifacts
+        # Get file paths (files already exist via volume mount!)
         saved_files = []
         if result["artifacts"]:
-            saved_files = tool_instance.save_artifacts(result["artifacts"])
+            saved_files = tool_instance.get_artifact_paths(result["artifacts"])
         
-        # Format response
+        # Format response (same as before)
         output_parts = []
         
         if result["status"] == "success":
@@ -125,7 +81,6 @@ print("Plot saved!")
         return f"❌ Error communicating with execution server: {str(e)}"
     except Exception as e:
         return f"❌ Unexpected error: {str(e)}"
-
 
 
 

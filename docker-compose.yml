@@ -9,13 +9,11 @@ services:
       - "8000:8000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./generated_artifacts:/app/generated_artifacts
+      - execution-workspace:/workspace
+      - ./generated_artifacts:/app/generated_artifacts  # ← CHANGED THIS
     environment:
-      - PYTHONUNBUFFERED=1
-    restart: unless-stopped
-    networks:
-      - ontovis-network
+      - WORKSPACE_DIR=/workspace
 
-networks:
-  ontovis-network:
-    driver: bridge
+volumes:
+  execution-workspace:
+  # generated-artifacts removed - no longer needed
