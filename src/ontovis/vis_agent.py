@@ -17,13 +17,20 @@ from langgraph.prebuilt import ToolNode
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, message_to_dict, messages_from_dict
 from langchain_core.tools import tool
 
-from ontovis.tools import my_tools
-from ontovis.utils import CodeExecutionTool
+from ontovis.tools import (
+    image_analysis_tool,
+    web_search_tool,
+    python_repl_tool,
+    volume_rendering_instructions
+)
+
 
 
 ##############################################################
 #### Config Files
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+print("Loading config from:", PROJECT_ROOT / "configs/config.yaml")
+
 
 with open(PROJECT_ROOT / "configs/config.yaml", "r") as f:
     config_data = yaml.safe_load(f)
@@ -40,7 +47,7 @@ class AgentState(TypedDict):
 
 
 
-class VisAgent:
+class VisWorker:
     """A visual data exploration agent using LangGraph."""
 
     def __init__(self, llm: ChatOpenAI, base_prompt: str, tools: List[ToolNode], name: str = "VisAgent"):
@@ -85,77 +92,81 @@ def should_call_tools(state: AgentState) -> str:
 
 
 
-##############################################################
-#### LLM setup
-
-vis_agent_llm = ChatOpenAI(model=config_data['vis_agent']['llm-model'], temperature=0.1, request_timeout=120)
-vis_agent_prompt = config_data['vis_agent']['llm-prompt']
-
-vis_agent = VisAgent(
-    llm=vis_agent_llm,
-    base_prompt=vis_agent_prompt,
-    tools=my_tools
-)   
-
-tool_node = ToolNode(my_tools)
-
-##############################################################
-#### Create Langgraph Graph
-
-# Create the agent
-workflow = StateGraph(AgentState)
-
-workflow.add_node("VisAgent", vis_agent)
-workflow.add_node("tools", tool_node)
-
-workflow.add_edge(START, "VisAgent")
-workflow.add_conditional_edges(
-    "VisAgent",
-    should_call_tools,
-    {
-        "call_tools": "tools",
-        "continue": END,
-    },
-)
-
-workflow.add_edge("tools", "VisAgent")
-
-memory = MemorySaver()   
-graph = workflow.compile(checkpointer=memory)
+class VisExplorer:
+    def __init__(self, llm):
+        self.llm = llm
+        self.build_graph()
 
 
+    def build_graph(self):
+        vis_agent_prompt = config_data['vis_agent']['llm-prompt']
 
-##############################################################
-#### # Helper Function for Jupyter Notebook
+        my_tools = [
+            web_search_tool,
+            image_analysis_tool,
+            python_repl_tool,
+            volume_rendering_instructions,
+        ]
 
-def chat(query, thread_id="user_1234"):
-    """Chat with the vis agent.
-    
-    Args:
-        thread_id (str): Unique identifier for the conversation thread.
-        query (str): User's query.
-    """
+        vis_agent = VisWorker(
+            llm=self.llm,
+            base_prompt=vis_agent_prompt,
+            tools=my_tools
+        )   
 
-    start = time.time()
+        tool_node = ToolNode(my_tools)
 
-    result = graph.invoke(
-        {
-            "messages": [
-                HumanMessage(content=query)
-            ]
-        },
-        config = {
-            "configurable": {"thread_id": thread_id}
-        },
-    )
 
-    # Get and display the cleaned output
-    response_text = result["response"] 
-    cleaned_output = response_text.strip()
-    display(Markdown(cleaned_output))
+        # Create the agent
+        workflow = StateGraph(AgentState)
 
-    # Get statistics
-    elapsed = time.time() - start
-    total_tokens = result["metadata"].get("token_usage", {}).get("total_tokens", 0)
+        workflow.add_node("VisWorker", vis_agent)
+        workflow.add_node("tools", tool_node)
 
-    print(f"\nQuery took: {elapsed:.2f} seconds, total tokens used: {total_tokens}\n ")  
+        workflow.add_edge(START, "VisWorker")
+        workflow.add_conditional_edges(
+            "VisWorker",
+            should_call_tools,
+            {
+                "call_tools": "tools",
+                "continue": END,
+            },
+        )
+
+        workflow.add_edge("tools", "VisWorker")
+
+        memory = MemorySaver()   
+        self.graph = workflow.compile(checkpointer=memory)
+
+
+    def chat(self, query, thread_id="user_1234"):
+        """Chat with the vis agent.
+        
+        Args:
+            thread_id (str): Unique identifier for the conversation thread.
+            query (str): User's query.
+        """
+
+        start = time.time()
+
+        result = self.graph.invoke(
+            {
+                "messages": [
+                    HumanMessage(content=query)
+                ]
+            },
+            config = {
+                "configurable": {"thread_id": thread_id}
+            },
+        )
+
+        # Get and display the cleaned output
+        response_text = result["response"] 
+        cleaned_output = response_text.strip()
+        display(Markdown(cleaned_output))
+
+        # Get statistics
+        elapsed = time.time() - start
+        total_tokens = result["metadata"].get("token_usage", {}).get("total_tokens", 0)
+
+        print(f"\nQuery took: {elapsed:.2f} seconds, total tokens used: {total_tokens}\n ")  

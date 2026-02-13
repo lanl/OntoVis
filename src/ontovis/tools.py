@@ -220,9 +220,24 @@ def python_repl_tool(code: Annotated[str, "Python code to execute. All generated
 
 
 
-my_tools = [
-    web_search_tool,
-    image_analysis_tool,
-    python_repl_tool,
-    execute_python_code
-]
+@tool
+def volume_rendering_instructions() -> str:
+    """Provides instructions on how to properly perform volume rendering and save files for the VisAgent to access.
+    
+    Returns:
+        str: instructions for volume rendering and file saving
+    """
+    print("\n-----volume_rendering_instructions---\n")
+
+    instructions = """
+        The Steps for volume rendering are:
+        1. Load your 3D data (e.g., medical scan, scientific simulation output).
+        2. Compute a histogram of the data to understand the value distribution.
+        3. Use a grayscale colormap to visualize the histogram and identify value ranges of interest.
+        4. Choose an appropriate transfer function based on the histogram to map data values to colors and opacities.
+        5. Use a volume rendering library (e.g., VTK, Mayavi, PyVista) to render the volume with the chosen transfer function.
+        6. Save the rendered image to disk in a location accessible to the VisAgent 
+           
+    """
+
+    return instructions
