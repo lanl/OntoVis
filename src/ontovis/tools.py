@@ -1,6 +1,7 @@
 import base64
+import code
 from bs4 import BeautifulSoup
-import json
+import logging
 from pathlib import Path
 import requests
 from typing import Optional, List
@@ -9,6 +10,9 @@ from typing_extensions import Annotated
 from langchain_core.tools import tool
 from langchain_experimental.utilities import PythonREPL
 from langchain_openai import ChatOpenAI
+
+
+logger = logging.getLogger("global_logger.tools")
 
 
 class CodeExecutionTool:
@@ -23,7 +27,9 @@ class CodeExecutionTool:
 
 
 @tool
-def execute_python_code(code: str, requirements: Optional[List[str]] = None, timeout: int = 30) -> str:
+def execute_python_code(code: str, 
+                        requirements: Optional[List[str]] = None, 
+                        timeout: int = 30) -> str:
     """
     Execute Python code in a secure Docker container and retrieve generated artifacts.
     
@@ -85,7 +91,9 @@ def execute_python_code(code: str, requirements: Optional[List[str]] = None, tim
 
 
 @tool 
-def image_analysis_tool(image_url: str, human_msg: str = "Provide a detailed explanation of this image", sys_msg: str = "You are a precise scientific image analysis assistant") -> str:
+def image_analysis_tool(image_url: str, 
+                        human_msg: str = "Provide a detailed explanation of this image", 
+                        sys_msg: str = "You are a precise scientific image analysis assistant") -> str:
     """
     Analyze an image from a given URL and return what it contains.
 
@@ -99,6 +107,7 @@ def image_analysis_tool(image_url: str, human_msg: str = "Provide a detailed exp
     """
     print("\n-----image_analysis_tool---")
     print(f"\tImage URL: {image_url}, \n\thuman_msg: {human_msg}, \n\tsys_msg: {sys_msg}\n")
+    logger.info(f"\n\n!!!image_analysis_tool :: analyzing image: {image_url}, \n\thuman_msg: {human_msg}, \n\tsys_msg: {sys_msg}\n\n")
 
 
     # Use a vision model to understand the image
@@ -136,13 +145,15 @@ def image_analysis_tool(image_url: str, human_msg: str = "Provide a detailed exp
         ]
     )
 
+    logger.info(f"Image analysis result: {response.content}")
     return response.content
     
 
 
 
 @tool
-def web_search_tool(query: str, max_results: int = 5) -> list:
+def web_search_tool(query: str, 
+                    max_results: int = 5) -> list:
     """
     Perform a web search on the topics and returns structured search results with title, snippet, and URL.
 
@@ -154,6 +165,7 @@ def web_search_tool(query: str, max_results: int = 5) -> list:
         list of {title, snippet, url}
     """
     print("\n-----web_search_tool---\n")
+    logger.info(f"\n\n!!!web_search_tool :: executing search for query: {query}\n\n")
 
     search_url = "https://duckduckgo.com/html/"
     params = {"q": query}
@@ -208,13 +220,17 @@ def python_repl_tool(code: Annotated[str, "Python code to execute. All generated
         str: error message
     """
     print("\n-----python_repl_tool---\n")
+    logger.info(f"\n\n!!!python_repl_tool :: executing code: {code}\n\n")
 
 
     python_repl = PythonREPL()
     try:
         result = python_repl.run(code)  # returns captured stdout; plots display only if backend and show() cooperate
+        
     except BaseException as e:
         return f"Failed to execute. Error: {repr(e)}"
+    
+
     return f"Successfully executed:\n```python\n{code}\n```\nStdout:\n{result}"
 
 
@@ -228,6 +244,7 @@ def volume_rendering_instructions() -> str:
         str: instructions for volume rendering and file saving
     """
     print("\n-----volume_rendering_instructions---\n")
+    logger.info(f"\n\n!!!volume_rendering_instructions :: executing instructions\n\n")
 
     instructions = """
         The Steps for volume rendering are:
