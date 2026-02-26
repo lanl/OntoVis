@@ -152,14 +152,10 @@ def image_analysis_tool(image_url: str,
 
 
 @tool
-def web_search_tool(query: str, 
-                    max_results: int = 5) -> list:
+def web_search_tool(query: Annotated[str, "Search query string."], 
+                    max_results: Annotated[int, "Max number of results to return."] = 5) -> list:
     """
     Perform a web search on the topics and returns structured search results with title, snippet, and URL.
-
-    Args:
-        query (str): Search query
-        max_results (int): Max number of results to return
 
     Returns:
         list of {title, snippet, url}
@@ -234,7 +230,149 @@ def python_repl_tool(code: Annotated[str, "Python code to execute. All generated
     return f"Successfully executed:\n```python\n{code}\n```\nStdout:\n{result}"
 
 
+@tool
+def medical_imaging_rating_guidelines() -> str:
+    """Contains guidelines for grading images for volume rendering
+    
+    **When to use:**
+      - load this prior to grading/rating images for volume rendering quality, especially in medical imaging contexts like CT scans
+      - When the agent needs to evaluate the quality of a volume rendering image, especially for medical imaging like CT scans.
+    """
 
+    print("\n-----medical_imaging_rating_guidelines_tool---\n")
+    logger.info(f"\n\n!!!medical_imaging_rating_guidelines_tool :: returning guidelines\n\n")
+
+    return """
+        agent_name: ct_3d_render_aesthetic_rater
+        version: "1.0"
+        domain: "CT 3D volume rendering (bone-focused)"
+        goal: >
+        Rate images (0–10) for reference-grade CT 3D rendering aesthetics:
+        clean background, disciplined opacity/transfer function, sharp edges,
+        minimal artifacts, balanced lighting, and clinically standard viewpoints.
+
+        inputs:
+        - image: "single CT 3D render (PNG/JPG), typically skull/bone"
+
+        outputs:
+        fields:
+            - final_score: "float, 0.0–10.0"
+            - cap_applied: "null or one of [G1,G2,G3,G4,G5]"
+            - component_scores:
+                BG: "0–5"
+                OP: "0–5"
+                ED: "0–5"
+                AR: "0–5"
+                LT: "0–5"
+                VW: "0–5"
+            - top_penalties: "list of up to 2 reason codes from [BG,OP,ED,AR,LT,VW,AN]"
+            - one_line_rationale: "single sentence"
+            - improvement_hint: "single sentence"
+
+        reason_codes:
+        BG: "background/framing hygiene issues"
+        OP: "opacity/transfer function haze or poor bone isolation"
+        ED: "edge/detail softness or aliasing"
+        AR: "artifacts: banding/striations/ripple/floating fragments"
+        LT: "lighting issues: clipping/hotspots or underexposure"
+        VW: "viewpoint/composition not clinically standard"
+        AN: "annotation/watermark clutter"
+
+        procedure:
+        step_1_gate_caps:
+            description: >
+            Check for failure modes; if present, cap the final score regardless of component sum.
+            gates:
+            - id: G1
+                condition: "major anatomy clipped/truncated (skull not fully in frame)"
+                cap: 7.5
+            - id: G2
+                condition: "strong corner/edge stray geometry or obvious non-anatomical fragments"
+                cap: 8.0
+            - id: G3
+                condition: "heavy opacity fog/smoke obscures key landmarks"
+                cap: 7.0
+            - id: G4
+                condition: "severe highlight clipping (large blown-out regions)"
+                cap: 8.0
+            - id: G5
+                condition: "severe banding/striations/ripple dominating surfaces"
+                cap: 7.5
+            rule: >
+            If multiple gates trigger, use the lowest cap (most restrictive).
+            If none trigger, cap_applied = null and cap = 10.0.
+
+        step_2_component_scoring:
+            scale: "Each component ri is rated 0–5 using anchors below."
+            weights:
+            BG: 0.18
+            OP: 0.24
+            ED: 0.20
+            AR: 0.18
+            LT: 0.12
+            VW: 0.08
+            formula:
+            base_score: "10 * ( Σ_i ( w_i * (r_i / 5) ) )"
+            final_score: "min(cap, base_score)"
+            anchors:
+            BG:
+                5: "uniform black background; skull fully in frame; clean silhouette; no edge clutter"
+                3: "minor vignette/edge distractions; slight framing imperfections"
+                1: "noticeable cropping risk; messy borders; distracting peripheral elements"
+                0: "clear truncation/clipping; dominant border artifacts"
+            OP:
+                5: "bone appears surface-like; minimal low-density haze; stable tone across skull"
+                3: "some fog/haze but landmarks remain readable"
+                1: "significant smoke veil in midface/cranial vault; poor separation"
+                0: "opacity mapping obscures anatomy; rendering looks cloudy/composited"
+            ED:
+                5: "crisp teeth/orbits/nasal aperture; no obvious blur; minimal aliasing"
+                3: "mild softness or mild jagged edges"
+                1: "blur/smear; fine bony boundaries poorly defined"
+                0: "detail largely lost; edges unreliable"
+            AR:
+                5: "minimal banding/striations/ripple; no floating fragments"
+                3: "mild artifacts visible but not attention-grabbing"
+                1: "artifacts compete with anatomy (banding/ripple/floats)"
+                0: "dominant artifacts; anatomy hard to read"
+            LT:
+                5: "controlled highlights; shadows add depth without hiding anatomy"
+                3: "slightly hot teeth/forehead or slightly dark orbits"
+                1: "large hotspots or underexposed regions hide structure"
+                0: "lighting undermines readability (extreme clipping or darkness)"
+            VW:
+                5: "textbook frontal or 3/4; symmetry/landmarks optimized"
+                3: "acceptable angle but not optimal"
+                1: "awkward view obscures key anatomy"
+                0: "viewpoint prevents clinical interpretation"
+
+        step_3_penalties_and_text:
+            top_penalties_rule: >
+            Choose up to 2 reason codes corresponding to the largest visible deficiencies
+            (or the lowest component scores). If an annotation/watermark is prominent,
+            include AN as a penalty.
+            one_line_rationale_template: >
+            "Score reflects {strengths}; deductions mainly for {top_penalties}."
+            improvement_hint_template: >
+            "To improve: {single highest-impact adjustment aligned with penalties}."
+
+        calibration:
+        reference_grade_threshold:
+            rule: >
+            Only allow scores >= 9.5 if:
+            OP >= 4.5 AND ED >= 4.5 AND BG >= 4.5 AND AR >= 4.0 AND LT >= 4.0
+            AND no gate caps triggered.
+        note: >
+            This rubric is tuned to "reference CT 3D" aesthetics rather than artistic style.
+
+        example_output:
+        final_score: 8.6
+        cap_applied: null
+        component_scores: {BG: 4, OP: 4, ED: 4, AR: 4, LT: 3, VW: 5}
+        top_penalties: ["LT", "OP"]
+        one_line_rationale: "Strong framing and viewpoint with good bone emphasis; deductions mainly for LT and OP."
+        improvement_hint: "Reduce hotspot intensity and slightly tighten the opacity window to suppress residual haze."
+        """
 
 @tool
 def volume_rendering_instructions() -> str:

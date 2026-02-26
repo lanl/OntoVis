@@ -26,7 +26,8 @@ from ontovis.tools import (
     image_analysis_tool,
     web_search_tool,
     python_repl_tool,
-    volume_rendering_instructions
+    volume_rendering_instructions,
+    medical_imaging_rating_guidelines
 )
 
 
@@ -167,6 +168,7 @@ class VisExplorer:
             image_analysis_tool,
             python_repl_tool,
             volume_rendering_instructions,
+            medical_imaging_rating_guidelines,
         ]
 
         vis_agent = VisWorker(
