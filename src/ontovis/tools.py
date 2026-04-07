@@ -89,11 +89,10 @@ def execute_python_code(code: str,
         return f"❌ Unexpected error: {str(e)}"
 
 
-
 @tool 
-def image_analysis_tool(image_url: str, 
-                        human_msg: str = "Provide a detailed explanation of this image", 
-                        sys_msg: str = "You are a precise scientific image analysis assistant") -> str:
+def image_analysis_tool(image_url: Annotated[str, "The URL of the image to analyze"], 
+                        human_msg:  Annotated[str, "Provide a detailed explanation of this image"], 
+                        sys_msg: Annotated[str, "System message defining the assistant's role"] = "You are a precise scientific image analysis assistant") -> str:
     """
     Analyze an image from a given URL and return what it contains.
 
@@ -111,7 +110,8 @@ def image_analysis_tool(image_url: str,
 
 
     # Use a vision model to understand the image
-    llm = ChatOpenAI(model="gpt-4o-mini")
+    #llm = ChatOpenAI(model="gpt-4o-mini")
+    llm = ChatOpenAI(model="gpt-5.4")
 
     try:
         with open(image_url, "rb") as f:
@@ -148,8 +148,6 @@ def image_analysis_tool(image_url: str,
     logger.info(f"Image analysis result: {response.content}")
     return response.content
     
-
-
 
 @tool
 def web_search_tool(query: Annotated[str, "Search query string."], 
@@ -200,7 +198,6 @@ def web_search_tool(query: Annotated[str, "Search query string."],
         return [{"message": "No results found"}]
 
     return results
-
 
 
 @tool
@@ -373,6 +370,7 @@ def medical_imaging_rating_guidelines() -> str:
         one_line_rationale: "Strong framing and viewpoint with good bone emphasis; deductions mainly for LT and OP."
         improvement_hint: "Reduce hotspot intensity and slightly tighten the opacity window to suppress residual haze."
         """
+
 
 @tool
 def volume_rendering_instructions() -> str:
