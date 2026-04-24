@@ -26,6 +26,7 @@ from ontovis.tools import (
     image_analysis_tool,
     web_search_tool,
     python_repl_tool,
+    load_anuerism_guidelines,
     volume_rendering_instructions,
     medical_imaging_rating_guidelines
 )
@@ -44,9 +45,64 @@ logger.propagate = False
 class AgentState(TypedDict):
     """State for the DSIExplorer agent graph."""
     messages: Annotated[list, add_messages]
+    plan: str  # The plan created by the planning agent
+    next_agent: str  # Which agent should execute next
     response: str
     metadata: Dict[str, Any]
 
+
+
+class PlanningAgent:
+    """Agent responsible for creating a plan to accomplish visualization tasks."""
+    
+    def __init__(self, llm: ChatOpenAI, workspace_path: str):
+        self.llm = llm
+        self.workspace_path = workspace_path
+        
+        self.system_prompt = SystemMessage(content=f"""You are a Planning Agent specialized in creating detailed plans for data visualization tasks.
+
+Your responsibilities:
+1. Analyze the user's request and break it down into clear, actionable steps
+2. Identify what knowledge/guidelines are needed
+3. Determine what type of visualization is required
+4. Outline the analysis criteria for evaluating the results
+
+When creating a plan:
+- Be specific about data requirements
+- Identify relevant guidelines or knowledge to retrieve
+- Specify the visualization technique needed
+- Define success criteria
+
+Always structure your plan with clear numbered steps.
+All generated files should be saved to: {workspace_path}
+""")
+    
+    def __call__(self, state: AgentState):
+        logger.info("=== PLANNING AGENT EXECUTING ===")
+        
+        # Get only the latest user message and analysis if iterating
+        if state.get("analysis"):
+            # We're iterating - create fresh context
+            messages = [
+                self.system_prompt,
+                state["messages"][0] if state["messages"] else HumanMessage(content="Create a visualization"),
+                HumanMessage(content=f"Previous analysis feedback:\n{state['analysis']}\n\nPlease update the plan accordingly.")
+            ]
+        else:
+            # First time - use initial messages
+            messages = [self.system_prompt] + [state["messages"][0]] if state["messages"] else [self.system_prompt]
+        
+        response = self.llm.invoke(messages)
+        
+        logger.info(f"Planning Agent created plan: {response.content[:200]}...")
+        print(f"The plan is: {response.content}")
+        
+        return {
+            "plan": response.content,
+            # "next_agent": "knowledge_lookup",
+            "messages": [response]
+        }
+    
 
 
 class VisWorker:
@@ -187,6 +243,7 @@ class VisExplorer:
         # Create the agent
         workflow = StateGraph(AgentState)
 
+        workflow.add_node("planning", planning_agent)
         workflow.add_node("VisWorker", vis_agent)
         workflow.add_node("tools", tool_node)
 

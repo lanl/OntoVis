@@ -394,3 +394,153 @@ def volume_rendering_instructions() -> str:
     """
 
     return instructions
+
+
+@tool
+def load_anuerism_guidelines() -> str:
+    """Provides guidelines for grading images of aneurysm volume renderings.
+    
+    Returns:
+        str: guidelines for grading aneurysm volume renderings
+    """
+    print("\n-----load_anuerism_guidelines---\n")
+    logger.info(f"\n\n!!!load_anuerism_guidelines :: executing instructions\n\n")
+
+    guidelines = """
+    guidelines:
+
+        generation_agent:
+            objective: >
+            Produce high-quality 3D volume renderings of cerebral vasculature with a clearly visible aneurysm,
+            matching the clarity, contrast, and structural richness of the reference images.
+
+            data_requirements:
+            modality: CTA or MRA angiographic volume
+            resolution: high (must preserve thin distal vessels)
+            voxel_spacing: near-isotropic
+            preprocessing:
+                - normalize intensities
+                - suppress background (non-vascular tissue)
+                - optional vesselness enhancement (must not oversmooth)
+
+            rendering:
+            technique: direct volume rendering (DVR)
+            projection: perspective
+
+            transfer_functions:
+            color_map:
+                type: grayscale
+                mapping:
+                background: black (0 intensity)
+                vessels: gray to bright white (high intensity)
+            opacity:
+                strategy: sharply isolate
+                control_points:
+                - low_intensity: opacity 0.0
+                - mid_intensity: opacity ~0.15–0.25
+                - high_intensity: opacity ~0.7–0.9
+
+            shading_and_lighting:
+            model: phong or equivalent
+            ambient: low
+            diffuse: medium
+            specular: low to moderate
+            lighting: single directional light
+            goal: enhance cylindrical structure without washing out fine vessels
+
+            rendering_quality:
+            sampling_step: small (high sampling density)
+            interpolation: trilinear
+            depth_cueing: mild
+            edge_enhancement: subtle gradient-based
+
+            expected_output_characteristics:
+            - vessels appear as continuous, smooth, روشن tubular structures
+            - fine branching network is clearly visible (no loss of distal vessels)
+            - background is fully black with minimal noise
+            - aneurysm is clearly distinguishable as a rounded bulge attached to a મુખ્ય vessel
+            - no blocky artifacts, aliasing, or excessive blur
+
+            failure_modes_to_avoid:
+            - over-thresholding that removes small vessels
+            - under-thresholding that introduces background haze
+            - excessive opacity causing vessel merging
+            - low sampling leading to jagged or broken vessels
+
+
+
+        validation_agent:
+            objective: >
+            Evaluate whether a candidate volume rendering matches the visual and structural quality
+            of the reference “ideal” images.
+
+            checks:
+
+            vessel_visibility:
+                criteria:
+                - large vessels are continuous and smooth
+                - medium and small branches are present and not truncated
+                - distal vessel density is high (rich branching structure)
+                failure_if:
+                - missing fine vessels
+                - broken or discontinuous segments
+
+            contrast_and_background:
+                criteria:
+                - background is near पूर्ण black
+                - vessels have strong contrast (bright against dark)
+                failure_if:
+                - gray haze or fog in background
+                - insufficient separation between vessels and background
+
+            opacity_balance:
+                criteria:
+                - vessels are well separated (no excessive merging)
+                - overlap still allows depth perception
+                failure_if:
+                - vessels appear as a solid mass
+                - or too faint/transparent to follow
+
+            aneurysm_visibility:
+                criteria:
+                - a स्पष्ट rounded संरचना attached to a vessel is visible
+                - boundary between aneurysm and parent vessel is perceptible
+                failure_if:
+                - aneurysm not visible or indistinguishable
+                - shape distorted by rendering artifacts
+
+            geometric_fidelity:
+                criteria:
+                - vessels are tubular and smooth
+                - no stair-step or voxel artifacts
+                failure_if:
+                - jagged edges or blockiness
+                - unnatural thickening/thinning
+
+            noise_level:
+                criteria:
+                - minimal speckle outside vessels
+                - slight halo acceptable but not dominant
+                failure_if:
+                - heavy noise obscuring structures
+
+            shading_quality:
+                criteria:
+                - lighting enhances 3D perception
+                - highlights follow vessel curvature
+                failure_if:
+                - flat appearance (no depth cues)
+                - overexposed highlights hiding detail
+
+            scoring:
+            method: checklist or weighted score
+            pass_condition: all major criteria satisfied
+            fail_condition: any critical issue in visibility, contrast, or aneurysm depiction
+
+            output:
+            - pass_or_fail: boolean
+            - issues: list of detected problems
+            - suggestions: targeted fixes (e.g., adjust opacity, increase sampling)
+    """
+
+    return guidelines
