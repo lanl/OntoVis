@@ -109,8 +109,13 @@ class TextViewMatcher:
     # ------------------------------------------------------------------
 
     def _discover_reference_texts(self) -> List[dict]:
-        """Return the view_descriptions.json entries, skipping any that are
-        missing view_name/short_description rather than crashing.
+        """Return the view_descriptions.json entries as (label, text) pairs,
+        skipping any that don't match a known schema rather than crashing.
+
+        Supports both:
+          - the semantic schema:        {"view_name": ..., "short_description": ...}
+          - the neutral graph schema:   {"node_id": ..., "description": ...}
+        (see view_description_generator.py vs. graph_view_description_generator.py)
         """
         entries = json.loads(self.descriptions_path.read_text())
         if not isinstance(entries, list):
@@ -118,15 +123,20 @@ class TextViewMatcher:
 
         valid = []
         for entry in entries:
-            if entry.get("view_name") and entry.get("short_description"):
-                valid.append(entry)
+            label = entry.get("view_name") or entry.get("node_id")
+            text = entry.get("short_description") or entry.get("description")
+            if label and text:
+                valid.append({"view_name": label, "short_description": text})
             else:
-                print(f"[text_view_matcher] WARNING: skipping malformed entry (missing view_name/short_description): {entry}")
+                print(
+                    "[text_view_matcher] WARNING: skipping malformed entry (missing "
+                    f"view_name/node_id or short_description/description): {entry}"
+                )
 
         if not valid:
             raise FileNotFoundError(
-                f"No usable view descriptions (with view_name + short_description) found in "
-                f"{self.descriptions_path}."
+                f"No usable view descriptions (with view_name/node_id + "
+                f"short_description/description) found in {self.descriptions_path}."
             )
         return valid
 

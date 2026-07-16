@@ -21,6 +21,7 @@ def ask_chatgpt(
     screenshot_path: str,
     target_image_path: Optional[str] = None,
     extra_images: Optional[List[Tuple[str, str]]] = None,
+    reference_items: Optional[List[Tuple[str, str, str]]] = None,
     model: Optional[str] = None,
 ) -> str:
     """Send the camera-reasoning prompt and screenshot(s) to the OpenAI API and return the reply text.
@@ -31,6 +32,18 @@ def ask_chatgpt(
     need to show many labeled images at once (e.g. comparing against every
     reference view), without changing the existing screenshot/target_image_path
     behavior at all.
+
+    `reference_items` is an optional list of (label, image_path, description) triples,
+    sent after extra_images. Unlike extra_images, each reference's image is placed
+    immediately followed by its own description text, so the model sees them paired
+    rather than all images first and all descriptions after:
+        [label 1]
+        <image 1>
+        <description 1>
+        [label 2]
+        <image 2>
+        <description 2>
+        ...
 
     `model` falls back to the AI_MODEL env var, then DEFAULT_MODEL. The API base URL
     can be overridden via the AI_URL env var (e.g. to point at an OpenAI-compatible proxy).
@@ -67,6 +80,17 @@ def ask_chatgpt(
             content.append(
                 {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_b64}"}}
             )
+
+    if reference_items:
+        for label, path, description in reference_items:
+            if not Path(path).exists():
+                continue
+            content.append({"type": "text", "text": f"[{label}]"})
+            image_b64 = _encode_image(path)
+            content.append(
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_b64}"}}
+            )
+            content.append({"type": "text", "text": description})
 
     client = OpenAI(api_key=api_key, base_url=base_url)
     response = client.chat.completions.create(

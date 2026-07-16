@@ -1,7 +1,7 @@
 import json
 import shutil
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -15,7 +15,7 @@ from .camera_state import (
     set_camera_state,
 )
 from .chatgpt_client import ask_chatgpt
-from .prompt_writer import write_llm_prompt
+from .prompt_writer import append_attached_image_context, write_llm_prompt
 from .spatial_knowledge import (
     build_camera_view_hint,
     dump_spatial_knowledge_json,
@@ -89,8 +89,23 @@ class CameraReasoningSession:
         self._render_window.Render()
         return self._save_screenshot(action_name=None)
 
-    def write_llm_prompt(self) -> str:
-        """Write the LLM prompt file and return its text content."""
+    def write_llm_prompt(
+        self,
+        reference_items: Optional[List[Tuple[str, str, str]]] = None,
+        candidate_items: Optional[List[Tuple[str, str, str]]] = None,
+    ) -> str:
+        """Write the LLM prompt file and return its text content.
+
+        ``reference_items`` contains stable reference-view examples used to identify and
+        compare viewpoints. ``candidate_items`` normally contains COARSE one-step renders
+        generated from the exact current camera state. Candidate evidence is integrated
+        directly into action-by-action evaluation. A COARSE render also grounds the
+        MEDIUM/FINE actions from the same movement family, with reduced predicted magnitude.
+
+        Both use ``(label, image_path, description)`` triples, but the generated prompt
+        assigns them different semantic roles so the model does not confuse a reference
+        view with an action outcome.
+        """
         self._require_initialized()
         camera_state = get_camera_state(self._renderer.GetActiveCamera())
         camera_view_hint = build_camera_view_hint(self._spatial_data, camera_state)
@@ -103,28 +118,80 @@ class CameraReasoningSession:
             target_image_path=self.target_image_path,
             spatial_context=self._spatial_context,
             camera_view_hint=camera_view_hint,
+            reference_view_items=self._prompt_item_metadata(reference_items),
+            candidate_action_items=self._prompt_item_metadata(candidate_items),
         )
 
-    def ask_chatgpt(self, prompt: Optional[str] = None, model: Optional[str] = None) -> str:
-        """Send a prompt + the current screenshot to the OpenAI API and return the raw reply.
+    def ask_chatgpt(
+        self,
+        prompt: Optional[str] = None,
+        model: Optional[str] = None,
+        reference_items: Optional[List[Tuple[str, str, str]]] = None,
+        candidate_items: Optional[List[Tuple[str, str, str]]] = None,
+    ) -> str:
+        """Send the prompt and all image inputs to the OpenAI API.
 
-        Pass `prompt` to experiment with custom wording instead of the auto-generated one
-        (e.g. write_llm_prompt(), edit the text, then hand it in here). The response is not
-        applied automatically — pass it to process_chatgpt_response() when you're ready.
+        Parameters
+        ----------
+        reference_items:
+            Stable reference views, as ``(label, image_path, description)`` triples.
+            These images ground view recognition and current/target comparison. They are
+            not interpreted as results of camera actions.
+        candidate_items:
+            Counterfactual one-step action renders, using the same triple format. Use the
+            exact COARSE camera action name as each label. The model evaluates that render
+            in the COARSE action row and reuses its direction/effect only for MEDIUM/FINE
+            actions from the same movement family, with a smaller predicted magnitude.
+
+        The lower-level chat client currently exposes one ``reference_items`` attachment
+        channel, so this method concatenates the two groups internally in a deterministic
+        order: reference views first, candidate renders second. Their roles remain separate
+        because the prompt includes two labeled inventories.
         """
         self._require_initialized()
+        reference_view_metadata = self._prompt_item_metadata(reference_items)
+        candidate_action_metadata = self._prompt_item_metadata(candidate_items)
+
         if prompt is None:
-            prompt = self.write_llm_prompt()
+            prompt = self.write_llm_prompt(
+                reference_items=reference_items,
+                candidate_items=candidate_items,
+            )
+        else:
+            # Preserve custom prompts while defining both image groups and integrating
+            # candidate-render evidence into the matching action evaluations.
+            prompt = append_attached_image_context(
+                prompt,
+                reference_view_items=reference_view_metadata,
+                candidate_action_items=candidate_action_metadata,
+            )
+            prompt_path = self.output_dir / "llm_prompt.txt"
+            prompt_path.parent.mkdir(parents=True, exist_ok=True)
+            prompt_path.write_text(prompt)
+
+        attached_items = self._merge_image_items(reference_items, candidate_items)
         return ask_chatgpt(
             prompt=prompt,
             screenshot_path=str(self.output_dir / "screenshots" / "latest.png"),
             target_image_path=self.target_image_path,
+            reference_items=attached_items or None,
             model=model,
         )
 
-    def ask_chatgpt_and_process(self, prompt: Optional[str] = None, model: Optional[str] = None) -> str:
-        """Convenience wrapper: ask_chatgpt() followed by process_chatgpt_response(). Returns the applied action."""
-        response = self.ask_chatgpt(prompt=prompt, model=model)
+    def ask_chatgpt_and_process(
+        self,
+        prompt: Optional[str] = None,
+        model: Optional[str] = None,
+        reference_items: Optional[List[Tuple[str, str, str]]] = None,
+        candidate_items: Optional[List[Tuple[str, str, str]]] = None,
+    ) -> str:
+        """Ask ChatGPT, apply the selected action, and return that action name."""
+        response = self.ask_chatgpt(
+            prompt=prompt,
+            model=model,
+            reference_items=reference_items,
+            candidate_items=candidate_items,
+        )
         print(response)
         return self.process_chatgpt_response(response)
 
@@ -173,6 +240,23 @@ class CameraReasoningSession:
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _prompt_item_metadata(
+        items: Optional[List[Tuple[str, str, str]]],
+    ) -> List[Tuple[str, str]]:
+        """Strip image paths while preserving label/description prompt metadata."""
+        if not items:
+            return []
+        return [(str(label), str(description)) for label, _, description in items]
+
+    @staticmethod
+    def _merge_image_items(
+        reference_items: Optional[List[Tuple[str, str, str]]],
+        candidate_items: Optional[List[Tuple[str, str, str]]],
+    ) -> List[Tuple[str, str, str]]:
+        """Merge attachment groups in the same order declared by the prompt inventories."""
+        return list(reference_items or []) + list(candidate_items or [])
 
     def _log_diagnosis_sections(self, response: str):
         """Best-effort log of the free-form "Visual observation" / "Camera position

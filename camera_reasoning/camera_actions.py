@@ -7,12 +7,14 @@ VALID_ACTIONS = {
     "AZIMUTH_RIGHT_MEDIUM",
     "AZIMUTH_LEFT_FINE",
     "AZIMUTH_RIGHT_FINE",
+    "AZIMUTH_RIGHT_180",
     "ELEVATION_UP_COARSE",
     "ELEVATION_DOWN_COARSE",
     "ELEVATION_UP_MEDIUM",
     "ELEVATION_DOWN_MEDIUM",
     "ELEVATION_UP_FINE",
     "ELEVATION_DOWN_FINE",
+    "ELEVATION_UP_180",
     "ROLL_CW_90",
     "ROLL_CCW_90",
     "ROLL_CW_FINE",
@@ -34,12 +36,14 @@ ACTION_DESCRIPTIONS = {
     "AZIMUTH_RIGHT_MEDIUM":  "orbit camera 15 degrees right",
     "AZIMUTH_LEFT_FINE":     "orbit camera 5 degrees left",
     "AZIMUTH_RIGHT_FINE":    "orbit camera 5 degrees right",
+    "AZIMUTH_RIGHT_180":     "orbit camera 180 degrees right (to the opposite side)",
     "ELEVATION_UP_COARSE":   "orbit camera 45 degrees upward",
     "ELEVATION_DOWN_COARSE": "orbit camera 45 degrees downward",
     "ELEVATION_UP_MEDIUM":   "orbit camera 15 degrees upward",
     "ELEVATION_DOWN_MEDIUM": "orbit camera 15 degrees downward",
     "ELEVATION_UP_FINE":     "orbit camera 5 degrees upward",
     "ELEVATION_DOWN_FINE":   "orbit camera 5 degrees downward",
+    "ELEVATION_UP_180":      "orbit camera 180 degrees upward (to the opposite side)",
     "ROLL_CW_90":            "rotate image clockwise by 90 degrees",
     "ROLL_CCW_90":           "rotate image counterclockwise by 90 degrees",
     "ROLL_CW_FINE":          "rotate image clockwise by 5 degrees",
@@ -72,6 +76,8 @@ def apply_action(action: str, camera, renderer):
         camera.Azimuth(-5)
     elif action == "AZIMUTH_RIGHT_FINE":
         camera.Azimuth(5)
+    elif action == "AZIMUTH_RIGHT_180":
+        camera.Azimuth(180)
     elif action == "ELEVATION_UP_COARSE":
         camera.Elevation(45)
     elif action == "ELEVATION_DOWN_COARSE":
@@ -84,6 +90,8 @@ def apply_action(action: str, camera, renderer):
         camera.Elevation(5)
     elif action == "ELEVATION_DOWN_FINE":
         camera.Elevation(-5)
+    elif action == "ELEVATION_UP_180":
+        camera.Elevation(180)
     elif action == "ROLL_CW_90":
         camera.Roll(90)
     elif action == "ROLL_CCW_90":

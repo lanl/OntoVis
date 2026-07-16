@@ -23,8 +23,19 @@ CLI usage:
       --top-k 5 \\
       --cache reference_embeddings.pkl \\
       --contact-sheet match_results.png
+
+This module also provides GraphImageMatcher/GraphReferenceEmbedding, the
+node_id-based counterpart used by the camera-relative spatial graph
+(camera_spatial_graph.py) — see the section below. Unlike ImageViewMatcher
+(which infers a semantic view_label from filenames/subfolders), GraphImageMatcher
+identifies references purely by neutral node_id, loaded directly from a
+CameraSpatialGraph (itself built from camera_graph.json / camera_nodes.json) — it
+never infers an ID from a filename. ImageViewMatcher/ReferenceEmbedding are left
+unchanged so the existing semantic-label pipeline keeps working as-is.
 """
 import argparse
+import hashlib
+import json
 import pickle
 from dataclasses import dataclass
 from pathlib import Path
@@ -312,8 +323,11 @@ def _aggregate_by_view(scored: List[Tuple[ReferenceEmbedding, float]]) -> List[d
 
 def save_contact_sheet(query_image_path: str, top_matches: List[dict], output_path: str, thumb_size: int = 256) -> None:
     """Save a horizontal strip: the query image, followed by each top-k reference
-    match, each labeled with its rank/view_label/similarity — useful for eyeballing
+    match, each labeled with its rank/label/similarity — useful for eyeballing
     whether the matcher picked a sensible view.
+
+    Works with both ImageViewMatcher.match() top_matches (keyed by "view_label")
+    and GraphImageMatcher.match() top_matches (keyed by "node_id").
     """
     from PIL import ImageDraw
 
@@ -321,7 +335,8 @@ def save_contact_sheet(query_image_path: str, top_matches: List[dict], output_pa
     tiles = [("QUERY", query_img)]
     for m in top_matches:
         img = Image.open(m["reference_image"]).convert("RGB").resize((thumb_size, thumb_size))
-        label = f"{m['rank']}. {m['view_label']} ({m['similarity']:.3f})"
+        match_label = m.get("view_label", m.get("node_id"))
+        label = f"{m['rank']}. {match_label} ({m['similarity']:.3f})"
         tiles.append((label, img))
 
     label_height = 22
@@ -335,6 +350,203 @@ def save_contact_sheet(query_image_path: str, top_matches: List[dict], output_pa
     out_path = Path(output_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     sheet.save(out_path)
+
+
+# ------------------------------------------------------------------
+# Graph-native (node_id-based) matcher — camera-relative spatial graph
+# ------------------------------------------------------------------
+
+@dataclass
+class GraphReferenceEmbedding:
+    node_id: str
+    image_path: str
+    embedding: np.ndarray  # L2-normalized, shape (D,)
+
+
+def _graph_fingerprint(nodes: Dict[str, dict]) -> str:
+    """Stable hash over (node_id, image_path, image_mtime) triples. Used to
+    invalidate a GraphImageMatcher's embedding cache automatically if the
+    underlying graph, its image set, OR an image's on-disk content changes —
+    without requiring the caller to remember to pass force=True. The mtime is
+    what catches the case where camera_relative_views.py (or any other
+    generator) rewrites the same file paths with different content (e.g. a
+    different dataset), which node_id/image_path alone would miss.
+    """
+    entries = []
+    for node_id, data in nodes.items():
+        image_path = data.get("image_path")
+        try:
+            mtime = Path(image_path).stat().st_mtime
+        except (OSError, TypeError):
+            mtime = None
+        entries.append((node_id, image_path, mtime))
+    payload = json.dumps(sorted(entries))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+class GraphImageMatcher:
+    """Image-embedding matcher keyed by neutral graph node_id, the node_id-based
+    counterpart to ImageViewMatcher for the camera-relative spatial graph
+    (camera_spatial_graph.CameraSpatialGraph). Does NOT involve an LLM anywhere
+    in matching: query image -> image embedding -> nearest graph node is a
+    fully deterministic CLIP-embedding + cosine-similarity lookup.
+
+    Typical usage:
+        graph = CameraSpatialGraph.from_json("reference_views_relative/camera_graph.json")
+        matcher = GraphImageMatcher(graph, cache_path="reference_views_relative/graph_embeddings.pkl")
+        matcher.build_index()
+        result = matcher.match("current_screenshot.png", top_k=5)
+        route = graph.route(result["best_node_id"], target_node_id)
+    """
+
+    def __init__(
+        self,
+        graph,
+        model_name: str = DEFAULT_MODEL_NAME,
+        cache_path: Optional[str] = None,
+        device: Optional[str] = None,
+    ):
+        self.graph = graph
+        self.model_name = model_name
+        self.cache_path = Path(cache_path) if cache_path else None
+        self.device = _resolve_device(device)
+
+        self._model = None
+        self._processor = None
+        self.index: List[GraphReferenceEmbedding] = []
+        self._fingerprint = _graph_fingerprint(graph.nodes)
+
+    def _ensure_model_loaded(self) -> None:
+        if self._model is not None:
+            return
+        from transformers import CLIPModel, CLIPProcessor
+
+        print(f"[image_view_matcher] Loading {self.model_name!r} on {self.device}...")
+        self._model = CLIPModel.from_pretrained(self.model_name).to(self.device).eval()
+        self._processor = CLIPProcessor.from_pretrained(self.model_name)
+
+    def encode_image(self, image_path: str) -> np.ndarray:
+        self._ensure_model_loaded()
+        import torch
+
+        path = Path(image_path)
+        if not path.exists():
+            raise FileNotFoundError(f"Image not found: {path}")
+
+        image = Image.open(path).convert("RGB")
+        inputs = self._processor(images=image, return_tensors="pt")
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
+        with torch.no_grad():
+            features = self._model.get_image_features(**inputs)
+
+        vector = features[0].cpu().numpy().astype(np.float32)
+        return _normalize(vector)
+
+    def build_index(self, force: bool = False) -> None:
+        if not force and self.cache_path and self.cache_path.exists():
+            try:
+                self.load_cache()
+                print(f"[image_view_matcher] Loaded {len(self.index)} cached graph-node embeddings from {self.cache_path}")
+                return
+            except Exception as e:
+                print(f"[image_view_matcher] Cache unusable ({e}); rebuilding graph index.")
+
+        self._ensure_model_loaded()
+        self.index = []
+        for node_id, data in self.graph.nodes.items():
+            image_path = data["image_path"]
+            embedding = self.encode_image(image_path)
+            self.index.append(GraphReferenceEmbedding(node_id=node_id, image_path=image_path, embedding=embedding))
+            print(f"[image_view_matcher] Encoded {node_id}: {Path(image_path).name}")
+
+        print(f"[image_view_matcher] Built graph index of {len(self.index)} nodes.")
+        if self.cache_path:
+            self.save_cache()
+
+    def save_cache(self) -> None:
+        if not self.cache_path:
+            return
+        self.cache_path.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "model_name": self.model_name,
+            "graph_version": getattr(self.graph, "version", None),
+            "graph_fingerprint": self._fingerprint,
+            "entries": [
+                {"node_id": r.node_id, "image_path": r.image_path, "embedding": r.embedding}
+                for r in self.index
+            ],
+        }
+        with open(self.cache_path, "wb") as f:
+            pickle.dump(payload, f)
+        print(f"[image_view_matcher] Cached {len(self.index)} graph-node embeddings to {self.cache_path}")
+
+    def load_cache(self) -> None:
+        if not self.cache_path or not self.cache_path.exists():
+            raise FileNotFoundError(f"No cache file at {self.cache_path}")
+        with open(self.cache_path, "rb") as f:
+            payload = pickle.load(f)
+        if payload.get("model_name") != self.model_name:
+            raise ValueError(
+                f"Cache was built with model {payload.get('model_name')!r}, but this "
+                f"matcher is configured for {self.model_name!r}."
+            )
+        if payload.get("graph_fingerprint") != self._fingerprint:
+            raise ValueError(
+                "Cache was built from a different graph/image set (node IDs or image "
+                "paths changed) — stale, must be rebuilt."
+            )
+        self.index = [
+            GraphReferenceEmbedding(node_id=e["node_id"], image_path=e["image_path"], embedding=e["embedding"])
+            for e in payload["entries"]
+        ]
+
+    def match(self, query_image_path: str, top_k: int = 5) -> dict:
+        """Compare a query screenshot against the graph-node index.
+
+        Returns:
+            {
+              "query_image": str,
+              "best_node_id": str or None,
+              "confidence_margin": float or None,
+              "is_ambiguous": bool,
+              "top_matches": [{"rank", "node_id", "reference_image", "similarity"}, ...],
+            }
+        """
+        if not self.index:
+            self.build_index()
+
+        query_embedding = self.encode_image(query_image_path)
+        scored = [(ref, float(np.dot(query_embedding, ref.embedding))) for ref in self.index]
+        scored.sort(key=lambda item: item[1], reverse=True)
+
+        top_matches = [
+            {
+                "rank": i + 1,
+                "node_id": ref.node_id,
+                "reference_image": ref.image_path,
+                "similarity": round(score, 6),
+            }
+            for i, (ref, score) in enumerate(scored[:top_k])
+        ]
+
+        best_node_id = top_matches[0]["node_id"] if top_matches else None
+        confidence_margin = None
+        is_ambiguous = True
+        if len(top_matches) >= 2:
+            confidence_margin = round(top_matches[0]["similarity"] - top_matches[1]["similarity"], 6)
+            is_ambiguous = confidence_margin < AMBIGUITY_THRESHOLD
+        elif len(top_matches) == 1:
+            confidence_margin = top_matches[0]["similarity"]
+            is_ambiguous = False
+
+        return {
+            "query_image": str(query_image_path),
+            "best_node_id": best_node_id,
+            "confidence_margin": confidence_margin,
+            "is_ambiguous": is_ambiguous,
+            "top_matches": top_matches,
+        }
 
 
 # ------------------------------------------------------------------

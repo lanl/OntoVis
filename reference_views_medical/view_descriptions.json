@@ -1,0 +1,26 @@
+[
+  {
+    "view_name": "Dorsal",
+    "short_description": "This is a dorsal view showing the top side of the foot bones, displaying the metatarsals and phalanges of all five toes with the proximal portions of the metatarsals visible at the bottom of the image."
+  },
+  {
+    "view_name": "Plantar",
+    "short_description": "View from the bottom or sole side of the foot, showing the plantar surface of the metatarsals and phalanges with the calcaneus and tarsal bones visible proximally. The five metatarsal heads and toe bones are clearly visible from their inferior aspect."
+  },
+  {
+    "view_name": "Medial",
+    "short_description": "Medial view of the foot bones showing the big-toe side, with the calcaneus and tarsal bones visible at the proximal end, the metatarsals in the midfoot, and the phalanges extending distally. The medial longitudinal arch is clearly visible from this perspective."
+  },
+  {
+    "view_name": "Lateral",
+    "short_description": "This lateral view shows the outer (little-toe) side of the foot bones, displaying the metatarsals, cuboid, and calcaneus with clear visualization of the longitudinal arch structure. The fifth metatarsal and lateral tarsal bones are prominently visible from this perspective."
+  },
+  {
+    "view_name": "Distal",
+    "short_description": "View from the toe-end of the foot looking toward the ankle, showing the distal ends of the metatarsals and phalanges. The five rays of the toes are visible from their tips, displaying the rounded articular surfaces and distal phalanges."
+  },
+  {
+    "view_name": "Proximal",
+    "short_description": "View from the ankle-end of the foot bones, showing the proximal articular surfaces of the metatarsals and tarsals. The bases of all five metatarsals are visible with the tarsal bones arranged behind them."
+  }
+]

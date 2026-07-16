@@ -32,7 +32,7 @@ PROMPT_TEMPLATE = """You are describing a rendered image of foot bones from a sp
 
 The reference view name is: {view_name}
 
-Generate a concise structured description of this image.
+Generate as detailed a description of this image as possible.
 
 Return only valid JSON with the following fields:
 - view_name
@@ -47,7 +47,12 @@ Definitions:
 - proximal = ankle or heel-end direction
 
 Rules:
-- The short_description should be one or two sentences.
+- The short_description should be a thorough, multi-sentence paragraph (not just one
+  or two sentences). Cover: the overall viewing direction/angle, which named bone
+  groups are visible (phalanges, metatarsals, tarsals, calcaneus, etc.) and roughly
+  where each sits in the frame (top/bottom/left/right/center/foreground/background),
+  the visible silhouette/contour and any arches or curves, and any structures that
+  are foreshortened, occluded, or only partially visible from this angle.
 - Do not include camera movement advice.
 - Do not include extra explanation outside the JSON.
 """
