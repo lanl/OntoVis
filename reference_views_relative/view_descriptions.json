@@ -1,74 +1,74 @@
 [
   {
     "node_id": "view_000",
-    "description": "This view captures the skull with a prominent display of dental structures filling the central frame. The object is oriented such that multiple rows of teeth are clearly visible in the middle of the image, forming the most recognizable landmark. Large orbital cavities are positioned symmetrically on either side of a central nasal opening, creating a distinctive triad of dark voids. The skull appears slightly tilted, with the dental arcade and facial openings angled toward the viewer, while broader cranial surfaces extend outward to the left and right edges."
+    "description": "The image shows the frontal view of a 3D human skull model featuring the nasal cavity and teeth prominently. The eye sockets are visible but partially obscured by surrounding structures. The detail of the nasal opening dominates the center of the image, with the upper jaw and teeth lining the bottom half."
   },
   {
     "node_id": "view_001",
-    "description": "This view captures the skull from an oblique angle that reveals both a smooth, rounded cranial vault on the screen left and a highly irregular, fragmented region occupying the screen right half. The smooth cranial surface curves prominently in the left foreground, displaying subtle surface contours and a few small dark openings. The right side shows extensive fragmentation with jagged edges, irregular cavities, and a chaotic texture that contrasts sharply with the intact left portion. A large, roughly circular orbital opening is visible near the center-right, partially obscured by surrounding fragmented bone. The view emphasizes the stark transition from smooth, continuous bone structure to heavily disrupted anatomy."
+    "description": "The image shows the human skull with a prominent jaw and cheekbone structure. Visible teeth and a large eye socket are evident, adding depth and detail to the view. The texture appears to be somewhat deteriorated, possibly due to rendering quality."
   },
   {
     "node_id": "view_002",
-    "description": "This view shows the skull from below, revealing the basal surface with prominent openings and bony structures. The large central opening (foramen magnum) is clearly visible in the center, surrounded by complex bone textures and protrusions. Two large rounded cavities on the right side of the image appear to be orbital sockets viewed from below. The palate with dental arcade is visible in the upper portion, showing individual tooth sockets. Numerous rendering artifacts appear as scattered point clouds around the edges and through some openings."
+    "description": "The view prominently features the central teeth and nasal opening, with an irregular and damaged upper skull area. The jaw is noticeably visible towards the bottom, and some parts of the left side appear cut away or obscured. The overall appearance is detailed but irregular, with textures and fragments surrounding the visible structures."
   },
   {
     "node_id": "view_003",
-    "description": "This view shows the interior base and internal structure of a human skull, captured from below looking upward into the cranial cavity. The perspective reveals complex internal architecture including visible foramina, bony ridges, sutures, and structural details of the cranial floor. Multiple large openings and passages are clearly visible across the surface, along with intricate texturing and irregular bony protrusions. The skull appears fragmented or sectioned, exposing internal surfaces not normally visible from external views."
+    "description": "The view displays a human skull with prominent jaw and dental features. The lower jaw appears large and detailed, occupying the bottom right of the image. The nasal cavity is visible near the center left, with substantial surrounding bone structure showing complex surface textures. The top of the skull is heavily occluded, with fragmented regions suggesting damage or an incomplete rendering."
   },
   {
     "node_id": "view_004",
-    "description": "This view captures the skull from below, looking upward into the cranial base and interior structures. The image is dominated by a large elongated curved bone element that arches across the center from left to right, positioned in the foreground. Behind this arch, the complex interior architecture of the skull base is visible, showing numerous irregular openings, ridges, and recessed areas. A row of teeth is clearly visible on the right side of the image, embedded in what appears to be the maxilla or mandible. The perspective reveals deep internal cavities and foramina that would normally be hidden from exterior views."
+    "description": "The image shows a partial side view of a human skull with a prominent jawbone extending towards the right. Visible upper teeth are aligned in the middle-right below a heavily eroded upper section. Large fragmented areas dominate the upper-left, suggesting erosion or missing parts."
   },
   {
     "node_id": "view_005",
-    "description": "This view captures the skull from a perspective that strongly emphasizes the dental arcade and palate, viewed from below and slightly to one side. The upper teeth are clearly visible in a curved row occupying the center-left portion of the image, with individual tooth crowns and gaps clearly distinguished. The surrounding bone structure forms a broad, smooth platform that extends toward the screen top and left, while the right side shows complex internal bone surfaces and large irregular openings. The viewpoint looks into the skull's interior, revealing structural depth and hollow spaces."
+    "description": "The view captures the lower half of the skull predominantly occupying the screen, with the upper section appearing fragmented and irregular. The eye sockets are visible but obscured by structural distortions and debris. The nasal cavity is moderately clear and centrally positioned, descending towards the bottom of the image."
   },
   {
     "node_id": "view_006",
-    "description": "This view shows the skull oriented with a large opening dominating the center of the frame, revealing dental structures arranged in rows extending toward the top of the image. The prominent upper and lower tooth rows are clearly visible in the central region. Two large irregular openings with complex internal structure occupy the left and right sides of the image. The view captures a broad, symmetrical presentation with extensive bone surface visible across all regions, and scattered rendering artifacts appear as detached fragments around the periphery."
+    "description": "The image shows a 3D-rendered skull with a focus on the dental region, where both upper and lower rows of teeth are visible. The nasal cavity is prominently open at the top center. The cheekbones appear visibly on both sides, curving outward and upward."
   },
   {
     "node_id": "view_007",
-    "description": "This view shows the skull rotated approximately 90 degrees, presenting what appears to be an inferior or base-oriented perspective. The dental arcade with upper teeth is prominently displayed in the center-left, while the right side reveals complex fragmented structures with deep recesses and irregular bony surfaces. A separate curved bone fragment with visible teeth appears detached in the upper-left portion of the image. The overall silhouette is wide and somewhat horizontal, with intricate bone texture and multiple cavities visible across the surface."
+    "description": "The rendered image shows a complex internal view of a human skull, focusing on intricate structures. The scene is heavily detailed, highlighting multiple intersecting components at different depths. Visible contours include both rounded and irregular forms, with a pronounced central cluster."
   },
   {
     "node_id": "view_008",
-    "description": "This view presents the skull from an inferior and oblique angle, revealing the underside and interior structures. The maxilla with upper dentition is prominently visible in the left-center region, showing a full row of teeth. The right side of the image displays extensive interior cranial structures including intricate bone textures and internal cavities. A large curved mandibular body segment appears at the bottom-left, separated from the main skull. The view captures the skull tilted such that the palate and internal vault structures are simultaneously visible, creating a complex three-dimensional arrangement."
+    "description": "This view displays the inside of the skull with a distinct arch of teeth and upper jaw dominating the upper section. The central aspect reveals intricate bone structures with numerous small openings and irregular contours indicating complex internal anatomy. The depth and layering of the visible parts provide a rich and detailed view of the inner features."
   },
   {
     "node_id": "view_009",
-    "description": "This view captures the skull from an oblique angle that emphasizes the underside and lateral aspects simultaneously. A prominent row of teeth is clearly visible in the left portion of the screen, curving from center-left toward the bottom-left. The broad, smooth cranial vault occupies the upper portion, while the right side shows heavily degraded or fragmented bone structures with numerous irregular protrusions and gaps. The underside of the skull, including large openings and bone processes, is partially visible in the lower-center and right portions of the image."
+    "description": "This view prominently shows the lower jawbone and teeth towards the foreground, with a complex and fragmented arrangement of the upper structure visible in the center and top areas. The left side features a curved boundary leading to a larger opening, while the right side is marked by an irregular, fragmented mass of bony structures obstructing clear visibility."
   },
   {
     "node_id": "view_010",
-    "description": "This view shows the skull rotated to expose the interior base and palatal region along with a profile perspective. The upper row of teeth is clearly visible in the left-center area, with individual tooth crowns and roots distinguishable. A large circular opening, likely corresponding to the foramen magnum, is prominent in the lower-center region. The right side displays substantial internal structural detail with rough, textured surfaces and complex bony morphology. Significant rendering artifacts appear as scattered fragments and noise throughout the image, especially on the right side and upper regions."
+    "description": "The image captures a 3D skull model predominantly from a side angle, emphasizing the prominent cheekbone structure. The model displays a complex arrangement of bony protrusions and cavities, with a large triangular opening clearly visible. Rendering artifacts are evident, particularly in the form of noise distributed over the surface, which gives the model a textured appearance."
   },
   {
     "node_id": "view_011",
-    "description": "This view captures the skull from an oblique angle showing the internal aspect of a side region with prominent dental structures. Two distinct rows of teeth are clearly visible in the center of the image, with upper teeth appearing more rounded and lower teeth showing flatter occlusal surfaces. The view reveals the interior curvature of a large bony plate extending from screen left toward the top, while complex bony fragments and irregular structures frame the upper portion. A detached fragment containing several teeth is visible at the far left edge of the frame."
+    "description": "The view shows an intricate rendering of a human skull's right side, with a focus on the jaw and mouth. The image's top section is heavily obscured by complex artifacts, giving a textured appearance. The lower jaw is prominently visible with distinct teeth evident, while the upper structure appears fragmented."
   },
   {
     "node_id": "view_012",
-    "description": "This view captures the skull at an oblique angle showing a complex arrangement of dental and facial structures. A row of molar teeth is prominently displayed near the center-right, clearly visible from their occlusal surfaces. The skull appears tilted and rotated such that both interior and exterior surfaces are simultaneously visible, with large curved bone plates dominating the left side and upper portions. The view reveals significant depth variation, with dental structures in the middle-ground and broad bone surfaces receding into the background."
+    "description": "The image shows a detailed perspective of the skull with a prominent display of the upper jaw and teeth slightly angled towards the background. A significant bone protrusion is visible at the top left of the image, while the lower jaw appears to extend towards the foreground on the image's right. Parts of the surrounding bone structure appear fragmented or irregular, suggesting potential rendering artifacts or occlusion."
   },
   {
     "node_id": "view_013",
-    "description": "This view presents the skull from an oblique inferior angle, revealing extensive internal and basal structures. The cranial vault appears as a large smooth dome occupying the upper portion of the image, while the central and lower regions expose a complex array of internal bone plates, fragments, and openings. Multiple rows of teeth are visible on the left side, providing a strong directional cue. The right side and center display heavily fragmented or degraded internal structures with numerous irregular edges and voids."
+    "description": "The image shows a fractured and fragmented human skull with significant disarray and lack of structure. A large, curved protrusion is prominent on the left side. At the center, a chaotic mass of smaller components and textures fills the view, obscuring typical skull landmarks. The jaw is visible at the bottom, angling upward with distinct teeth showing in the middle-ground and heavily occluded upper structures."
   },
   {
     "node_id": "view_014",
-    "description": "This view presents a heavily fragmented skull seen from an oblique angle that reveals both the maxilla with visible tooth row on the left side and a complex interior cavity structure dominating the center and right portions. The mandible is visible at the bottom as a smooth, curved element, appearing largely intact compared to the fragmented cranial vault above. Large circular openings, likely orbits, are prominent in the right-center region, surrounded by extensively damaged bone with numerous detached fragments creating a scattered halo effect. The overall composition shows significant structural degradation in the upper and central regions while the lower jaw remains relatively coherent."
+    "description": "A detailed view of a human skull showing the jaw structure prominently in the foreground, with numerous teeth visible. The nasal cavity is partially visible at the top center, with bony textures evident throughout. There is significant depth perception visible as the jawbone extends towards the lower center of the image."
   },
   {
     "node_id": "view_015",
-    "description": "This view shows the skull oriented to prominently display two rows of teeth and dental arcade structures spanning diagonally from center-left to lower-right. A large curved bone plate occupies the upper portion of the image, showing textured internal surface detail. The teeth are arranged in clear parallel rows with individual crowns visible, separated by a horizontal elongated bone element crossing the mid-section. The silhouette is complex with irregular edges and fragmented portions, particularly visible on the left side and upper regions."
+    "description": "The view shows a heavily distorted and fragmented structure of a human skull. The central area is dominated by a rough, irregular surface with multiple fractures and crevices. A large circular opening is visible at the bottom-left, leading into a dark interior."
   },
   {
     "node_id": "view_016",
-    "description": "This view captures the skull from an oblique angle showing a complex arrangement where the upper and lower dental arches are prominently visible, oriented diagonally across the frame. A large, smooth curved bone structure sweeps across the center from left to right in the foreground, partially obscuring interior structures. Multiple rows of teeth are clearly visible in both the upper and lower jaws, positioned in the upper-center and center regions. The skull appears rotated and tilted such that internal and external surfaces create an intricate layered composition with significant depth variation."
+    "description": "The image depicts a detailed lateral view of the skull, emphasizing the jaw and dental structures. A prominent angular structure is visible centrally, possibly representing the zygomatic arch extending into the foreground. Clustered circular elements resembling teeth occupy a large portion of the image near the lower and right areas. There are scattered surface irregularities suggesting potential rendering artifacts across the surface of the visible bones."
   },
   {
     "node_id": "view_017",
-    "description": "This view captures the skull from an oblique angle emphasizing the internal and inferior structures. The dominant features are a large smooth curved vault occupying the left screen region, a complex cluster of fragmented and textured bone in the upper center-right, and prominent dental structures with clearly visible individual teeth in the lower left foreground. The skull appears tilted with extensive internal anatomy exposed, showing multiple overlapping bone fragments and cavities throughout the right half of the image. The view reveals substantial depth variation from the smooth rounded vault surface to the intricate fragmented regions."
+    "description": "The image displays a human skull from an oblique angle, showcasing the lateral aspect with significant emphasis on the zygomatic arch and visible maxillary teeth. A complex mosaic of small fragmented components appears around the nasal aperture, adding a textured complexity to the view."
   }
 ]
