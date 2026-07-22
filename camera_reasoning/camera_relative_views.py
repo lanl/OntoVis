@@ -117,9 +117,11 @@ ROOT_CAMERA = RootCameraCalibration(
     position=(-624.664, 118.625, 121.945),
     focal_point=(142.426, 118.625, 121.945),
 
-    # REQUIRED DATASET CALIBRATION. Verify these against the volume orientation.
+    # REQUIRED DATASET CALIBRATION for the skull volume.
+    # The deterministic descriptions in reference_views.json are calculated
+    # from these axes. In this dataset, anatomical left points toward -Y.
     object_anterior_world=(-1.0, 0.0, 0.0),
-    object_left_world=(0.0, 1.0, 0.0),
+    object_left_world=(0.0, -1.0, 0.0),
     object_up_world=(0.0, 0.0, 1.0),
 
     # Used for pole views where object_up_world points into/out of the screen.

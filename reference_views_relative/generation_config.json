@@ -17,7 +17,7 @@
     ],
     "object_left_world": [
       0.0,
-      1.0,
+      -1.0,
       0.0
     ],
     "object_up_world": [

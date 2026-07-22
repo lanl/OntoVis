@@ -1,0 +1,28 @@
+{
+  "object_id": "skull",
+  "object_context": "human skull",
+  "dataset_directory": "reference_views_medical/skull",
+  "seeds": [
+    {
+      "node_id": "skull_001",
+      "view_label": "right"
+    },
+    {
+      "node_id": "skull_002",
+      "view_label": "front"
+    },
+    {
+      "node_id": "skull_003",
+      "view_label": "left"
+    }
+  ],
+  "rotations": [
+    45,
+    90,
+    135,
+    180,
+    225,
+    270,
+    315
+  ]
+}

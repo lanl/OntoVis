@@ -24,12 +24,17 @@ Scope: candidates are the four movement families that have COARSE/MEDIUM/FINE
 magnitude variants — AZIMUTH_LEFT, AZIMUTH_RIGHT, ELEVATION_UP, ELEVATION_DOWN —
 rendered ONLY at COARSE (their full-magnitude outcome); MEDIUM and FINE are never
 directly rendered, only reasoned about as smaller interpolations along the same
-visually observed trajectory. Plus two fixed, single-outcome candidates with no
-magnitude variants at all — AZIMUTH_RIGHT_180, ELEVATION_UP_180 (see
-FIXED_BLIND_ACTIONS) — whose magnitude cannot be varied, so Pass 3 is skipped for
-them entirely. STOP remains directly selectable (deterministically, by Python —
-see "Three-pass architecture" below); UNDO_LAST is not selectable by either LLM
-pass in this refactor (see "UNDO_LAST" below).
+visually observed trajectory. Plus fixed, single-outcome candidates with no
+magnitude variants at all — AZIMUTH_RIGHT_180, ELEVATION_UP_180, and STOP (see
+FIXED_BLIND_ACTIONS) — whose magnitude cannot be varied, so Pass 3 is skipped
+for them entirely. STOP is now a genuine blind candidate: it gets an opaque ID
+and a "rendered" image that is simply the current render (render_candidate_rollouts
+already special-cases this), so Pass 1 diagnoses it exactly like any other
+candidate and Pass 2's normal ranking can select it. Pass 2 ALSO still has a
+separate, independent fixed-threshold STOP check that can short-circuit before
+ranking even runs (see select_candidate_from_diagnosis) — both paths can
+produce "STOP", which is fine, they're not mutually exclusive. UNDO_LAST is not
+selectable by either LLM pass in this refactor (see "UNDO_LAST" below).
 
 ------------------------------------------------------------------------------
 Three-pass architecture
@@ -53,27 +58,44 @@ authoritative and a later free-form step can never override it:
                      STOP/UNDO_LAST — its only job is an honest, structured,
                      human-readable description of what is visible.
 
-                     As of this revision, Pass 1 is additionally REFERENCE-
-                     GROUNDED (see "Reference grounding" below): rather than
-                     inventing its own left/right/frontal/etc. labels, it must
-                     visually match each image (target, current, and every
-                     candidate) to the single closest supplied reference view
-                     and copy that reference's deterministic, camera-metadata-
-                     derived description verbatim as the primary orientation
-                     anchor for its diagnosis.
+                     Pass 1 is additionally REFERENCE-GROUNDED (see "Reference
+                     grounding" below): a bank of reference-view images is
+                     attached alongside the candidates, and for the target,
+                     the current render, and every candidate, Pass 1 must
+                     report by eye which reference view (if any) it most
+                     resembles, a categorical match quality, and a required
+                     explanation of what's visually different when the match
+                     isn't exact. This is an LLM judgment, not a Python
+                     precomputation — an earlier revision used deterministic
+                     CLIP image-embedding retrieval instead, but that proved
+                     unreliable on this dataset (see "Reference grounding").
 
   Pass 2 (Python):  select_candidate_from_diagnosis()
-                     Pure Python, no LLM call. Deterministically selects a
-                     candidate from Pass 1's structured diagnosis using an
-                     eligibility rule (target_progress == "toward") and a
-                     numeric ranking (similarity_score, then confidence, then
+                     Pure Python, no LLM call. Every candidate is eligible;
+                     deterministically selects the best-ranked one from Pass
+                     1's structured diagnosis by numeric ranking
+                     (similarity_score, then confidence, then
                      reference_match_confidence, then stable order) — or
                      deterministically returns STOP if the current render
                      already satisfies fixed similarity/confidence thresholds
-                     and no candidate offers a meaningful improvement. A
-                     candidate diagnosed as "away" can never be selected, no
-                     matter how high its similarity_score is: the categorical
-                     diagnosis is authoritative over the numeric score.
+                     and the best-ranked candidate doesn't offer a meaningful
+                     improvement. There is no longer a categorical
+                     target_progress eligibility gate — an earlier revision of
+                     this pipeline had one, but it was an LLM trajectory
+                     judgment that could block selection outright even when a
+                     candidate's similarity_score showed real improvement, so
+                     it was removed in favor of ranking by the numeric score
+                     alone (always the LLM's own estimate — no image
+                     embeddings anywhere in this module).
+
+                     If EVERY candidate's reference_match_quality is
+                     "unclear" (a narrow reference bank has nothing to say
+                     about any of them), numeric ranking is skipped in favor
+                     of an exploration fallback: continue the same movement
+                     direction as the last applied action if one of this
+                     iteration's candidates continues it, else pick one
+                     arbitrarily — see "Reference-bank exploration fallback"
+                     in select_candidate_from_diagnosis's docstring.
 
   Pass 3 (LLM):     estimate_selected_candidate_magnitude()
                      Only called for a scalable-family candidate (never for
@@ -102,38 +124,46 @@ reuses:
 Reference grounding
 ------------------------------------------------------------------------------
 
-The reference views supplied via `reference_items` (typically the calibrated
-camera-relative graph bank in reference_views_relative/) each carry a
-deterministic description generated OFFLINE from known camera metadata — not
-guessed by an LLM. Because that description is anchored to an actual calibrated
-camera position, it is a far more reliable orientation label than anything an
-LLM could invent by eyeballing a single render in isolation.
+An earlier revision of this module replaced LLM-judged reference matching with
+deterministic CLIP image-embedding retrieval (cosine similarity via a
+GraphImageMatcher), on the theory that a plain nearest-neighbor lookup would be
+more consistent than an LLM's eye. In practice, on this dataset (18 skull
+isosurface renders that all share nearly identical color/composition/texture
+and differ only in fine geometric rotation), CLIP-ViT-B/32 embeddings turned
+out NOT to be reliable — verified directly by comparing a candidate render
+against its claimed closest reference image side by side: the two did not
+actually look alike, while the top-2/top-3 CLIP scores for that same candidate
+were within noise of each other (~0.91-0.95 cosine similarity band, no clear
+separation). So this module has been reverted to LLM-judged visual matching.
 
-Pass 1 is required to use these descriptions as its primary orientation anchor,
-via this reasoning order for the target, the current render, and every
-candidate:
+Reference grounding is now performed by Pass 1 itself, by eye, against a bank
+of attached reference-view images (built by `_build_reference_bank_items()`
+from `reference_image_paths` (a plain node_id -> image_path dict) +
+`node_descriptions`). Every reference image is attached to the Pass 1 request,
+each immediately followed by its own deterministic description, labeled
+"[REFERENCE_<node_id>]". For the target (if a target image was given), the
+current render, and every candidate, Pass 1 must report which reference image
+(if any) looks most similar, a categorical `reference_match_quality`
+(exact/close/partial/distant/unclear — see the prompt template), and a
+required `reference_match_differences` explanation of what's visually
+different when the match isn't exact. This directly answers "is it really
+similar, or only the closest of a bad set of options" rather than presenting a
+single point-estimate confidence number as fact.
 
-    image
-      -> visually compare against every supplied reference image
-      -> pick the single closest reference (by viewpoint geometry, not
-         appearance, filename, or ID text)
-      -> copy that reference's description EXACTLY (never paraphrased)
-      -> describe how the image differs from that reference, if at all
-      -> use this reference-grounded diagnosis when judging target progress
+`reference_image_paths`/`node_descriptions` being unavailable (or a node's
+image missing on disk) simply drops that reference from the attached bank; if
+the bank ends up empty, Pass 1 is told explicitly that no reference bank was
+provided and must answer null/"unclear"/an explanatory note for every image.
+Deliberately decoupled from any particular dataset format — a CameraSpatialGraph
+bank (camera_graph.json) and a flat photo bank with no graph/edges concept at
+all can both be used, as long as the caller reduces it to node_id -> path.
 
-`closest_reference_description` must be either the verbatim catalog string for
-`closest_reference_id`, or exactly "unclear" when `closest_reference_id` is
-`None` (used only when no supplied reference is a reasonable match). The
-validator (`_validate_visual_diagnosis`) enforces the exact-match requirement
-and never silently repairs a mismatched or invented description — it raises
-BlindSelectionError instead.
-
-Reference matching in this module is visual-only: the model is never told how
-the references were generated, their camera positions, azimuth/elevation
-values, parent/child relationships, or the movement family used to render them.
-The reference catalog it receives is exactly the (reference_id -> description)
-pairs already being sent as `reference_items` to `ask_chatgpt` — build with
-`_build_reference_catalog()`.
+This module no longer uses image embeddings (CLIP or otherwise) anywhere. An
+earlier revision also used a CLIP embedding matcher to override `similarity_score`
+with direct cosine similarity against a target IMAGE — that has been removed
+too, per explicit request to drop image-embedding dependence entirely.
+`similarity_score` is now always the LLM's own judgment, for every field, in
+every case.
 
 ------------------------------------------------------------------------------
 UNDO_LAST
@@ -167,10 +197,15 @@ from .visual_rollout_agent import render_candidate_rollouts
 SCALABLE_MOVEMENT_FAMILIES = {"AZIMUTH_LEFT", "AZIMUTH_RIGHT", "ELEVATION_UP", "ELEVATION_DOWN"}
 
 # Complete, single-outcome actions that also get a blind candidate + rendered
-# image, but have no magnitude variants to interpolate — there is no "reduced" or
-# "minimal" 180-degree rotation, so Pass 3 (magnitude estimation) is skipped
-# entirely for these. Their movement_family IS the final action, verbatim.
-FIXED_BLIND_ACTIONS = {"AZIMUTH_RIGHT_180", "ELEVATION_UP_180"}
+# image, but have no magnitude variants to interpolate, so Pass 3 (magnitude
+# estimation) is skipped entirely for these. Their movement_family IS the final
+# action, verbatim. STOP's "render" is just the current image (see
+# render_candidate_rollouts in visual_rollout_agent.py, which already special-
+# cases STOP this way, reused unmodified) — the LLM diagnoses it exactly like
+# any other candidate, so Pass 2's ranking can naturally favor stopping when
+# the STOP-candidate (identical to current) already looks close enough to the
+# target, in addition to Pass 2's separate fixed-threshold STOP check.
+FIXED_BLIND_ACTIONS = {"AZIMUTH_RIGHT_180", "ELEVATION_UP_180", "STOP"}
 
 BLIND_CANDIDATE_ACTION_SUBSET = {f"{family}_COARSE" for family in SCALABLE_MOVEMENT_FAMILIES} | FIXED_BLIND_ACTIONS
 
@@ -182,13 +217,21 @@ BLIND_CANDIDATE_DESCRIPTION = "A full-magnitude candidate render generated from 
 
 _CANDIDATE_ID_ALPHABET = string.ascii_uppercase + string.digits
 
-_TARGET_PROGRESS_VALUES = {"toward", "away", "ambiguous", "no_change"}
 _MAGNITUDE_VALUES = {"full", "reduced", "minimal"}
 
-# reference_id -> deterministic, camera-metadata-derived description. Built from
-# the same (label, image_path, description) triples already passed as
-# `reference_items` to ask_chatgpt — see _build_reference_catalog().
-ReferenceCatalog = Dict[str, str]
+# The reference-quality categories Pass 1 must choose from when reporting how
+# closely an image matches its claimed closest reference view (see module
+# docstring, "Reference grounding"). Mapped to a numeric confidence purely for
+# Pass 2's existing numeric ranking tie-breaker — the LLM never outputs a raw
+# float itself, only the category.
+REFERENCE_MATCH_QUALITY_LEVELS = {"exact", "close", "partial", "distant", "unclear"}
+REFERENCE_MATCH_QUALITY_CONFIDENCE = {
+    "exact": 1.0,
+    "close": 0.8,
+    "partial": 0.5,
+    "distant": 0.2,
+    "unclear": 0.0,
+}
 
 
 class BlindSelectionError(ValueError):
@@ -217,6 +260,28 @@ def _movement_family_from_action(action: str) -> str:
     if action.endswith("_COARSE"):
         return action[: -len("_COARSE")]
     raise ValueError(f"unsupported blind candidate action: {action!r}")
+
+
+def _movement_family_from_applied_action(action: Optional[str]) -> Optional[str]:
+    """Best-effort movement-family extraction from a REAL, already-applied
+    action name (e.g. the most recent entry in session._action_history), for
+    the "continue the same direction" exploration fallback in
+    select_candidate_from_diagnosis (see "Reference-bank exploration fallback"
+    in the module docstring). Unlike _movement_family_from_action (which only
+    accepts THIS iteration's blind candidate actions, COARSE-only, and raises
+    on anything else), this accepts any already-applied action, including
+    MEDIUM/FINE magnitude variants — and returns None (never raises) for
+    STOP/UNDO_LAST or an unrecognized action, since there's no "direction" to
+    continue in that case.
+    """
+    if not action or action in ("STOP", "UNDO_LAST"):
+        return None
+    if action in FIXED_BLIND_ACTIONS:
+        return action
+    for suffix in ("_COARSE", "_MEDIUM", "_FINE"):
+        if action.endswith(suffix):
+            return action[: -len(suffix)]
+    return None
 
 
 def _generate_opaque_candidate_id(existing: Set[str]) -> str:
@@ -274,42 +339,84 @@ def _find_candidate_image_path(batch: BlindCandidateBatch, candidate_id: str) ->
 
 
 # ------------------------------------------------------------------
-# Reference catalog (deterministic, camera-metadata-derived descriptions used
-# to ground Pass 1's orientation diagnosis)
+# Reference bank: attach every reference-view image to Pass 1 so the LLM can
+# visually judge the match itself (see module docstring, "Reference
+# grounding"). No image embeddings are used anywhere in this module —
+# `reference_image_paths` is a plain node_id -> image_path dict, deliberately
+# decoupled from any particular graph/dataset format (e.g. a CameraSpatialGraph
+# bank with camera_graph.json, or a flat photo bank with no graph/edges concept
+# at all — both just need a node_id -> path mapping).
 # ------------------------------------------------------------------
 
-def _build_reference_catalog(
-    reference_items: Optional[List[Tuple[str, str, str]]],
-) -> ReferenceCatalog:
-    """Build a validated {reference_id: description} catalog from the same
-    (reference_id, image_path, description) triples already passed as
-    `reference_items` to ask_chatgpt.
+REFERENCE_LABEL_PREFIX = "REFERENCE_"
 
-    The description text is passed through completely unchanged — it is never
-    regenerated or paraphrased by an LLM here; it is expected to already be the
-    deterministic, camera-metadata-derived description produced offline (e.g.
-    by graph_view_description_generator.py).
+# Reference images larger than this on their longest side are downscaled (and
+# cached) before being attached — some banks (e.g. reference_views_medical/,
+# real photos rather than small VTK renders) are large enough that attaching
+# all of them plus the candidates in one Pass 1 call can exceed the model's
+# context window. 800 matches the size of the known-working VTK-render banks
+# (reference_views_relative/, 800x800), so those pass through unchanged.
+REFERENCE_BANK_MAX_DIMENSION = 800
+_REFERENCE_BANK_RESIZE_CACHE_DIRNAME = ".blind_rollout_resized_cache"
 
-    Raises ValueError if any reference_id is empty/duplicate, any description is
-    empty, or any image_path does not exist on disk.
+
+def _resized_reference_image_path(image_path: str, max_dimension: int = REFERENCE_BANK_MAX_DIMENSION) -> str:
+    """Return image_path unchanged if it's already <= max_dimension on its
+    longest side; otherwise downscale it (preserving aspect ratio) and return
+    a path to a cached copy instead. The cache lives in a sibling
+    ".blind_rollout_resized_cache/" directory next to the source image, keyed
+    by filename + max_dimension, and is reused across iterations/runs as long
+    as the source file's mtime hasn't changed since the cached copy was made —
+    resizing 15 reference images on every single Pass 1 call would otherwise
+    add real latency for no benefit, since the bank doesn't change mid-run.
     """
-    catalog: ReferenceCatalog = {}
-    if not reference_items:
-        return catalog
+    from PIL import Image as PILImage
 
-    for reference_id, image_path, description in reference_items:
-        if not isinstance(reference_id, str) or not reference_id.strip():
-            raise ValueError(f"reference_items contains an empty/invalid reference_id: {reference_id!r}")
-        if reference_id in catalog:
-            raise ValueError(f"reference_items contains a duplicate reference_id: {reference_id!r}")
-        if not isinstance(description, str) or not description.strip():
-            raise ValueError(f"reference_items[{reference_id!r}] has an empty description")
-        if not Path(image_path).exists():
-            raise ValueError(f"reference_items[{reference_id!r}] image_path does not exist: {image_path!r}")
+    source = Path(image_path)
+    with PILImage.open(source) as probe:
+        width, height = probe.size
+    if max(width, height) <= max_dimension:
+        return image_path
 
-        catalog[reference_id] = description
+    cache_dir = source.parent / _REFERENCE_BANK_RESIZE_CACHE_DIRNAME
+    cache_path = cache_dir / f"{source.stem}_{max_dimension}{source.suffix}"
+    if cache_path.exists() and cache_path.stat().st_mtime >= source.stat().st_mtime:
+        return str(cache_path)
 
-    return catalog
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    with PILImage.open(source) as img:
+        scale = max_dimension / max(width, height)
+        resized = img.convert("RGB").resize(
+            (round(width * scale), round(height * scale)), PILImage.LANCZOS
+        )
+        resized.save(cache_path)
+    return str(cache_path)
+
+
+def _build_reference_bank_items(
+    reference_image_paths: Optional[Dict[str, str]],
+    node_descriptions: Optional[Dict[str, str]],
+) -> List[Tuple[str, str, str]]:
+    """Build (label, image_path, description) triples for every reference view
+    that has both a known description and an existing image file on disk,
+    sorted by node_id for a stable prompt order. Returns [] if no
+    reference_image_paths/node_descriptions were supplied, or nothing resolves
+    to an existing image — Pass 1 is told explicitly when the bank is empty.
+
+    Oversized images are downscaled (see _resized_reference_image_path) before
+    being included, to avoid blowing the model's context window when many
+    reference images are attached alongside the candidates in one Pass 1 call.
+    """
+    if not reference_image_paths or not node_descriptions:
+        return []
+
+    items: List[Tuple[str, str, str]] = []
+    for node_id, description in sorted(node_descriptions.items()):
+        image_path = reference_image_paths.get(node_id)
+        if not image_path or not Path(image_path).exists():
+            continue
+        items.append((f"{REFERENCE_LABEL_PREFIX}{node_id}", _resized_reference_image_path(image_path), description))
+    return items
 
 
 # ------------------------------------------------------------------
@@ -345,24 +452,29 @@ def _format_target_image_line(target_image_path: Optional[str]) -> str:
     return ""
 
 
-def _format_reference_items_line(reference_items: Optional[List[Tuple[str, str, str]]]) -> str:
-    if reference_items:
+def _format_reference_bank_block(reference_bank_items: List[Tuple[str, str, str]]) -> str:
+    """Describe the attached reference bank (or its absence) for the Pass 1
+    prompt. The images themselves are attached separately via reference_items
+    (see diagnose_blind_candidates) — this text just orients the model to what
+    it's looking at and lists the exact valid IDs it may answer with.
+    """
+    if not reference_bank_items:
         return (
-            "  Labeled reference-view images are also attached above the candidates below, each in the\n"
-            "   form \"[REFERENCE_VIEW] reference_id: <id> description: <deterministic description>\"\n"
-            "   followed by its image. These descriptions were generated offline from known, calibrated\n"
-            "   camera positions — they are NOT LLM guesses and are NOT camera-action instructions.\n"
+            "No reference bank was provided for this iteration — no reference images are\n"
+            "attached. For every image below, set closest_reference_id to null,\n"
+            "reference_match_quality to \"unclear\", and briefly note in\n"
+            "reference_match_differences that no reference bank was available."
         )
-    return ""
 
-
-def _format_reference_catalog_block(reference_catalog: ReferenceCatalog) -> str:
-    if not reference_catalog:
-        return "No reference views were supplied for this iteration."
-    lines = ["Supplied reference catalog (reference_id -> deterministic description):"]
-    for reference_id, description in reference_catalog.items():
-        lines.append(f'  - {reference_id}: "{description}"')
-    return "\n".join(lines)
+    node_ids = [label[len(REFERENCE_LABEL_PREFIX):] for label, _, _ in reference_bank_items]
+    return (
+        f"{len(reference_bank_items)} reference-view images are attached below, each preceded by\n"
+        f"its own label (e.g. \"[{reference_bank_items[0][0]}]\") and immediately followed by its own\n"
+        "short, deterministic description. These are canonical camera viewpoints of the same\n"
+        "object, NOT candidates — do not select one as your answer, only compare against them.\n"
+        f"Valid reference IDs (answer with the ID only, no \"{REFERENCE_LABEL_PREFIX}\" prefix): "
+        + ", ".join(node_ids)
+    )
 
 
 # ------------------------------------------------------------------
@@ -371,8 +483,8 @@ def _format_reference_catalog_block(reference_catalog: ReferenceCatalog) -> str:
 # ------------------------------------------------------------------
 
 BLIND_VISUAL_DIAGNOSIS_PROMPT_TEMPLATE = """You are visually diagnosing a set of rendered camera viewpoints by comparing
-them to a target viewpoint and to a supplied set of reference views — never by
-reasoning about labels, identifiers, or action-name words.
+them to a target viewpoint — never by reasoning about labels, identifiers, or
+action-name words.
 
 This is a DIAGNOSIS STAGE ONLY. Do not select a candidate. Do not recommend a
 magnitude. Do not output STOP. Do not output UNDO_LAST. The candidate selection
@@ -380,56 +492,16 @@ will be performed deterministically by Python from your structured diagnosis
 below — your only job is to produce an honest, structured, human-readable visual
 diagnosis of what is actually visible in each image.
 
-REFERENCE GROUNDING — READ CAREFULLY
+REFERENCE VIEW BANK
 
-The supplied reference views are orientation anchors. Each reference image has a
-deterministic description generated from its known, calibrated camera position.
-Treat that description as authoritative for the reference image — it was NOT
-guessed by an LLM, and it is more reliable than any orientation label you could
-invent yourself from a single render.
-
-{reference_catalog_block}
-
-Before diagnosing the target, the current render, or ANY candidate, follow this
-exact procedure for that image:
-
-1. Inspect the image.
-2. Compare it visually against every supplied reference image.
-3. Identify the single reference view with the most similar GLOBAL viewpoint
-   geometry (not appearance, not lighting, not local anatomy).
-4. Copy that reference's supplied description EXACTLY, character for character,
-   into `closest_reference_description`. Do not paraphrase it, reword it,
-   summarize it, or "improve" it.
-5. Explain the visual evidence for the match in `reference_match_evidence`.
-6. Describe any visible difference between the analyzed image and the matched
-   reference in `view_description` (e.g. "closest to the left lateral
-   reference, but slightly more oblique").
-7. Use this reference-grounded diagnosis — not an independently invented
-   left/right/frontal/posterior/superior/inferior/oblique label — as the basis
-   for comparing the candidate with the target.
-
-Do NOT infer orientation from candidate IDs, reference IDs, filenames, node
-order, graph position, parent IDs, known camera actions, or any assumption
-about how the references were generated. Reference matching must use image
-content only. A reference ID such as "view_003" is an opaque identifier; its
-number carries no semantic orientation information.
-
-Do NOT independently invent a contradictory orientation label after selecting a
-reference. The selected reference's description is the primary orientation
-anchor for that image — your own `view_description` may only note deviations
-from it, never replace it with a different, self-invented direction claim.
-
-If no supplied reference is a reasonable match for an image, set
-`closest_reference_id` to null and `closest_reference_description` to exactly
-"unclear" — but only when no reference is reasonably similar. If one reference
-is clearly the closest even though it is not an exact match, select it and
-describe the difference in `view_description` rather than falling back to null.
+{reference_bank_block}
 
 You are given, in order:
 
 1. The CURRENT rendered image before any movement.
 2. The target view: {target_description}
-   {target_image_line}{reference_items_line}  3. Several candidate images, each preceded by an opaque identifier such as
+   {target_image_line}3. The reference bank described above (if any).
+4. Several candidate images, each preceded by an opaque identifier such as
    "[CANDIDATE_K7P4Q]".
 
 Candidate IDs are meaningless, randomly generated, regenerated every iteration,
@@ -444,11 +516,9 @@ what changed.
 
 {neutral_history_block}
 
-GLOBAL VIEWPOINT REASONING (used for reference matching AND for judging
-candidate/target similarity)
+GLOBAL VIEWPOINT REASONING (used for judging candidate/target similarity)
 
-To determine which reference is closest, and to judge similarity to the target,
-compare global viewpoint evidence such as:
+To judge similarity to the target, compare global viewpoint evidence such as:
 
 * which broad object surfaces are visible;
 * relative exposure of frontal, lateral, rear, upper, or lower surfaces;
@@ -462,7 +532,7 @@ compare global viewpoint evidence such as:
 * foreshortening of major object axes.
 
 Prioritize coherent changes across the whole object over isolated changes in one
-small feature. Do NOT choose a closest reference, or reward a candidate, because:
+small feature. Do NOT reward a candidate because:
 
 * one tooth, cavity, or edge is clearer or sharper;
 * the lighting or rendering color happens to be similar;
@@ -470,29 +540,11 @@ small feature. Do NOT choose a closest reference, or reward a candidate, because
 * one isolated landmark happens to look alike;
 * more detail is visible or the image is easier to interpret.
 
-Reference matching and target-progress judgments must prioritize camera
-viewpoint over appearance. When the target image comes from another source,
-rendering style, object instance, lighting condition, or dataset, ignore
-lighting, texture, color, exact object shape, rendering style, image quality,
-and missing/damaged local anatomy — use only viewpoint-relevant geometry.
-
-TARGET-PROGRESS RULES
-
-* When a candidate's closest reference is the SAME reference as the target's
-  closest reference, this is strong evidence of target progress (`toward`) —
-  but you must still check whether the candidate is actually closer to the
-  target than the current render already was; matching the same broad
-  reference class does not automatically mean the candidate improved if the
-  current render was already at least as close.
-* When a candidate's closest reference is geometrically OPPOSITE to the
-  target's closest reference orientation, this is strong evidence that the
-  candidate moves away (`away`).
-* A candidate that visibly faces the opposite direction from the target should
-  normally be diagnosed with target_progress "away".
-* Do not force positive evidence for every candidate — if there is no evidence
-  that a candidate helps, state that plainly instead of rationalizing it.
-* Reference-view images are visual anchors only. They show what certain views
-  look like, not which action should be selected.
+Similarity judgments must prioritize camera viewpoint over appearance. When the
+target image comes from another source, rendering style, object instance,
+lighting condition, or dataset, ignore lighting, texture, color, exact object
+shape, rendering style, image quality, and missing/damaged local anatomy — use
+only viewpoint-relevant geometry.
 
 Respond with STRICT JSON ONLY — no prose before or after the JSON, no Markdown
 commentary outside the JSON itself. You may wrap the JSON in a single Markdown
@@ -502,32 +554,28 @@ Use exactly this JSON structure:
 
 {{
   "target": {{
-    "closest_reference_id": "view_000",
-    "closest_reference_description": "Exact copy of that reference's supplied description.",
-    "reference_match_confidence": 0.0,
-    "reference_match_evidence": "Visual evidence supporting the reference match.",
-    "view_description": "How the target compares to the matched reference, including any deviation."
+    "view_description": "What is visually apparent about the target's viewpoint.",
+    "closest_reference_id": "view_XXX or null",
+    "reference_match_quality": "exact | close | partial | distant | unclear",
+    "reference_match_differences": "What is visually different from the matched reference, if anything."
   }},
   "current": {{
-    "closest_reference_id": "view_001",
-    "closest_reference_description": "Exact copy of that reference's supplied description.",
-    "reference_match_confidence": 0.0,
-    "reference_match_evidence": "Visual evidence supporting the reference match.",
-    "view_description": "How the current render compares to the matched reference, including any deviation.",
+    "view_description": "What is visually apparent about the current render's viewpoint.",
     "difference_from_target": "Direct visual comparison with the target.",
+    "closest_reference_id": "view_XXX or null",
+    "reference_match_quality": "exact | close | partial | distant | unclear",
+    "reference_match_differences": "What is visually different from the matched reference, if anything.",
     "similarity_score": 0,
     "confidence": 0.0
   }},
   "candidates": [
     {{
       "candidate_id": "CANDIDATE_XXXXX",
-      "closest_reference_id": "view_002",
-      "closest_reference_description": "Exact copy of that reference's supplied description.",
-      "reference_match_confidence": 0.0,
-      "reference_match_evidence": "Visual evidence supporting the reference match.",
-      "view_description": "How this candidate compares to the matched reference, including any deviation.",
-      "comparison_to_target": "Direct comparison between this candidate's reference-grounded diagnosis and the target's.",
-      "target_progress": "toward | away | ambiguous | no_change",
+      "view_description": "What is visually apparent about this candidate's viewpoint.",
+      "comparison_to_target": "Direct visual comparison between this candidate and the target.",
+      "closest_reference_id": "view_XXX or null",
+      "reference_match_quality": "exact | close | partial | distant | unclear",
+      "reference_match_differences": "What is visually different from the matched reference, if anything.",
       "similarity_score": 0,
       "confidence": 0.0
     }}
@@ -536,29 +584,39 @@ Use exactly this JSON structure:
 
 Field requirements:
 
-* `closest_reference_id` must be either one of the supplied reference IDs, or
-  `null` if (and only if) no reference is reasonably similar.
-* `closest_reference_description` must be the EXACT supplied description string
-  for `closest_reference_id` when it is not null, or exactly "unclear" when
-  `closest_reference_id` is null. Never paraphrase the canonical description.
-* `reference_match_confidence` (target, current, and every candidate) must be a
-  number from 0.0 to 1.0.
-* `reference_match_evidence` and `view_description` must be non-empty and
-  written so a human reviewing this diagnosis later can understand your
+* `view_description` (target, current, and every candidate) must be non-empty
+  and written so a human reviewing this diagnosis later can understand your
   reasoning without seeing the images.
+* `closest_reference_id` (target, current, and every candidate): the reference
+  bank ID (e.g. "view_007", no "{reference_label_prefix}" prefix) whose image looks most
+  similar to THIS image's viewpoint, or null if nothing in the bank resembles
+  it well enough to call it a meaningful match, or if no reference bank was
+  provided, or (target only) if no target image was attached for you to judge
+  against the bank yourself.
+* `reference_match_quality`: one of "exact" (essentially indistinguishable),
+  "close" (very similar, only minor differences), "partial" (recognizably
+  related but a clearly different angle), "distant" (only weak resemblance —
+  the least-dissimilar option available, not a real match), or "unclear" (use
+  only when closest_reference_id is null).
+* `reference_match_differences`: REQUIRED, non-empty. Describe concretely what
+  is visually different between this image and its matched reference (e.g.
+  "rotated further right than the reference, exposing more posterior
+  surface"). If reference_match_quality is "exact", say so explicitly (e.g.
+  "No meaningful difference observed") instead of leaving this vague. If
+  closest_reference_id is null, briefly say why (e.g. "no reference bank was
+  provided" or "no target image was attached").
 * `similarity_score` (target is not scored; current and every candidate) must
   be an integer from 0 to 100, where 100 means the viewpoint visually matches
   the target's side/orientation as closely as possible and 0 means it is
-  maximally different.
+  maximally different. This is always your own honest estimate — nothing
+  overrides it.
 * `confidence` (current and every candidate) must be a number from 0.0 to 1.0.
 * Every candidate ID shown to you must appear exactly once in "candidates".
 * Do not invent candidate IDs that were not shown to you.
 * Do not omit any candidate ID that was shown to you.
 * Do not duplicate any candidate ID.
 * Do not include a `facing_direction`, `vertical_orientation`, or
-  `target_orientation_match` field anywhere — orientation must come only from
-  `closest_reference_description`, `reference_match_evidence`, and
-  `view_description`.
+  `target_orientation_match` field anywhere.
 """
 
 
@@ -702,66 +760,92 @@ def _require_confidence(container: dict, key: str, context: str) -> float:
     return value
 
 
-def _validate_reference_grounding(
-    container: dict,
-    context: str,
-    valid_reference_catalog: ReferenceCatalog,
+def _validate_view_description(container: dict, context: str) -> dict:
+    return {"view_description": _require_str(container, "view_description", context)}
+
+
+def _validate_reference_match(
+    container: dict, context: str, valid_node_ids: Set[str], node_descriptions: Dict[str, str]
 ) -> dict:
-    """Validate the reference-grounding fields (closest_reference_id,
-    closest_reference_description, reference_match_confidence,
-    reference_match_evidence, view_description) shared by target/current/every
-    candidate. Raises BlindSelectionError on an invented reference ID, a
-    mismatched/paraphrased description, or an inconsistent null/"unclear" pair
-    — never silently corrects any of these.
+    """Validate the LLM's own reference-bank judgment for one image:
+    `closest_reference_id`/`reference_match_quality`/`reference_match_differences`
+    (see module docstring, "Reference grounding" — this replaced deterministic
+    CLIP-embedding matching after it proved unreliable on this dataset).
+
+    `closest_reference_id` must be null, or a string matching one of the node
+    IDs actually attached this iteration (a "{REFERENCE_LABEL_PREFIX}" prefix
+    is tolerated and stripped, in case the model echoes the label verbatim).
+    `reference_match_quality` must be a known category, and must be "unclear"
+    exactly when closest_reference_id is null (and never "unclear" otherwise)
+    — an inconsistent pairing is treated as an invalid response, same as any
+    other malformed field, rather than silently repaired.
+    `reference_match_differences` is always required and non-empty.
+
+    Also computes `reference_match_confidence` (a fixed numeric mapped from
+    `reference_match_quality`, see REFERENCE_MATCH_QUALITY_CONFIDENCE) and
+    `closest_reference_description` (looked up locally, not restated by the
+    LLM) purely so downstream code (Pass 2 ranking, trace/console formatting)
+    that expects those fields keeps working unchanged.
     """
-    if "closest_reference_id" not in container:
-        raise BlindSelectionError(f"{context}: missing required field 'closest_reference_id'")
-    raw_reference_id = container["closest_reference_id"]
-
-    if raw_reference_id is None:
+    raw_id = container.get("closest_reference_id")
+    closest_reference_id: Optional[str]
+    if raw_id is None:
         closest_reference_id = None
-        expected_description = "unclear"
+    elif isinstance(raw_id, str):
+        candidate_id = raw_id.strip()
+        if candidate_id.startswith(REFERENCE_LABEL_PREFIX):
+            candidate_id = candidate_id[len(REFERENCE_LABEL_PREFIX):]
+        if candidate_id not in valid_node_ids:
+            raise BlindSelectionError(
+                f"{context}: field 'closest_reference_id' {raw_id!r} is not among this iteration's "
+                f"attached reference IDs: {sorted(valid_node_ids)}"
+            )
+        closest_reference_id = candidate_id
     else:
-        if not isinstance(raw_reference_id, str) or not raw_reference_id.strip():
-            raise BlindSelectionError(
-                f"{context}: field 'closest_reference_id' must be null or a non-empty string; "
-                f"got {raw_reference_id!r}"
-            )
-        if raw_reference_id not in valid_reference_catalog:
-            raise BlindSelectionError(
-                f"{context}: closest_reference_id {raw_reference_id!r} is not among the supplied "
-                f"reference catalog: {sorted(valid_reference_catalog)}"
-            )
-        closest_reference_id = raw_reference_id
-        expected_description = valid_reference_catalog[raw_reference_id]
+        raise BlindSelectionError(f"{context}: field 'closest_reference_id' must be a string or null; got {raw_id!r}")
 
-    closest_reference_description = _require_str(container, "closest_reference_description", context)
-    if closest_reference_description != expected_description:
+    quality = _require_enum(container, "reference_match_quality", REFERENCE_MATCH_QUALITY_LEVELS, context)
+    if (closest_reference_id is None) != (quality == "unclear"):
         raise BlindSelectionError(
-            f"{context}: 'closest_reference_description' must exactly equal the catalog description "
-            f"for closest_reference_id={closest_reference_id!r}. Expected {expected_description!r}, "
-            f"got {closest_reference_description!r}. Paraphrasing the canonical description is not allowed."
+            f"{context}: 'reference_match_quality' ({quality!r}) is inconsistent with "
+            f"'closest_reference_id' ({closest_reference_id!r}) — quality must be \"unclear\" if and "
+            "only if closest_reference_id is null"
         )
+
+    differences = _require_str(container, "reference_match_differences", context)
 
     return {
         "closest_reference_id": closest_reference_id,
-        "closest_reference_description": closest_reference_description,
-        "reference_match_confidence": _require_confidence(container, "reference_match_confidence", context),
-        "reference_match_evidence": _require_str(container, "reference_match_evidence", context),
-        "view_description": _require_str(container, "view_description", context),
+        "closest_reference_description": (
+            node_descriptions.get(closest_reference_id, "unclear") if closest_reference_id else "unclear"
+        ),
+        "reference_match_quality": quality,
+        "reference_match_differences": differences,
+        "reference_match_confidence": REFERENCE_MATCH_QUALITY_CONFIDENCE[quality],
+        "reference_match_evidence": f"LLM visual comparison against the attached reference bank (quality={quality}).",
     }
 
 
 def _validate_visual_diagnosis(
     diagnosis: dict,
     valid_candidate_ids: Set[str],
-    valid_reference_catalog: ReferenceCatalog,
+    valid_reference_node_ids: Set[str],
+    node_descriptions: Dict[str, str],
 ) -> dict:
     """Validate the Pass 1 structured diagnosis. Raises BlindSelectionError on
-    any missing field, out-of-range score, invalid enum value, candidate-set
-    mismatch (missing, duplicate, or unknown candidate IDs), invented reference
-    ID, or mismatched/paraphrased reference description. Never repairs a
+    any missing field, out-of-range score, invalid enum value, or candidate-set
+    mismatch (missing, duplicate, or unknown candidate IDs). Never repairs a
     semantically invalid diagnosis — only well-formed, complete diagnoses pass.
+
+    Reference-bank matching (closest_reference_id/reference_match_quality/
+    reference_match_differences) is now the LLM's own visual judgment,
+    validated by `_validate_reference_match` against `valid_reference_node_ids`
+    (the set of node IDs actually attached this iteration) — see module
+    docstring, "Reference grounding".
+
+    `similarity_score` (current and every candidate) is always the LLM's own
+    judgment — this module has no image-embedding fallback or override
+    anywhere.
 
     Returns a normalized copy (candidate IDs upper-cased for consistent lookup;
     all other fields unchanged) rather than mutating the input.
@@ -774,11 +858,15 @@ def _validate_visual_diagnosis(
         raise BlindSelectionError("diagnosis missing required array field 'candidates'")
 
     target = diagnosis["target"]
-    validated_target = _validate_reference_grounding(target, "target", valid_reference_catalog)
+    validated_target = {
+        **_validate_view_description(target, "target"),
+        **_validate_reference_match(target, "target", valid_reference_node_ids, node_descriptions),
+    }
 
     current = diagnosis["current"]
     validated_current = {
-        **_validate_reference_grounding(current, "current", valid_reference_catalog),
+        **_validate_view_description(current, "current"),
+        **_validate_reference_match(current, "current", valid_reference_node_ids, node_descriptions),
         "difference_from_target": _require_str(current, "difference_from_target", "current"),
         "similarity_score": _require_score(current, "similarity_score", "current"),
         "confidence": _require_confidence(current, "confidence", "current"),
@@ -808,11 +896,9 @@ def _validate_visual_diagnosis(
         validated_candidates.append(
             {
                 "candidate_id": candidate_id,
-                **_validate_reference_grounding(candidate, context, valid_reference_catalog),
+                **_validate_view_description(candidate, context),
+                **_validate_reference_match(candidate, context, valid_reference_node_ids, node_descriptions),
                 "comparison_to_target": _require_str(candidate, "comparison_to_target", context),
-                "target_progress": _require_enum(
-                    candidate, "target_progress", _TARGET_PROGRESS_VALUES, context
-                ),
                 "similarity_score": _require_score(candidate, "similarity_score", context),
                 "confidence": _require_confidence(candidate, "confidence", context),
             }
@@ -834,62 +920,106 @@ def _validate_visual_diagnosis(
 # grounded visual diagnosis only — no selection, no magnitude, no STOP/UNDO_LAST
 # ------------------------------------------------------------------
 
+def candidate_diagnosis_to_current(candidate_diagnosis: dict) -> dict:
+    """Reshape a selected candidate's validated diagnosis into "current" shape.
+
+    Used to carry a candidate's own diagnosis forward as next iteration's
+    "current" once it's actually applied, instead of asking the LLM to
+    re-diagnose the same rendered image again from scratch next iteration —
+    which could disagree with what it already said about it as a candidate
+    this iteration (drops "candidate_id", renames "comparison_to_target" to
+    "difference_from_target"; every other field is identical between the two
+    schemas — see _validate_visual_diagnosis).
+    """
+    current = {k: v for k, v in candidate_diagnosis.items() if k not in ("candidate_id", "comparison_to_target")}
+    current["difference_from_target"] = candidate_diagnosis["comparison_to_target"]
+    return current
+
+
 def diagnose_blind_candidates(
     current_image_path: str,
     batch: BlindCandidateBatch,
     target_description: str,
     target_image_path: Optional[str] = None,
-    reference_items: Optional[List[Tuple[str, str, str]]] = None,
+    reference_image_paths: Optional[Dict[str, str]] = None,
+    node_descriptions: Optional[Dict[str, str]] = None,
     action_history: Optional[List[Dict]] = None,
     model: Optional[str] = None,
+    frozen_target: Optional[dict] = None,
+    carried_current: Optional[dict] = None,
 ) -> dict:
-    """Ask the LLM to produce a structured, reference-grounded visual diagnosis
-    of the target, the current render, and every opaque candidate — with no
-    candidate selection, magnitude recommendation, or STOP/UNDO_LAST anywhere in
-    this pass.
+    """Ask the LLM to produce a structured visual diagnosis of the target, the
+    current render, and every opaque candidate — with no candidate selection,
+    magnitude recommendation, or STOP/UNDO_LAST anywhere in this pass.
 
-    `reference_items` (label, image_path, description) triples are used both as
-    ask_chatgpt attachments AND as the authoritative reference catalog the model
-    must ground its diagnosis in (see module docstring, "Reference grounding").
-    The descriptions are passed through unchanged — never regenerated here.
+    Reference grounding is the LLM's own visual judgment: every reference view
+    (built by `_build_reference_bank_items` from `reference_image_paths`
+    (node_id -> image_path) + `node_descriptions`) is attached as an image
+    alongside the candidates, and Pass 1 must report, per image, which
+    reference (if any) it resembles, how closely (`reference_match_quality`),
+    and what's different when it's not an exact match
+    (`reference_match_differences`) — see module docstring, "Reference
+    grounding". No image embeddings are used anywhere in this module;
+    `similarity_score` is always the LLM's own estimate too.
+
+    `frozen_target`, if given, REPLACES the LLM's own "target" diagnosis this
+    call with the fixed value from the run's first iteration — the model is
+    still asked to describe the target (the prompt/schema don't change), but
+    its answer for "target" is discarded, so a static target image can never
+    drift to a different view_description/closest_reference_id purely from
+    LLM sampling noise across iterations.
+
+    `carried_current`, if given, similarly REPLACES the LLM's own "current"
+    diagnosis with the previous iteration's already-selected candidate
+    diagnosis (via candidate_diagnosis_to_current) — the render shown as
+    "current" this iteration is the exact image that candidate was, so we
+    reuse its own diagnosis instead of risking an inconsistent fresh redo of
+    the same image.
 
     Returns {"diagnosis": <validated diagnosis dict>, "raw_response": str}.
-    Raises BlindSelectionError if the response isn't valid JSON, doesn't match
-    the required schema, doesn't cover exactly this iteration's candidate ID set
-    (missing, duplicate, or invented IDs), or grounds any image to an invented
-    or mismatched/paraphrased reference.
+    Raises BlindSelectionError if the response isn't valid JSON or doesn't
+    match the required schema, or doesn't cover exactly this iteration's
+    candidate ID set (missing, duplicate, or invented IDs).
     """
-    reference_catalog = _build_reference_catalog(reference_items)
+    node_descriptions = node_descriptions or {}
+    reference_bank_items = _build_reference_bank_items(reference_image_paths, node_descriptions)
+    valid_reference_node_ids = {label[len(REFERENCE_LABEL_PREFIX):] for label, _, _ in reference_bank_items}
 
     prompt = BLIND_VISUAL_DIAGNOSIS_PROMPT_TEMPLATE.format(
         target_description=target_description,
         target_image_line=_format_target_image_line(target_image_path),
-        reference_items_line=_format_reference_items_line(reference_items),
-        reference_catalog_block=_format_reference_catalog_block(reference_catalog),
+        reference_bank_block=_format_reference_bank_block(reference_bank_items),
+        reference_label_prefix=REFERENCE_LABEL_PREFIX,
         neutral_history_block=_summarize_history_neutrally(action_history),
     )
 
-    all_reference_items = list(reference_items or []) + batch.visible_items
+    # Reference-bank images (if any) are attached first, followed by the blind
+    # candidates — both via reference_items, distinguished by label prefix.
     response_text = ask_chatgpt(
         prompt=prompt,
         screenshot_path=current_image_path,
         target_image_path=target_image_path,
-        reference_items=all_reference_items,
+        reference_items=reference_bank_items + batch.visible_items,
         model=model,
     )
 
     try:
         raw_diagnosis = _parse_json_response(response_text)
         validated_diagnosis = _validate_visual_diagnosis(
-            raw_diagnosis, set(batch.candidate_mapping), reference_catalog
+            raw_diagnosis, set(batch.candidate_mapping), valid_reference_node_ids, node_descriptions,
         )
     except BlindSelectionError:
         print("[blind_visual_rollout_agent] ERROR: Pass 1 visual diagnosis failed validation.")
         print(f"[blind_visual_rollout_agent] Currently valid candidate IDs: {sorted(batch.candidate_mapping)}")
-        print(f"[blind_visual_rollout_agent] Supplied reference catalog: {reference_catalog}")
+        print(f"[blind_visual_rollout_agent] Valid reference IDs this iteration: {sorted(valid_reference_node_ids)}")
         print("[blind_visual_rollout_agent] Raw response was:")
         print(response_text)
         raise
+
+    if frozen_target is not None:
+        validated_diagnosis["target"] = frozen_target
+    if carried_current is not None:
+        validated_diagnosis["current"] = carried_current
 
     return {"diagnosis": validated_diagnosis, "raw_response": response_text}
 
@@ -905,41 +1035,60 @@ def select_candidate_from_diagnosis(
     stop_similarity_threshold: int = 92,
     stop_improvement_margin: int = 3,
     minimum_confidence: float = 0.5,
+    candidate_movement_families: Optional[Dict[str, str]] = None,
+    last_movement_family: Optional[str] = None,
 ) -> dict:
     """Deterministically select a candidate (or STOP) from a validated Pass 1
     diagnosis. Never calls an LLM.
 
-    Eligibility: only candidates diagnosed with target_progress == "toward" are
-    eligible for selection. Candidates diagnosed "away", "ambiguous", or
-    "no_change" are never selected, regardless of similarity_score — a high
-    numeric score can never override the categorical diagnosis. This applies
-    equally when the diagnosis is reference-grounded: a candidate whose closest
-    reference is geometrically opposite to the target's closest reference must
-    still be diagnosed "away" by Pass 1, and a high similarity_score cannot
-    rescue it here either.
-
-    Ranking among eligible candidates: highest similarity_score first, then
-    highest confidence, then highest reference_match_confidence, then the
-    candidate's position in diagnosis["candidates"] as a stable final
-    tie-breaker.
+    Every candidate is eligible for selection — there is no longer a
+    categorical target_progress gate (removed: it was an LLM trajectory
+    judgment that could block selection outright even when a candidate's
+    similarity_score showed genuine improvement toward the target). Ranking is
+    purely by similarity_score (always the LLM's own estimate — no
+    image-embedding involvement anywhere in this module), then confidence,
+    then reference_match_confidence, then the candidate's position in
+    diagnosis["candidates"] as a stable final tie-breaker.
 
     STOP: returned only when the current render's similarity_score is at least
     stop_similarity_threshold AND its confidence is at least minimum_confidence
-    AND no eligible ("toward") candidate improves on the current render's
-    similarity_score by at least stop_improvement_margin. STOP is never returned
-    merely because there are no eligible candidates unless the current render
-    itself actually satisfies these thresholds.
+    AND the best-ranked candidate doesn't improve on the current render's
+    similarity_score by at least stop_improvement_margin.
 
-    Raises BlindSelectionError if there is no eligible candidate and the current
-    render does not satisfy the STOP criteria either — never falls back to an
-    "ambiguous" or "away" candidate.
+    Reference-bank exploration fallback: if EVERY candidate's
+    reference_match_quality is "unclear" (the reference bank has nothing to
+    say about any of this iteration's candidates — e.g. a narrow bank like
+    reference_views_medical/skull, which only covers 3 base viewpoints), the
+    normal similarity_score ranking above is skipped in favor of a sweep
+    strategy: continue the same movement direction as the last applied action
+    (`last_movement_family`, matched against `candidate_movement_families`,
+    both optional) if a candidate for it exists among this iteration's
+    scalable-family candidates, else arbitrarily pick a scalable-family
+    candidate. This repeats every iteration the bank stays uninformative,
+    since each iteration's own last-applied action becomes the next
+    iteration's continuation direction — sweeping through view-space with a
+    consistent direction, rather than the LLM's own uncalibrated
+    similarity_score guesses or randomly changing direction, until some
+    candidate's viewpoint finally lands close enough to a known reference for
+    the LLM to report a real match again. Only fixed one-shot actions
+    (STOP/UNDO_LAST/FIXED_BLIND_ACTIONS) are excluded from consideration as a
+    continuation direction, since repeating them can't sweep anywhere new.
+    Requires both `candidate_movement_families` and `last_movement_family`;
+    either being unavailable (e.g. the caller didn't supply them, or the first
+    iteration has no history yet) just means arbitrary selection is used
+    instead of continuation.
+
+    Since every candidate is always eligible and diagnosis["candidates"] is
+    never empty, this always returns a decision — it no longer raises
+    BlindSelectionError for "no eligible candidate" (Pass 1/Pass 3 validation
+    failures can still raise elsewhere in the pipeline).
     """
+    candidate_movement_families = candidate_movement_families or {}
     current = diagnosis["current"]
     candidates = diagnosis["candidates"]
 
-    eligible = [c for c in candidates if c["target_progress"] == "toward"]
-    eligible_ranked = sorted(
-        enumerate(eligible),
+    ranked = sorted(
+        enumerate(candidates),
         key=lambda pair: (
             pair[1]["similarity_score"],
             pair[1]["confidence"],
@@ -948,15 +1097,13 @@ def select_candidate_from_diagnosis(
         ),
         reverse=True,
     )
-    best_eligible = eligible_ranked[0][1] if eligible_ranked else None
+    best = ranked[0][1]
 
     current_satisfies_stop = (
         current["similarity_score"] >= stop_similarity_threshold
         and current["confidence"] >= minimum_confidence
     )
-    best_improvement = (
-        (best_eligible["similarity_score"] - current["similarity_score"]) if best_eligible else 0
-    )
+    best_improvement = best["similarity_score"] - current["similarity_score"]
     no_meaningful_improvement = best_improvement < stop_improvement_margin
 
     if current_satisfies_stop and no_meaningful_improvement:
@@ -964,14 +1111,11 @@ def select_candidate_from_diagnosis(
             f"STOP: current render similarity_score={current['similarity_score']} "
             f"(>= threshold {stop_similarity_threshold}) with confidence="
             f"{current['confidence']} (>= minimum {minimum_confidence}); closest reference "
-            f"{current['closest_reference_id']!r} ({current['closest_reference_description']!r}); "
-            + (
-                f"best eligible candidate only improves similarity by "
-                f"{best_improvement} (< margin {stop_improvement_margin})."
-                if best_eligible
-                else "no candidate was diagnosed as making progress toward the target."
-            )
-            + f" difference_from_target: {current['difference_from_target']}"
+            f"{current['closest_reference_id']!r} ({current['closest_reference_description']!r}), "
+            f"match_quality={current['reference_match_quality']} [{current['reference_match_differences']}]; "
+            f"best candidate only improves similarity by {best_improvement} "
+            f"(< margin {stop_improvement_margin})."
+            f" difference_from_target: {current['difference_from_target']}"
         )
         return {
             "decision": "stop",
@@ -980,48 +1124,70 @@ def select_candidate_from_diagnosis(
             "selected_diagnosis": current,
         }
 
-    if best_eligible is None:
-        raise BlindSelectionError(
-            "no candidate was diagnosed with target_progress='toward', and the current render does "
-            f"not satisfy the STOP criteria (similarity_score={current['similarity_score']}, "
-            f"confidence={current['confidence']}, thresholds: similarity>="
-            f"{stop_similarity_threshold}, confidence>={minimum_confidence}). Refusing to select an "
-            "'away' or 'ambiguous' candidate as a fallback."
-        )
+    all_unclear = all(c["reference_match_quality"] == "unclear" for c in candidates)
+    if all_unclear:
+        scalable_pool = [
+            c for c in candidates
+            if candidate_movement_families.get(c["candidate_id"]) in SCALABLE_MOVEMENT_FAMILIES
+        ]
+        pool = scalable_pool or candidates
 
-    excluded_summary = []
-    for candidate in candidates:
-        if candidate["candidate_id"] == best_eligible["candidate_id"]:
-            continue
-        if candidate["target_progress"] != "toward":
-            excluded_summary.append(
-                f"{candidate['candidate_id']} excluded (target_progress={candidate['target_progress']!r}, "
-                f"closest_reference={candidate['closest_reference_id']!r}, "
-                f"similarity_score={candidate['similarity_score']})"
+        continuation = None
+        if last_movement_family in SCALABLE_MOVEMENT_FAMILIES:
+            for c in pool:
+                if candidate_movement_families.get(c["candidate_id"]) == last_movement_family:
+                    continuation = c
+                    break
+
+        chosen = continuation if continuation is not None else pool[0]
+
+        if continuation is not None:
+            reason = (
+                f"All {len(candidates)} candidates have unclear reference-bank grounding; "
+                f"continuing the same direction as the last applied movement "
+                f"({last_movement_family!r}) rather than re-picking arbitrarily, to keep "
+                f"sweeping toward a view the reference bank recognizes. Selected "
+                f"{chosen['candidate_id']} (similarity_score={chosen['similarity_score']}, "
+                f"confidence={chosen['confidence']})."
             )
         else:
-            excluded_summary.append(
-                f"{candidate['candidate_id']} ranked lower (target_progress=toward, "
-                f"similarity_score={candidate['similarity_score']}, confidence={candidate['confidence']}, "
-                f"reference_match_confidence={candidate['reference_match_confidence']})"
+            reason = (
+                f"All {len(candidates)} candidates have unclear reference-bank grounding, and no "
+                "prior movement direction was available to continue (first iteration, or the "
+                f"last action had no continuable direction); arbitrarily picking "
+                f"{chosen['candidate_id']} (similarity_score={chosen['similarity_score']}, "
+                f"confidence={chosen['confidence']}) to keep exploring toward a view the "
+                "reference bank recognizes."
             )
 
+        return {
+            "decision": "candidate",
+            "selected_candidate": chosen["candidate_id"],
+            "selection_reason": reason,
+            "selected_diagnosis": chosen,
+        }
+
+    excluded_summary = [
+        f"{c['candidate_id']} ranked lower (similarity_score={c['similarity_score']}, "
+        f"confidence={c['confidence']}, reference_match_confidence={c['reference_match_confidence']})"
+        for c in candidates
+        if c["candidate_id"] != best["candidate_id"]
+    ]
+
     reason = (
-        f"Selected {best_eligible['candidate_id']}: target_progress=toward, "
-        f"closest_reference={best_eligible['closest_reference_id']!r} "
-        f"({best_eligible['closest_reference_description']!r}), "
-        f"similarity_score={best_eligible['similarity_score']}, confidence={best_eligible['confidence']}, "
-        f"reference_match_confidence={best_eligible['reference_match_confidence']}. "
-        f"comparison_to_target: {best_eligible['comparison_to_target']}"
+        f"Selected {best['candidate_id']}: closest_reference={best['closest_reference_id']!r} "
+        f"({best['closest_reference_description']!r}), match_quality={best['reference_match_quality']} "
+        f"[{best['reference_match_differences']}], similarity_score={best['similarity_score']}, "
+        f"confidence={best['confidence']}. comparison_to_target: {best['comparison_to_target']}"
     )
     if excluded_summary:
         reason += " | " + "; ".join(excluded_summary)
 
     return {
         "decision": "candidate",
-        "selected_candidate": best_eligible["candidate_id"],
+        "selected_candidate": best["candidate_id"],
         "selection_reason": reason,
-        "selected_diagnosis": best_eligible,
+        "selected_diagnosis": best,
     }
 
 
@@ -1188,23 +1354,32 @@ def select_action_from_blind_candidates(
     batch: BlindCandidateBatch,
     target_description: str,
     target_image_path: Optional[str] = None,
-    reference_items: Optional[List[Tuple[str, str, str]]] = None,
+    reference_image_paths: Optional[Dict[str, str]] = None,
+    node_descriptions: Optional[Dict[str, str]] = None,
     action_history: Optional[List[Dict]] = None,
     model: Optional[str] = None,
     stop_similarity_threshold: int = 92,
     stop_improvement_margin: int = 3,
     minimum_confidence: float = 0.5,
+    frozen_target: Optional[dict] = None,
+    carried_current: Optional[dict] = None,
 ) -> dict:
-    """Run the full three-pass pipeline (LLM reference-grounded diagnosis ->
+    """Run the full three-pass pipeline (LLM visual diagnosis, reference-
+    grounded via an attached reference-view bank the LLM judges by eye ->
     deterministic Python selection -> LLM magnitude estimation) and privately
     resolve + validate the real action. Raises BlindSelectionError on any
     invalid/inconsistent response at any pass — never applies an arbitrary
     action.
 
-    `reference_items` is passed through to Pass 1 both as ask_chatgpt
-    attachments and as the authoritative reference catalog Pass 1 must ground
-    its diagnosis in. It is NOT passed to Pass 3, which only ever sees the
-    current render, the target, and the already-selected candidate.
+    `reference_image_paths`/`node_descriptions` are used only by Pass 1, to
+    build the attached reference-view bank (see diagnose_blind_candidates and
+    module docstring, "Reference grounding"). They are NOT used by Pass 3,
+    which only ever sees the current render, the target, and the
+    already-selected candidate — no reference-view images or grounding text
+    at all.
+
+    `frozen_target`/`carried_current` are passed straight through to
+    diagnose_blind_candidates — see its docstring.
 
     Returns a rich dict:
         {"visual_diagnosis", "visual_diagnosis_raw_response",
@@ -1216,18 +1391,24 @@ def select_action_from_blind_candidates(
         batch,
         target_description,
         target_image_path=target_image_path,
-        reference_items=reference_items,
+        reference_image_paths=reference_image_paths,
+        node_descriptions=node_descriptions,
         action_history=action_history,
         model=model,
+        frozen_target=frozen_target,
+        carried_current=carried_current,
     )
     diagnosis = diagnosis_result["diagnosis"]
 
+    last_action = action_history[-1]["action"] if action_history else None
     try:
         selection_result = select_candidate_from_diagnosis(
             diagnosis,
             stop_similarity_threshold=stop_similarity_threshold,
             stop_improvement_margin=stop_improvement_margin,
             minimum_confidence=minimum_confidence,
+            candidate_movement_families=batch.candidate_mapping,
+            last_movement_family=_movement_family_from_applied_action(last_action),
         )
     except BlindSelectionError:
         print("[blind_visual_rollout_agent] ERROR: Pass 2 could not select a candidate.")
@@ -1283,6 +1464,29 @@ def select_action_from_blind_candidates(
 
 
 # ------------------------------------------------------------------
+# Console visibility for the validated reference-grounding fields — a
+# consolidated summary alongside the full raw LLM JSON already printed above,
+# since the raw response is easy to skim past when it's mixed in with every
+# other diagnosis field.
+# ------------------------------------------------------------------
+
+def _format_visual_diagnosis_grounding(visual_diagnosis: dict) -> str:
+    def _line(label: str, entry: dict) -> str:
+        return (
+            f"  {label}: closest_reference={entry['closest_reference_id']!r} "
+            f"(quality={entry['reference_match_quality']}) "
+            f"similarity_score={entry.get('similarity_score', 'n/a')} "
+            f"-- {entry['closest_reference_description']}\n"
+            f"    differences: {entry['reference_match_differences']}"
+        )
+
+    lines = [_line("target ", visual_diagnosis["target"]), _line("current", visual_diagnosis["current"])]
+    for candidate in visual_diagnosis["candidates"]:
+        lines.append(_line(f"[{candidate['candidate_id']}]", candidate))
+    return "\n".join(lines)
+
+
+# ------------------------------------------------------------------
 # Trace saving (debugging — the private mapping is included here only, a local
 # file, never sent to or logged as if visible to the LLM)
 # ------------------------------------------------------------------
@@ -1330,7 +1534,8 @@ def run_blind_visual_rollout_alignment_loop(
     session,
     max_iterations: int = 10,
     trace_dir: Optional[str] = None,
-    reference_items: Optional[List[Tuple[str, str, str]]] = None,
+    reference_image_paths: Optional[Dict[str, str]] = None,
+    node_descriptions: Optional[Dict[str, str]] = None,
     model: Optional[str] = None,
     dry_run: bool = False,
     on_iteration_end: Optional[Callable[[str], None]] = None,
@@ -1342,38 +1547,63 @@ def run_blind_visual_rollout_alignment_loop(
     """Run the blind visual-rollout camera-action-selection loop against an
     already-`.initialize()`d CameraReasoningSession.
 
-    Every iteration: render the 6 blind-eligible COARSE/fixed candidates
+    Every iteration: render the blind-eligible COARSE/fixed candidates (4
+    scalable + len(FIXED_BLIND_ACTIONS) fixed, currently 7 total — including a
+    STOP candidate whose "render" is just the current image)
     (render_candidate_rollouts, reused unmodified), assign them random opaque
     IDs and shuffle (prepare_blind_candidates), then run the three-pass pipeline
-    (select_action_from_blind_candidates: LLM reference-grounded diagnosis ->
-    deterministic Python selection -> LLM magnitude estimation), privately
+    (select_action_from_blind_candidates: LLM visual diagnosis, reference-
+    grounded via an attached reference-view bank the LLM itself judges by eye
+    -> deterministic Python selection -> LLM magnitude estimation), privately
     resolve + validate the real action, then apply it via the existing
     session.process_chatgpt_response() path. Stops early on STOP, or after
     max_iterations.
 
-    `reference_items` should be the calibrated reference-view graph bank (e.g.
-    reference_views_relative/) — Pass 1 uses it both as visual attachments and
-    as the authoritative reference catalog it must ground its diagnosis in (see
-    module docstring, "Reference grounding"). Passing an empty/None
-    reference_items is allowed but defeats the purpose of this revision: Pass 1
-    will have no reference catalog to ground against and every image's
-    `closest_reference_id` will necessarily be null/"unclear".
+    `reference_image_paths` (a plain node_id -> image_path dict — no image
+    embeddings/CLIP involved anywhere in this module, and deliberately
+    decoupled from any particular dataset format; a CameraSpatialGraph bank or
+    a flat photo bank with no graph/edges concept both just need to be reduced
+    to this mapping) and `node_descriptions` (node_id -> deterministic
+    description) together build the attached reference-view bank: for the
+    target (if a target image is set), the current render, and every
+    candidate, Pass 1 visually reports which reference view (if any) it
+    resembles, how closely, and what's different when it isn't an exact match
+    (see module docstring, "Reference grounding"). Passing
+    reference_image_paths=None is allowed but disables the reference bank
+    entirely for this run (every image's `closest_reference_id` will be
+    None/"unclear").
 
-    `skip_on_indecision` (default True) controls what happens when Pass 2 can't
-    select any candidate for this iteration (no candidate diagnosed "toward" and
-    the current render doesn't satisfy the STOP thresholds either) or when Pass 1
-    /Pass 3 return an invalid/inconsistent response: the full Pass 1 diagnosis
-    (if one was produced) is printed, NO action is applied this iteration (the
-    camera state is left untouched — this is never a silent fallback to an
-    arbitrary action), and the loop moves on to the next iteration with fresh
-    candidates. Set to False to instead let BlindSelectionError propagate and
-    abort the whole run, e.g. for unattended runs where an indecisive iteration
-    should be treated as a hard failure rather than skipped.
+    `skip_on_indecision` (default True) controls what happens when Pass 1 or
+    Pass 3 return an invalid/inconsistent response (e.g. malformed JSON, a
+    missing/duplicate candidate ID, or Pass 3 echoing the wrong candidate) —
+    Pass 2 itself now always produces a decision (every candidate is eligible,
+    see select_candidate_from_diagnosis), so this no longer triggers on
+    indecision at the selection stage. When it does trigger: the full Pass 1
+    diagnosis (if one was produced) is printed, NO action is applied this
+    iteration (the camera state is left untouched — this is never a silent
+    fallback to an arbitrary action), and the loop moves on to the next
+    iteration with fresh candidates. Set to False to instead let
+    BlindSelectionError propagate and abort the whole run.
+
+    Target/current consistency across iterations: the target image never
+    changes mid-run, but asking the LLM to redescribe it fresh every
+    iteration risked a different view_description/closest_reference_id
+    purely from sampling noise. So Pass 1's target diagnosis is frozen after
+    the FIRST iteration (frozen_target_diagnosis below) and reused for every
+    iteration after that — the LLM is still asked, its answer is just
+    discarded once we have one. Similarly, once iteration i actually applies
+    a (non-STOP) action, the render that becomes iteration i+1's "current" is
+    exactly the candidate that was selected — so instead of re-diagnosing
+    that same image from scratch (which could disagree with what was already
+    said about it as a candidate), its own diagnosis is carried forward via
+    candidate_diagnosis_to_current() and reused as "current" next iteration.
     """
     if trace_dir is None:
         trace_dir = str(Path(session.output_dir) / "blind_rollout_traces")
 
     applied_actions = []
+    frozen_target_diagnosis: Optional[dict] = None
+    carried_current_diagnosis: Optional[dict] = None
     for i in range(max_iterations):
         current_image_path = session.render_and_save()
         print(f"\n[blind_visual_rollout_agent] Iteration {i}", flush=True)
@@ -1393,12 +1623,15 @@ def run_blind_visual_rollout_alignment_loop(
                 batch,
                 session.target_description,
                 target_image_path=session.target_image_path,
-                reference_items=reference_items,
+                reference_image_paths=reference_image_paths,
+                node_descriptions=node_descriptions,
                 action_history=session._action_history,
                 model=model,
                 stop_similarity_threshold=stop_similarity_threshold,
                 stop_improvement_margin=stop_improvement_margin,
                 minimum_confidence=minimum_confidence,
+                frozen_target=frozen_target_diagnosis,
+                carried_current=carried_current_diagnosis,
             )
         except BlindSelectionError as exc:
             if not skip_on_indecision:
@@ -1406,8 +1639,20 @@ def run_blind_visual_rollout_alignment_loop(
             print(f"[blind_visual_rollout_agent] SKIPPING iteration {i} — no action applied: {exc}", flush=True)
             continue
 
+        if frozen_target_diagnosis is None:
+            frozen_target_diagnosis = selection["visual_diagnosis"]["target"]
+            print(
+                "[blind_visual_rollout_agent] Froze target diagnosis for the rest of this run "
+                f"(closest_reference_id={frozen_target_diagnosis['closest_reference_id']!r}).",
+                flush=True,
+            )
+
         print("[blind_visual_rollout_agent] PASS 1 — VISUAL DIAGNOSIS", flush=True)
         print(selection["visual_diagnosis_raw_response"], flush=True)
+
+        print("\n[blind_visual_rollout_agent] PASS 1 — REFERENCE GROUNDING (computed by Python via image "
+              "embeddings; not part of the LLM's own response above)", flush=True)
+        print(_format_visual_diagnosis_grounding(selection["visual_diagnosis"]), flush=True)
 
         print("\n[blind_visual_rollout_agent] PASS 2 — DETERMINISTIC SELECTION", flush=True)
         print(f"  decision: {selection['selection']['decision']}", flush=True)
@@ -1430,6 +1675,16 @@ def run_blind_visual_rollout_alignment_loop(
         else:
             applied_action = session.process_chatgpt_response(f"Next action:\n{selection['final_action']}")
             applied_actions.append(applied_action)
+
+            if applied_action != "STOP":
+                carried_current_diagnosis = candidate_diagnosis_to_current(
+                    selection["selection"]["selected_diagnosis"]
+                )
+                print(
+                    "[blind_visual_rollout_agent] Carrying selected candidate's diagnosis forward "
+                    "as next iteration's 'current' (will not be re-diagnosed from scratch).",
+                    flush=True,
+                )
 
         if trace_dir:
             trace_path = save_blind_rollout_trace(

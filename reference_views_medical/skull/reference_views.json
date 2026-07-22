@@ -1,0 +1,3963 @@
+{
+  "schema_version": "medical_reference_views.v1",
+  "object_id": "skull",
+  "object_context": "human skull",
+  "landmark_profile_path": "landmark_profile.json",
+  "landmark_profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+  "records": [
+    {
+      "node_id": "skull_001",
+      "source_node_id": "skull_001",
+      "image_path": "reference_views_medical/skull/skull_001.png",
+      "view_label": "right",
+      "in_plane_rotation_degrees": 0,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:2304b67cf6498dbdb4ddd8b43b9b51fd201d7c9e1f68f98e654d28d0126cf29f",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "right_orbit": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "mental_protuberance": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "mandibular_angle": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.95
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "external_auditory_meatus": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "confidence": 0.4
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.95
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.9
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "unclear",
+          "apparent_size": "unclear",
+          "confidence": 0.4
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.85
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.95
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is partially visible.",
+        "Left Eye Socket is unclear.",
+        "Right Eye Socket is not visible.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is visible.",
+        "Lower Teeth Row is clear.",
+        "Chin Point is visible.",
+        "Chin Point is clear.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is visible.",
+        "Jaw Angle is clear.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is visible.",
+        "Ear Canal Opening is clear.",
+        "The horizontal relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "The vertical relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Upper Teeth Row is above Lower Teeth Row.",
+        "Upper Teeth Row is separate from Lower Teeth Row.",
+        "Chin Point is below Lower Teeth Row.",
+        "Chin Point and Lower Teeth Row are similarly visible.",
+        "The vertical relationship between Left Eye Socket and Cranial Dome is unclear.",
+        "The apparent size relationship between Left Eye Socket and Cranial Dome is unclear.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "Jaw Angle is left of Chin Point.",
+        "Jaw Angle is above Chin Point.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "The horizontal relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The vertical relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Ear Canal Opening and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_001_rot045",
+      "source_node_id": "skull_001",
+      "image_path": "reference_views_medical/skull/skull_001_rot045.png",
+      "view_label": "right",
+      "in_plane_rotation_degrees": 45,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:cba542cd90d66793aa9475b82984c0d865bd58a898176f14de10c28363ccdac7",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "mental_protuberance": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        },
+        "mandibular_angle": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.8
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "sagittal_suture": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.4
+        },
+        "external_auditory_meatus": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.9
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.95
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.85
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.8
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "unclear",
+          "overlap": "unclear",
+          "confidence": 0.4
+        },
+        "ear_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.5
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is partially visible.",
+        "Right Eye Socket is unclear.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is visible.",
+        "Lower Teeth Row is clear.",
+        "Chin Point is visible.",
+        "Chin Point is clear.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is visible.",
+        "Jaw Angle is clear.",
+        "Base Opening is not visible.",
+        "Midline Suture is partially visible.",
+        "Midline Suture is unclear.",
+        "Ear Canal Opening is partially visible.",
+        "Ear Canal Opening is unclear.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Upper Teeth Row is above Lower Teeth Row.",
+        "Upper Teeth Row is separate from Lower Teeth Row.",
+        "Chin Point is below Lower Teeth Row.",
+        "Chin Point and Lower Teeth Row are similarly visible.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "Jaw Angle is left of Chin Point.",
+        "Jaw Angle is above Chin Point.",
+        "The visibility dominance relationship between Midline Suture and Cranial Dome is unclear.",
+        "The overlap relationship between Midline Suture and Cranial Dome is unclear.",
+        "The horizontal relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The vertical relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Ear Canal Opening and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_001_rot090",
+      "source_node_id": "skull_001",
+      "image_path": "reference_views_medical/skull/skull_001_rot090.png",
+      "view_label": "right",
+      "in_plane_rotation_degrees": 90,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:e58691b06997e8e035d17dcc358e08ee751e4134fd1e96588500ca61fb1ef4ef",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.98
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "mental_protuberance": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "external_auditory_meatus": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.9
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.95
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.9
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "right",
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.8
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is not visible.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is visible.",
+        "Lower Teeth Row is clear.",
+        "Chin Point is visible.",
+        "Chin Point is clear.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is visible.",
+        "Ear Canal Opening is clear.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Upper Teeth Row is above Lower Teeth Row.",
+        "Upper Teeth Row is separate from Lower Teeth Row.",
+        "Chin Point is below Lower Teeth Row.",
+        "Chin Point and Lower Teeth Row are similarly visible.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "Ear Canal Opening is right of Left Eye Socket.",
+        "Ear Canal Opening is below Left Eye Socket.",
+        "Ear Canal Opening and Left Eye Socket are similarly visible."
+      ]
+    },
+    {
+      "node_id": "skull_001_rot135",
+      "source_node_id": "skull_001",
+      "image_path": "reference_views_medical/skull/skull_001_rot135.png",
+      "view_label": "right",
+      "in_plane_rotation_degrees": 135,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:909acbe0889d5847267524908d55d817652437bea74ca30efc02afb5fbc0e6c5",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.4
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "mental_protuberance": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.8
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "external_auditory_meatus": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.9
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 0.9
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.9
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "left",
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.8
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is partially visible.",
+        "Right Eye Socket is unclear.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is not visible.",
+        "Chin Point is not visible.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is visible.",
+        "Cheekbone Arch is clear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is partially visible.",
+        "Ear Canal Opening is unclear.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "Cheekbone Arch is left of Left Eye Socket.",
+        "Cheekbone Arch is below Left Eye Socket.",
+        "Cheekbone Arch and Left Eye Socket are similarly visible.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "The horizontal relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The vertical relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Ear Canal Opening and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_001_rot180",
+      "source_node_id": "skull_001",
+      "image_path": "reference_views_medical/skull/skull_001_rot180.png",
+      "view_label": "right",
+      "in_plane_rotation_degrees": 180,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:c5afb930859bbbe78c9a8133565886683b44da874eed2dfdf65efa2113ccb71d",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "nasal_aperture": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "mental_protuberance": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.8
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "external_auditory_meatus": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.95
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 0.9
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 0.9
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.85
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "not_applicable",
+          "apparent_size": "not_applicable",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.85
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.8
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.8
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is not visible.",
+        "Right Eye Socket is partially visible.",
+        "Right Eye Socket is unclear.",
+        "Nasal Opening is not visible.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is not visible.",
+        "Chin Point is not visible.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is partially visible.",
+        "Ear Canal Opening is unclear.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome."
+      ]
+    },
+    {
+      "node_id": "skull_001_rot225",
+      "source_node_id": "skull_001",
+      "image_path": "reference_views_medical/skull/skull_001_rot225.png",
+      "view_label": "right",
+      "in_plane_rotation_degrees": 225,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:fc2dffac62082416db3a6a260e0fb78507df02fb5ad6de2b7c83bae0f1c3baa1",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "right_orbit": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "nasal_aperture": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "mental_protuberance": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.8
+        },
+        "sagittal_suture": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.7
+        },
+        "external_auditory_meatus": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "confidence": 0.3
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "unclear",
+          "overlap": "unclear",
+          "confidence": 0.4
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 0.9
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.9
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "unclear",
+          "apparent_size": "unclear",
+          "confidence": 0.4
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 0.8
+        },
+        "ear_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.85
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is partially visible.",
+        "Left Eye Socket is unclear.",
+        "Right Eye Socket is not visible.",
+        "Nasal Opening is partially visible.",
+        "Nasal Opening is unclear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is not visible.",
+        "Chin Point is not visible.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is visible.",
+        "Cheekbone Arch is clear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is not visible.",
+        "Ear Canal Opening is visible.",
+        "Ear Canal Opening is clear.",
+        "The horizontal relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "The vertical relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "The vertical relationship between Nasal Opening and Upper Teeth Row is unclear.",
+        "The overlap relationship between Nasal Opening and Upper Teeth Row is unclear.",
+        "The vertical relationship between Left Eye Socket and Cranial Dome is unclear.",
+        "The apparent size relationship between Left Eye Socket and Cranial Dome is unclear.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The horizontal relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The vertical relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Ear Canal Opening and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_001_rot270",
+      "source_node_id": "skull_001",
+      "image_path": "reference_views_medical/skull/skull_001_rot270.png",
+      "view_label": "right",
+      "in_plane_rotation_degrees": 270,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:c6354720f82d5042c6cf6e48f43283bf9c6444646d7ae55bd9dbf0a64d35392e",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "right_orbit": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 1.0
+        },
+        "nasal_aperture": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 1.0
+        },
+        "mental_protuberance": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 1.0
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.95
+        },
+        "sagittal_suture": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        },
+        "external_auditory_meatus": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "confidence": 0.4
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "unclear",
+          "overlap": "unclear",
+          "confidence": 0.4
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 1.0
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 1.0
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "unclear",
+          "apparent_size": "unclear",
+          "confidence": 0.5
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 1.0
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "unclear",
+          "overlap": "unclear",
+          "confidence": 0.5
+        },
+        "ear_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 1.0
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is partially visible.",
+        "Left Eye Socket is unclear.",
+        "Right Eye Socket is not visible.",
+        "Nasal Opening is partially visible.",
+        "Nasal Opening is unclear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is not visible.",
+        "Chin Point is not visible.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is partially visible.",
+        "Midline Suture is unclear.",
+        "Ear Canal Opening is partially visible.",
+        "Ear Canal Opening is unclear.",
+        "The horizontal relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "The vertical relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "The vertical relationship between Nasal Opening and Upper Teeth Row is unclear.",
+        "The overlap relationship between Nasal Opening and Upper Teeth Row is unclear.",
+        "The vertical relationship between Left Eye Socket and Cranial Dome is unclear.",
+        "The apparent size relationship between Left Eye Socket and Cranial Dome is unclear.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Midline Suture and Cranial Dome is unclear.",
+        "The overlap relationship between Midline Suture and Cranial Dome is unclear.",
+        "The horizontal relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The vertical relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Ear Canal Opening and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_001_rot315",
+      "source_node_id": "skull_001",
+      "image_path": "reference_views_medical/skull/skull_001_rot315.png",
+      "view_label": "right",
+      "in_plane_rotation_degrees": 315,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:bbe0aafe351caf24a124068038c0151ddc52add38abd53357bbe734230dd1d34",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 1.0
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "mental_protuberance": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "mandibular_angle": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.95
+        },
+        "sagittal_suture": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "external_auditory_meatus": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.9
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.85
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "left",
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.85
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.85
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.6
+        },
+        "ear_to_orbit": {
+          "horizontal": "left",
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.8
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 1.0
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is not visible.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is visible.",
+        "Lower Teeth Row is clear.",
+        "Chin Point is visible.",
+        "Chin Point is clear.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is visible.",
+        "Cheekbone Arch is clear.",
+        "Jaw Angle is visible.",
+        "Jaw Angle is clear.",
+        "Base Opening is not visible.",
+        "Midline Suture is partially visible.",
+        "Midline Suture is unclear.",
+        "Ear Canal Opening is visible.",
+        "Ear Canal Opening is clear.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Upper Teeth Row is above Lower Teeth Row.",
+        "Upper Teeth Row is separate from Lower Teeth Row.",
+        "Chin Point is below Lower Teeth Row.",
+        "Chin Point and Lower Teeth Row are similarly visible.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "Cheekbone Arch is left of Left Eye Socket.",
+        "Cheekbone Arch is below Left Eye Socket.",
+        "Cheekbone Arch and Left Eye Socket are similarly visible.",
+        "Jaw Angle is left of Chin Point.",
+        "Jaw Angle is above Chin Point.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "Ear Canal Opening is left of Left Eye Socket.",
+        "Ear Canal Opening is below Left Eye Socket.",
+        "Ear Canal Opening and Left Eye Socket are similarly visible."
+      ]
+    },
+    {
+      "node_id": "skull_002",
+      "source_node_id": "skull_002",
+      "image_path": "reference_views_medical/skull/skull_002.png",
+      "view_label": "front",
+      "in_plane_rotation_degrees": 0,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:23e5b93cfc92991c6843e238cbb58a4b386070a5b9639b585af1eb9b823d12c4",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 1.0
+        },
+        "right_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 1.0
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 1.0
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 1.0
+        },
+        "lower_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 1.0
+        },
+        "mental_protuberance": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 1.0
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.95
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "external_auditory_meatus": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 1.0
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.95
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 1.0
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.9
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.95
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.9
+        },
+        "ear_to_orbit": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.9
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.95
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is visible.",
+        "Right Eye Socket is clear.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is visible.",
+        "Lower Teeth Row is clear.",
+        "Chin Point is visible.",
+        "Chin Point is clear.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is not visible.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Upper Teeth Row is above Lower Teeth Row.",
+        "Upper Teeth Row is separate from Lower Teeth Row.",
+        "Chin Point is below Lower Teeth Row.",
+        "Chin Point and Lower Teeth Row are similarly visible.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome."
+      ]
+    },
+    {
+      "node_id": "skull_002_rot045",
+      "source_node_id": "skull_002",
+      "image_path": "reference_views_medical/skull/skull_002_rot045.png",
+      "view_label": "front",
+      "in_plane_rotation_degrees": 45,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:8f3ba01d8d546b4590040dc85a918bb8f2ca01ff67a3d420b6262d1e74f8a66b",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "lower_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "mental_protuberance": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "mandibular_angle": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "external_auditory_meatus": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.95
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.85
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "confidence": 0.4
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.9
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is visible.",
+        "Right Eye Socket is clear.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is visible.",
+        "Lower Teeth Row is clear.",
+        "Chin Point is visible.",
+        "Chin Point is clear.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is partially visible.",
+        "Jaw Angle is unclear.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is not visible.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Upper Teeth Row is above Lower Teeth Row.",
+        "Upper Teeth Row is separate from Lower Teeth Row.",
+        "Chin Point is below Lower Teeth Row.",
+        "Chin Point and Lower Teeth Row are similarly visible.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The horizontal relationship between Jaw Angle and Chin Point is unclear.",
+        "The vertical relationship between Jaw Angle and Chin Point is unclear.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome."
+      ]
+    },
+    {
+      "node_id": "skull_002_rot090",
+      "source_node_id": "skull_002",
+      "image_path": "reference_views_medical/skull/skull_002_rot090.png",
+      "view_label": "front",
+      "in_plane_rotation_degrees": 90,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:9e7977dc9d1e078056ae68bed07399084df956206d7392f3fbe52435922bd176",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "lower_teeth_row": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.95
+        },
+        "mental_protuberance": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.95
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "external_auditory_meatus": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.9
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 0.95
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.95
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "left",
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.8
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.95
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.95
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is visible.",
+        "Right Eye Socket is clear.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is not visible.",
+        "Chin Point is not visible.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is visible.",
+        "Cheekbone Arch is clear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is partially visible.",
+        "Ear Canal Opening is unclear.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "Cheekbone Arch is left of Left Eye Socket.",
+        "Cheekbone Arch is below Left Eye Socket.",
+        "Cheekbone Arch and Left Eye Socket are similarly visible.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "The horizontal relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The vertical relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Ear Canal Opening and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_002_rot135",
+      "source_node_id": "skull_002",
+      "image_path": "reference_views_medical/skull/skull_002_rot135.png",
+      "view_label": "front",
+      "in_plane_rotation_degrees": 135,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:2284e949b89be987e3fdbf620ba0f6a800b7259baa9063d2cab68c387d412d3c",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "lower_teeth_row": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 1.0
+        },
+        "mental_protuberance": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 1.0
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 1.0
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.95
+        },
+        "sagittal_suture": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.8
+        },
+        "external_auditory_meatus": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "aligned",
+          "confidence": 0.9
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.85
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 1.0
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 1.0
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 1.0
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 1.0
+        },
+        "ear_to_orbit": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 1.0
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 1.0
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is visible.",
+        "Right Eye Socket is clear.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is not visible.",
+        "Chin Point is not visible.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is not visible.",
+        "Ear Canal Opening is not visible.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is vertically aligned with Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_002_rot180",
+      "source_node_id": "skull_002",
+      "image_path": "reference_views_medical/skull/skull_002_rot180.png",
+      "view_label": "front",
+      "in_plane_rotation_degrees": 180,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:a90ac2ad468434259ab5ea0b04a098e9bd66854b14377bc7570c0f499d36a842",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "mental_protuberance": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "external_auditory_meatus": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "below",
+          "confidence": 0.95
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "below",
+          "overlap": "separate",
+          "confidence": 0.95
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "below",
+          "overlap": "overlapping",
+          "confidence": 0.95
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.9
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.95
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.9
+        },
+        "ear_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.85
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is visible.",
+        "Right Eye Socket is clear.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is visible.",
+        "Lower Teeth Row is clear.",
+        "Chin Point is not visible.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is partially visible.",
+        "Ear Canal Opening is unclear.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is below Nasal Opening.",
+        "Nasal Opening is below Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Upper Teeth Row is below Lower Teeth Row.",
+        "Upper Teeth Row overlaps Lower Teeth Row.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "The horizontal relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The vertical relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Ear Canal Opening and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_002_rot225",
+      "source_node_id": "skull_002",
+      "image_path": "reference_views_medical/skull/skull_002_rot225.png",
+      "view_label": "front",
+      "in_plane_rotation_degrees": 225,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:b3172ae61ea56d4e4b5c9997ebdfa7ff64dc75b9b2dfb60d4001e5e406e7559f",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "lower_teeth_row": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.95
+        },
+        "mental_protuberance": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.7
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        },
+        "sagittal_suture": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.8
+        },
+        "external_auditory_meatus": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.9
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 0.95
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.95
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.5
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.95
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.9
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is visible.",
+        "Right Eye Socket is clear.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is not visible.",
+        "Chin Point is not visible.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is not visible.",
+        "Ear Canal Opening is not visible.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_002_rot270",
+      "source_node_id": "skull_002",
+      "image_path": "reference_views_medical/skull/skull_002_rot270.png",
+      "view_label": "front",
+      "in_plane_rotation_degrees": 270,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:e9af5f4b6e5e263e33ba0e2a699174e45d5892142247090644ced8964c3df651",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 1.0
+        },
+        "right_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 1.0
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 1.0
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 1.0
+        },
+        "lower_teeth_row": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 1.0
+        },
+        "mental_protuberance": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 1.0
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 1.0
+        },
+        "zygomatic_arch": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 1.0
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 1.0
+        },
+        "sagittal_suture": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "external_auditory_meatus": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.7
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.95
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.95
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 1.0
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 1.0
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "right",
+          "vertical": "aligned",
+          "visibility_dominance": "similar",
+          "confidence": 0.85
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 1.0
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.7
+        },
+        "ear_to_orbit": {
+          "horizontal": "right",
+          "vertical": "aligned",
+          "visibility_dominance": "a_more_visible",
+          "confidence": 0.75
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 1.0
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is visible.",
+        "Right Eye Socket is clear.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is not visible.",
+        "Chin Point is not visible.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is visible.",
+        "Cheekbone Arch is clear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is partially visible.",
+        "Midline Suture is unclear.",
+        "Ear Canal Opening is partially visible.",
+        "Ear Canal Opening is unclear.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "Cheekbone Arch is right of Left Eye Socket.",
+        "Cheekbone Arch is vertically aligned with Left Eye Socket.",
+        "Cheekbone Arch and Left Eye Socket are similarly visible.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "Ear Canal Opening is right of Left Eye Socket.",
+        "Ear Canal Opening is vertically aligned with Left Eye Socket.",
+        "Ear Canal Opening is more visible than Left Eye Socket."
+      ]
+    },
+    {
+      "node_id": "skull_002_rot315",
+      "source_node_id": "skull_002",
+      "image_path": "reference_views_medical/skull/skull_002_rot315.png",
+      "view_label": "front",
+      "in_plane_rotation_degrees": 315,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:3ef4fd921fcc53ca376ab63d7a256566d9b6c6c5d003c382cdffa34aa3f91faf",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "lower_teeth_row": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "mental_protuberance": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "clear",
+          "confidence": 0.8
+        },
+        "mandibular_angle": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "external_auditory_meatus": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.95
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 0.9
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.9
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "right",
+          "vertical": "below",
+          "visibility_dominance": "b_more_visible",
+          "confidence": 0.8
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "left",
+          "vertical": "aligned",
+          "confidence": 0.8
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.85
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is visible.",
+        "Right Eye Socket is clear.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is not visible.",
+        "Chin Point is visible.",
+        "Chin Point is clear.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is clear.",
+        "Jaw Angle is visible.",
+        "Jaw Angle is clear.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is not visible.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "Cheekbone Arch is right of Left Eye Socket.",
+        "Cheekbone Arch is below Left Eye Socket.",
+        "Left Eye Socket is more visible than Cheekbone Arch.",
+        "Jaw Angle is left of Chin Point.",
+        "Jaw Angle is vertically aligned with Chin Point.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome."
+      ]
+    },
+    {
+      "node_id": "skull_003",
+      "source_node_id": "skull_003",
+      "image_path": "reference_views_medical/skull/skull_003.png",
+      "view_label": "left",
+      "in_plane_rotation_degrees": 0,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:100ba28e7d99420f1ddcbae5b3a4dcbcf72d71a205da6ec61cb0feadc14cf1ec",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 1.0
+        },
+        "nasal_aperture": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "lower_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "mental_protuberance": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "mandibular_angle": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 1.0
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "external_auditory_meatus": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "confidence": 0.4
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "unclear",
+          "overlap": "unclear",
+          "confidence": 0.4
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.85
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "right",
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.85
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "right",
+          "vertical": "above",
+          "confidence": 0.85
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.9
+        },
+        "ear_to_orbit": {
+          "horizontal": "right",
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.85
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 1.0
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is not visible.",
+        "Nasal Opening is partially visible.",
+        "Nasal Opening is unclear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is visible.",
+        "Lower Teeth Row is clear.",
+        "Chin Point is visible.",
+        "Chin Point is clear.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is visible.",
+        "Cheekbone Arch is clear.",
+        "Jaw Angle is visible.",
+        "Jaw Angle is clear.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is visible.",
+        "Ear Canal Opening is clear.",
+        "The horizontal relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "The vertical relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "The vertical relationship between Nasal Opening and Upper Teeth Row is unclear.",
+        "The overlap relationship between Nasal Opening and Upper Teeth Row is unclear.",
+        "Upper Teeth Row is above Lower Teeth Row.",
+        "Upper Teeth Row is separate from Lower Teeth Row.",
+        "Chin Point is below Lower Teeth Row.",
+        "Chin Point and Lower Teeth Row are similarly visible.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "Cheekbone Arch is right of Left Eye Socket.",
+        "Cheekbone Arch is below Left Eye Socket.",
+        "Cheekbone Arch and Left Eye Socket are similarly visible.",
+        "Jaw Angle is right of Chin Point.",
+        "Jaw Angle is above Chin Point.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "Ear Canal Opening is right of Left Eye Socket.",
+        "Ear Canal Opening is below Left Eye Socket.",
+        "Ear Canal Opening and Left Eye Socket are similarly visible."
+      ]
+    },
+    {
+      "node_id": "skull_003_rot045",
+      "source_node_id": "skull_003",
+      "image_path": "reference_views_medical/skull/skull_003_rot045.png",
+      "view_label": "left",
+      "in_plane_rotation_degrees": 45,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:9df25b7cd088638d8a8f582881f8ea1b3eba36fc5570c30136014ed8ea045a9a",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.95
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "lower_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "mental_protuberance": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "mandibular_angle": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.8
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "external_auditory_meatus": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.9
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.85
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.85
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.8
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "right",
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.8
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "right",
+          "vertical": "above",
+          "confidence": 0.8
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "right",
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.8
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is not visible.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is visible.",
+        "Lower Teeth Row is clear.",
+        "Chin Point is visible.",
+        "Chin Point is clear.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is visible.",
+        "Cheekbone Arch is clear.",
+        "Jaw Angle is visible.",
+        "Jaw Angle is clear.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is visible.",
+        "Ear Canal Opening is clear.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Upper Teeth Row is above Lower Teeth Row.",
+        "Upper Teeth Row is separate from Lower Teeth Row.",
+        "Chin Point is below Lower Teeth Row.",
+        "Chin Point and Lower Teeth Row are similarly visible.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "Cheekbone Arch is right of Left Eye Socket.",
+        "Cheekbone Arch is below Left Eye Socket.",
+        "Cheekbone Arch and Left Eye Socket are similarly visible.",
+        "Jaw Angle is right of Chin Point.",
+        "Jaw Angle is above Chin Point.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "Ear Canal Opening is right of Left Eye Socket.",
+        "Ear Canal Opening is below Left Eye Socket.",
+        "Ear Canal Opening and Left Eye Socket are similarly visible."
+      ]
+    },
+    {
+      "node_id": "skull_003_rot090",
+      "source_node_id": "skull_003",
+      "image_path": "reference_views_medical/skull/skull_003_rot090.png",
+      "view_label": "left",
+      "in_plane_rotation_degrees": 90,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:4a4dcd955b5f7778dda189ec897e4f23105d8cc0f950c70eef4ffe31b01bfe08",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "mental_protuberance": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.8
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "external_auditory_meatus": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.9
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.85
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 0.9
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.9
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.8
+        },
+        "ear_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.4
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is partially visible.",
+        "Right Eye Socket is unclear.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is not visible.",
+        "Chin Point is not visible.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is partially visible.",
+        "Ear Canal Opening is unclear.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "The horizontal relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The vertical relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Ear Canal Opening and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_003_rot135",
+      "source_node_id": "skull_003",
+      "image_path": "reference_views_medical/skull/skull_003_rot135.png",
+      "view_label": "left",
+      "in_plane_rotation_degrees": 135,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:26d99c4c710eab878c143370fe301e858e935d2d7b5bab7ffd5d7b0702185869",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "mental_protuberance": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.7
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.8
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "external_auditory_meatus": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.65
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.9
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 0.9
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.9
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.5
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.5
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.85
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is partially visible.",
+        "Right Eye Socket is unclear.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is not visible.",
+        "Chin Point is not visible.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is partially visible.",
+        "Ear Canal Opening is unclear.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "The horizontal relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The vertical relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Ear Canal Opening and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_003_rot180",
+      "source_node_id": "skull_003",
+      "image_path": "reference_views_medical/skull/skull_003_rot180.png",
+      "view_label": "left",
+      "in_plane_rotation_degrees": 180,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:1ff69e4dbcd99a86249c94053b40b06fb0de3e1d5ab7921b27512700ebec3be2",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "right_orbit": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "nasal_aperture": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "mental_protuberance": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "mandibular_angle": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "external_auditory_meatus": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "confidence": 0.3
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "unclear",
+          "overlap": "unclear",
+          "confidence": 0.3
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 0.9
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.9
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "unclear",
+          "apparent_size": "unclear",
+          "confidence": 0.3
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.3
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.3
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is partially visible.",
+        "Left Eye Socket is unclear.",
+        "Right Eye Socket is not visible.",
+        "Nasal Opening is partially visible.",
+        "Nasal Opening is unclear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is not visible.",
+        "Chin Point is not visible.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is not visible.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is partially visible.",
+        "Ear Canal Opening is unclear.",
+        "The horizontal relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "The vertical relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "The vertical relationship between Nasal Opening and Upper Teeth Row is unclear.",
+        "The overlap relationship between Nasal Opening and Upper Teeth Row is unclear.",
+        "The vertical relationship between Left Eye Socket and Cranial Dome is unclear.",
+        "The apparent size relationship between Left Eye Socket and Cranial Dome is unclear.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "The horizontal relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The vertical relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Ear Canal Opening and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_003_rot225",
+      "source_node_id": "skull_003",
+      "image_path": "reference_views_medical/skull/skull_003_rot225.png",
+      "view_label": "left",
+      "in_plane_rotation_degrees": 225,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:8eddd4ac2dc9c2fe6df1b7988e15c1dbdb671903b20e2f4670599b7c62a55463",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "right_orbit": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "nasal_aperture": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "mental_protuberance": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "mandibular_angle": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.85
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "external_auditory_meatus": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "confidence": 0.3
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "unclear",
+          "overlap": "unclear",
+          "confidence": 0.4
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "overlap": "not_applicable",
+          "confidence": 0.9
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "not_applicable",
+          "visibility_dominance": "not_applicable",
+          "confidence": 0.9
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "unclear",
+          "apparent_size": "unclear",
+          "confidence": 0.4
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.3
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "confidence": 0.3
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.3
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is partially visible.",
+        "Left Eye Socket is unclear.",
+        "Right Eye Socket is not visible.",
+        "Nasal Opening is partially visible.",
+        "Nasal Opening is unclear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is not visible.",
+        "Chin Point is partially visible.",
+        "Chin Point is unclear.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is partially visible.",
+        "Jaw Angle is unclear.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is partially visible.",
+        "Ear Canal Opening is unclear.",
+        "The horizontal relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "The vertical relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "The vertical relationship between Nasal Opening and Upper Teeth Row is unclear.",
+        "The overlap relationship between Nasal Opening and Upper Teeth Row is unclear.",
+        "The vertical relationship between Left Eye Socket and Cranial Dome is unclear.",
+        "The apparent size relationship between Left Eye Socket and Cranial Dome is unclear.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The horizontal relationship between Jaw Angle and Chin Point is unclear.",
+        "The vertical relationship between Jaw Angle and Chin Point is unclear.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "The horizontal relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The vertical relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Ear Canal Opening and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_003_rot270",
+      "source_node_id": "skull_003",
+      "image_path": "reference_views_medical/skull/skull_003_rot270.png",
+      "view_label": "left",
+      "in_plane_rotation_degrees": 270,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:34ae7ee507a7dcb741e6276721d52423cc3119bbbd091eefdd237a914c7a7987",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "right_orbit": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "nasal_aperture": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.5
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "mental_protuberance": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "mandibular_angle": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "external_auditory_meatus": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "confidence": 0.3
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "unclear",
+          "overlap": "unclear",
+          "confidence": 0.4
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.85
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "unclear",
+          "apparent_size": "unclear",
+          "confidence": 0.4
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.3
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.85
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.3
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is partially visible.",
+        "Left Eye Socket is unclear.",
+        "Right Eye Socket is not visible.",
+        "Nasal Opening is partially visible.",
+        "Nasal Opening is unclear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is visible.",
+        "Lower Teeth Row is clear.",
+        "Chin Point is visible.",
+        "Chin Point is clear.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is visible.",
+        "Jaw Angle is clear.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is partially visible.",
+        "Ear Canal Opening is unclear.",
+        "The horizontal relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "The vertical relationship between Left Eye Socket and Nasal Opening is unclear.",
+        "The vertical relationship between Nasal Opening and Upper Teeth Row is unclear.",
+        "The overlap relationship between Nasal Opening and Upper Teeth Row is unclear.",
+        "Upper Teeth Row is above Lower Teeth Row.",
+        "Upper Teeth Row is separate from Lower Teeth Row.",
+        "Chin Point is below Lower Teeth Row.",
+        "Chin Point and Lower Teeth Row are similarly visible.",
+        "The vertical relationship between Left Eye Socket and Cranial Dome is unclear.",
+        "The apparent size relationship between Left Eye Socket and Cranial Dome is unclear.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "Jaw Angle is left of Chin Point.",
+        "Jaw Angle is above Chin Point.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "The horizontal relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The vertical relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Ear Canal Opening and Left Eye Socket is unclear."
+      ]
+    },
+    {
+      "node_id": "skull_003_rot315",
+      "source_node_id": "skull_003",
+      "image_path": "reference_views_medical/skull/skull_003_rot315.png",
+      "view_label": "left",
+      "in_plane_rotation_degrees": 315,
+      "spatial_frame": "image_coordinates",
+      "image_hash": "sha256:c71571a1ee8680bb27bd0b1aae6d6e42cf967a4e34067860243210c2e0594ab1",
+      "profile_hash": "sha256:3a4205cbac9f0ce7627b12c1f5bbc70d136d59b85a83ac4a8b24c7d1f425feeb",
+      "schema_version": "medical_reference_views.v1",
+      "landmarks": {
+        "left_orbit": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "right_orbit": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "nasal_aperture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "upper_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "lower_teeth_row": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "mental_protuberance": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.9
+        },
+        "cranial_vault": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.95
+        },
+        "zygomatic_arch": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.65
+        },
+        "mandibular_angle": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.6
+        },
+        "foramen_magnum": {
+          "visibility": "not_visible",
+          "clarity": "not_applicable",
+          "confidence": 0.9
+        },
+        "sagittal_suture": {
+          "visibility": "visible",
+          "clarity": "clear",
+          "confidence": 0.85
+        },
+        "external_auditory_meatus": {
+          "visibility": "partially_visible",
+          "clarity": "unclear",
+          "confidence": 0.55
+        }
+      },
+      "relations": {
+        "orbits_to_nasal": {
+          "horizontal": "left",
+          "vertical": "above",
+          "confidence": 0.9
+        },
+        "nasal_to_upper_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.9
+        },
+        "upper_to_lower_teeth": {
+          "vertical": "above",
+          "overlap": "separate",
+          "confidence": 0.95
+        },
+        "chin_to_lower_teeth": {
+          "vertical": "below",
+          "visibility_dominance": "similar",
+          "confidence": 0.85
+        },
+        "orbit_to_cranial_vault": {
+          "vertical": "below",
+          "apparent_size": "smaller",
+          "confidence": 0.9
+        },
+        "zygomatic_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.5
+        },
+        "jaw_angle_to_chin": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "confidence": 0.5
+        },
+        "suture_to_cranial_vault": {
+          "visibility_dominance": "b_more_visible",
+          "overlap": "overlapping",
+          "confidence": 0.85
+        },
+        "ear_to_orbit": {
+          "horizontal": "unclear",
+          "vertical": "unclear",
+          "visibility_dominance": "unclear",
+          "confidence": 0.5
+        },
+        "foramen_to_teeth": {
+          "visibility_dominance": "not_applicable",
+          "vertical": "not_applicable",
+          "confidence": 0.9
+        }
+      },
+      "description_sentences": [
+        "Left Eye Socket is visible.",
+        "Left Eye Socket is clear.",
+        "Right Eye Socket is partially visible.",
+        "Right Eye Socket is unclear.",
+        "Nasal Opening is visible.",
+        "Nasal Opening is clear.",
+        "Upper Teeth Row is visible.",
+        "Upper Teeth Row is clear.",
+        "Lower Teeth Row is visible.",
+        "Lower Teeth Row is clear.",
+        "Chin Point is visible.",
+        "Chin Point is clear.",
+        "Cranial Dome is visible.",
+        "Cranial Dome is clear.",
+        "Cheekbone Arch is partially visible.",
+        "Cheekbone Arch is unclear.",
+        "Jaw Angle is partially visible.",
+        "Jaw Angle is unclear.",
+        "Base Opening is not visible.",
+        "Midline Suture is visible.",
+        "Midline Suture is clear.",
+        "Ear Canal Opening is partially visible.",
+        "Ear Canal Opening is unclear.",
+        "Left Eye Socket is left of Nasal Opening.",
+        "Left Eye Socket is above Nasal Opening.",
+        "Nasal Opening is above Upper Teeth Row.",
+        "Nasal Opening is separate from Upper Teeth Row.",
+        "Upper Teeth Row is above Lower Teeth Row.",
+        "Upper Teeth Row is separate from Lower Teeth Row.",
+        "Chin Point is below Lower Teeth Row.",
+        "Chin Point and Lower Teeth Row are similarly visible.",
+        "Left Eye Socket is below Cranial Dome.",
+        "Left Eye Socket appears smaller than Cranial Dome.",
+        "The horizontal relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The vertical relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Cheekbone Arch and Left Eye Socket is unclear.",
+        "The horizontal relationship between Jaw Angle and Chin Point is unclear.",
+        "The vertical relationship between Jaw Angle and Chin Point is unclear.",
+        "Cranial Dome is more visible than Midline Suture.",
+        "Midline Suture overlaps Cranial Dome.",
+        "The horizontal relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The vertical relationship between Ear Canal Opening and Left Eye Socket is unclear.",
+        "The visibility dominance relationship between Ear Canal Opening and Left Eye Socket is unclear."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "schema_version": "landmark_profile.v1",
+  "object_id": "skull",
+  "object_context": "human skull",
+  "landmarks": [
+    {
+      "id": "left_orbit",
+      "name": "Left Eye Socket",
+      "definition": "The large, roughly circular cavity on the left side of the skull that houses the eye."
+    },
+    {
+      "id": "right_orbit",
+      "name": "Right Eye Socket",
+      "definition": "The large, roughly circular cavity on the right side of the skull that houses the eye."
+    },
+    {
+      "id": "nasal_aperture",
+      "name": "Nasal Opening",
+      "definition": "The pear-shaped opening in the center of the face where the nose cartilage attaches."
+    },
+    {
+      "id": "upper_teeth_row",
+      "name": "Upper Teeth Row",
+      "definition": "The curved row of teeth embedded in the upper jaw (maxilla)."
+    },
+    {
+      "id": "lower_teeth_row",
+      "name": "Lower Teeth Row",
+      "definition": "The curved row of teeth embedded in the lower jaw (mandible)."
+    },
+    {
+      "id": "mental_protuberance",
+      "name": "Chin Point",
+      "definition": "The forward-projecting triangular prominence at the bottom center of the mandible."
+    },
+    {
+      "id": "cranial_vault",
+      "name": "Cranial Dome",
+      "definition": "The large, smooth, rounded upper portion of the skull that encloses the brain."
+    },
+    {
+      "id": "zygomatic_arch",
+      "name": "Cheekbone Arch",
+      "definition": "The bony arch that extends from the side of the face below the orbit toward the ear opening."
+    },
+    {
+      "id": "mandibular_angle",
+      "name": "Jaw Angle",
+      "definition": "The curved corner region where the vertical ramus of the mandible meets the horizontal body."
+    },
+    {
+      "id": "foramen_magnum",
+      "name": "Base Opening",
+      "definition": "The large oval opening at the base of the skull where the spinal cord connects."
+    },
+    {
+      "id": "sagittal_suture",
+      "name": "Midline Suture",
+      "definition": "The zigzag seam running along the top midline of the cranial vault between the parietal bones."
+    },
+    {
+      "id": "external_auditory_meatus",
+      "name": "Ear Canal Opening",
+      "definition": "The circular opening on the side of the skull leading to the internal ear structures."
+    }
+  ],
+  "relation_specs": [
+    {
+      "id": "orbits_to_nasal",
+      "landmark_a": "left_orbit",
+      "landmark_b": "nasal_aperture",
+      "dimensions": [
+        "horizontal",
+        "vertical"
+      ]
+    },
+    {
+      "id": "nasal_to_upper_teeth",
+      "landmark_a": "nasal_aperture",
+      "landmark_b": "upper_teeth_row",
+      "dimensions": [
+        "vertical",
+        "overlap"
+      ]
+    },
+    {
+      "id": "upper_to_lower_teeth",
+      "landmark_a": "upper_teeth_row",
+      "landmark_b": "lower_teeth_row",
+      "dimensions": [
+        "vertical",
+        "overlap"
+      ]
+    },
+    {
+      "id": "chin_to_lower_teeth",
+      "landmark_a": "mental_protuberance",
+      "landmark_b": "lower_teeth_row",
+      "dimensions": [
+        "vertical",
+        "visibility_dominance"
+      ]
+    },
+    {
+      "id": "orbit_to_cranial_vault",
+      "landmark_a": "left_orbit",
+      "landmark_b": "cranial_vault",
+      "dimensions": [
+        "vertical",
+        "apparent_size"
+      ]
+    },
+    {
+      "id": "zygomatic_to_orbit",
+      "landmark_a": "zygomatic_arch",
+      "landmark_b": "left_orbit",
+      "dimensions": [
+        "horizontal",
+        "vertical",
+        "visibility_dominance"
+      ]
+    },
+    {
+      "id": "jaw_angle_to_chin",
+      "landmark_a": "mandibular_angle",
+      "landmark_b": "mental_protuberance",
+      "dimensions": [
+        "horizontal",
+        "vertical"
+      ]
+    },
+    {
+      "id": "suture_to_cranial_vault",
+      "landmark_a": "sagittal_suture",
+      "landmark_b": "cranial_vault",
+      "dimensions": [
+        "visibility_dominance",
+        "overlap"
+      ]
+    },
+    {
+      "id": "ear_to_orbit",
+      "landmark_a": "external_auditory_meatus",
+      "landmark_b": "left_orbit",
+      "dimensions": [
+        "horizontal",
+        "vertical",
+        "visibility_dominance"
+      ]
+    },
+    {
+      "id": "foramen_to_teeth",
+      "landmark_a": "foramen_magnum",
+      "landmark_b": "lower_teeth_row",
+      "dimensions": [
+        "visibility_dominance",
+        "vertical"
+      ]
+    }
+  ]
+}

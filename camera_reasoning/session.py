@@ -23,9 +23,27 @@ from .spatial_knowledge import (
     extract_structured_fields,
     load_simple_spatial_knowledge,
 )
-from .volume_scene import build_isosurface_pipeline, load_raw_volume, save_screenshot
+from .volume_scene import (
+    build_isosurface_pipeline,
+    build_volume_rendering_pipeline,
+    load_raw_volume,
+    load_transfer_function_json,
+    save_screenshot,
+)
 
 MIN_CAMERA_DISTANCE = 1e-3
+
+# Used when use_volume_rendering=True and the caller doesn't supply its own
+# points. Each object's transfer function lives in its own JSON file next to
+# its raw dataset in data/ (see data/vis_male_transfer_function.json) --
+# add a new one there for a new object instead of editing this, and pass it
+# in explicitly via opacity_points/color_points.
+_DEFAULT_TRANSFER_FUNCTION_PATH = (
+    Path(__file__).resolve().parent.parent / "data" / "vis_male_transfer_function.json"
+)
+DEFAULT_OPACITY_POINTS, DEFAULT_COLOR_POINTS = load_transfer_function_json(
+    _DEFAULT_TRANSFER_FUNCTION_PATH
+)
 
 
 class CameraReasoningSession:
@@ -35,6 +53,14 @@ class CameraReasoningSession:
         dimensions: tuple,
         scalar_type: str = "uint8",
         isovalue: float = 80,
+        use_volume_rendering: bool = False,
+        opacity_points: Optional[list] = None,
+        color_points: Optional[list] = None,
+        enable_smoothing: bool = False,
+        gaussian_standard_deviation: float = 1.0,
+        gaussian_radius_factor: float = 2.0,
+        enable_shading: bool = True,
+        camera_zoom_factor: float = 1.0,
         output_dir: str = "output",
         target_description: str = "No target description provided.",
         target_image_path: Optional[str] = None,
@@ -44,6 +70,22 @@ class CameraReasoningSession:
         self.dimensions = dimensions
         self.scalar_type = scalar_type
         self.isovalue = isovalue
+        # Direct-volume-rendering mode (transfer function) instead of a fixed
+        # isovalue isosurface. Off by default so existing callers are unaffected.
+        self.use_volume_rendering = use_volume_rendering
+        self.opacity_points = opacity_points if opacity_points is not None else DEFAULT_OPACITY_POINTS
+        self.color_points = color_points if color_points is not None else DEFAULT_COLOR_POINTS
+        self.enable_smoothing = enable_smoothing
+        self.gaussian_standard_deviation = gaussian_standard_deviation
+        self.gaussian_radius_factor = gaussian_radius_factor
+        # ShadeOff() gives a flat, uniformly-colored look with no lighting
+        # falloff (useful e.g. to actually see a pure-white color transfer
+        # function as white, instead of shaded gray in places).
+        self.enable_shading = enable_shading
+        # Applied via vtkCamera.Zoom() right after the initial ResetCamera(), so
+        # the starting view is closer without touching camera position/angle
+        # math directly. 1.0 = ResetCamera()'s own default framing; >1.0 = closer.
+        self.camera_zoom_factor = camera_zoom_factor
         self.output_dir = Path(output_dir)
         self.target_description = target_description
         self.target_image_path = target_image_path
@@ -77,11 +119,26 @@ class CameraReasoningSession:
         """Load data, build VTK scene, and reset the camera."""
         self._make_output_dirs()
         self._image_data = load_raw_volume(self.raw_path, self.dimensions, self.scalar_type)
-        self._actor, self._renderer, self._render_window = build_isosurface_pipeline(
-            self._image_data, self.isovalue
-        )
+        if self.use_volume_rendering:
+            self._actor, self._renderer, self._render_window = build_volume_rendering_pipeline(
+                self._image_data,
+                self.opacity_points,
+                self.color_points,
+                enable_smoothing=self.enable_smoothing,
+                gaussian_standard_deviation=self.gaussian_standard_deviation,
+                gaussian_radius_factor=self.gaussian_radius_factor,
+                enable_shading=self.enable_shading,
+            )
+            print(f"Scene initialized (volume rendering, transfer function). dims={self.dimensions}.")
+        else:
+            self._actor, self._renderer, self._render_window = build_isosurface_pipeline(
+                self._image_data, self.isovalue
+            )
+            print(f"Scene initialized. Isovalue={self.isovalue}, dims={self.dimensions}.")
         self._renderer.ResetCamera()
-        print(f"Scene initialized. Isovalue={self.isovalue}, dims={self.dimensions}.")
+        if self.camera_zoom_factor != 1.0:
+            self._renderer.GetActiveCamera().Zoom(self.camera_zoom_factor)
+            self._renderer.ResetCameraClippingRange()
 
     def render_and_save(self) -> str:
         """Render the current scene and save screenshots. Returns the latest screenshot path."""

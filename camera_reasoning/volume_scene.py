@@ -1,6 +1,25 @@
+import json
+from pathlib import Path
+
 import numpy as np
 import vtk
 from vtk.util import numpy_support
+
+
+def load_transfer_function_json(path) -> tuple:
+    """Load (opacity_points, color_points) from a transfer-function JSON file.
+
+    Expects "opacity_points" (list of [scalar, opacity]) and "color_points"
+    (list of [scalar, r, g, b]) keys -- see data/vis_male_transfer_function.json
+    for a worked example, and build_volume_rendering_pipeline() below for how
+    these are consumed. Kept next to the raw dataset it was tuned for, rather
+    than hardcoded in Python, so a new object's points never risk overwriting
+    a previous one's.
+    """
+    spec = json.loads(Path(path).read_text())
+    opacity_points = [tuple(point) for point in spec["opacity_points"]]
+    color_points = [tuple(point) for point in spec["color_points"]]
+    return opacity_points, color_points
 
 
 def load_raw_volume(path: str, dimensions: tuple, scalar_type: str = "uint8") -> vtk.vtkImageData:
@@ -56,6 +75,82 @@ def build_isosurface_pipeline(image: vtk.vtkImageData, isovalue: float):
     render_window.SetOffScreenRendering(1)
 
     return actor, renderer, render_window
+
+
+def build_volume_rendering_pipeline(
+    image: vtk.vtkImageData,
+    opacity_points: list,
+    color_points: list,
+    enable_smoothing: bool = False,
+    gaussian_standard_deviation: float = 1.0,
+    gaussian_radius_factor: float = 2.0,
+    enable_shading: bool = True,
+):
+    """Return (volume, renderer, render_window) for a direct volume render.
+
+    Unlike build_isosurface_pipeline (single isovalue -> polygonal surface
+    via vtkFlyingEdges3D), every voxel is classified through opacity_points
+    and color_points transfer functions, so intensity ranges can fade in or
+    out instead of being an in/out binary decision at one threshold. This
+    makes it possible to reveal thin/low-density structures that a single
+    isovalue would either clip or flood with noise.
+
+    opacity_points: list of (scalar_intensity, opacity) with opacity in [0, 1].
+    color_points: list of (scalar_intensity, r, g, b) with each in [0, 1].
+
+    There is no automatic derivation of these points from the volume's
+    histogram yet -- callers choose them per dataset (see
+    examples/render_skull_transfer_function.py for a worked example and
+    examples/show_hist.py for inspecting a volume's histogram first).
+
+    enable_shading: when True (default), surfaces facing away from the light
+    shade darker regardless of color_points -- gives depth cues but can make
+    a pure-white color transfer function still look gray in places. Set False
+    for a flat, uniformly-colored look with no lighting falloff at all.
+    """
+    source_image = image
+    if enable_smoothing:
+        smoother = vtk.vtkImageGaussianSmooth()
+        smoother.SetInputData(image)
+        smoother.SetStandardDeviation(gaussian_standard_deviation)
+        smoother.SetRadiusFactor(gaussian_radius_factor)
+        smoother.Update()
+        source_image = smoother.GetOutput()
+
+    opacity_function = vtk.vtkPiecewiseFunction()
+    for scalar, opacity in opacity_points:
+        opacity_function.AddPoint(scalar, opacity)
+
+    color_function = vtk.vtkColorTransferFunction()
+    for scalar, r, g, b in color_points:
+        color_function.AddRGBPoint(scalar, r, g, b)
+
+    volume_property = vtk.vtkVolumeProperty()
+    volume_property.SetColor(color_function)
+    volume_property.SetScalarOpacity(opacity_function)
+    volume_property.SetInterpolationTypeToLinear()
+    if enable_shading:
+        volume_property.ShadeOn()
+    else:
+        volume_property.ShadeOff()
+
+    mapper = vtk.vtkSmartVolumeMapper()
+    mapper.SetInputData(source_image)
+
+    volume = vtk.vtkVolume()
+    volume.SetMapper(mapper)
+    volume.SetProperty(volume_property)
+
+    renderer = vtk.vtkRenderer()
+    renderer.AddVolume(volume)
+    renderer.SetBackground(0.1, 0.1, 0.1)
+
+    render_window = vtk.vtkRenderWindow()
+    render_window.AddRenderer(renderer)
+    render_window.SetSize(800, 800)
+    render_window.SetOffScreenRendering(1)
+
+    return volume, renderer, render_window
 
 
 def save_screenshot(render_window: vtk.vtkRenderWindow, path: str):

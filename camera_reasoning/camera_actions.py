@@ -30,19 +30,19 @@ VALID_ACTIONS = {
 }
 
 ACTION_DESCRIPTIONS = {
-    "AZIMUTH_LEFT_COARSE":   "orbit camera 45 degrees left",
-    "AZIMUTH_RIGHT_COARSE":  "orbit camera 45 degrees right",
-    "AZIMUTH_LEFT_MEDIUM":   "orbit camera 15 degrees left",
-    "AZIMUTH_RIGHT_MEDIUM":  "orbit camera 15 degrees right",
-    "AZIMUTH_LEFT_FINE":     "orbit camera 5 degrees left",
-    "AZIMUTH_RIGHT_FINE":    "orbit camera 5 degrees right",
+    "AZIMUTH_LEFT_COARSE":   "orbit camera 90 degrees left",
+    "AZIMUTH_RIGHT_COARSE":  "orbit camera 90 degrees right",
+    "AZIMUTH_LEFT_MEDIUM":   "orbit camera 45 degrees left",
+    "AZIMUTH_RIGHT_MEDIUM":  "orbit camera 45 degrees right",
+    "AZIMUTH_LEFT_FINE":     "orbit camera 15 degrees left",
+    "AZIMUTH_RIGHT_FINE":    "orbit camera 15 degrees right",
     "AZIMUTH_RIGHT_180":     "orbit camera 180 degrees right (to the opposite side)",
-    "ELEVATION_UP_COARSE":   "orbit camera 45 degrees upward",
-    "ELEVATION_DOWN_COARSE": "orbit camera 45 degrees downward",
-    "ELEVATION_UP_MEDIUM":   "orbit camera 15 degrees upward",
-    "ELEVATION_DOWN_MEDIUM": "orbit camera 15 degrees downward",
-    "ELEVATION_UP_FINE":     "orbit camera 5 degrees upward",
-    "ELEVATION_DOWN_FINE":   "orbit camera 5 degrees downward",
+    "ELEVATION_UP_COARSE":   "orbit camera 90 degrees upward",
+    "ELEVATION_DOWN_COARSE": "orbit camera 90 degrees downward",
+    "ELEVATION_UP_MEDIUM":   "orbit camera 45 degrees upward",
+    "ELEVATION_DOWN_MEDIUM": "orbit camera 45 degrees downward",
+    "ELEVATION_UP_FINE":     "orbit camera 15 degrees upward",
+    "ELEVATION_DOWN_FINE":   "orbit camera 15 degrees downward",
     "ELEVATION_UP_180":      "orbit camera 180 degrees upward (to the opposite side)",
     "ROLL_CW_90":            "rotate image clockwise by 90 degrees",
     "ROLL_CCW_90":           "rotate image counterclockwise by 90 degrees",
@@ -65,31 +65,31 @@ def apply_action(action: str, camera, renderer):
         return False
 
     if action == "AZIMUTH_LEFT_COARSE":
-        camera.Azimuth(-45)
+        camera.Azimuth(-90)
     elif action == "AZIMUTH_RIGHT_COARSE":
-        camera.Azimuth(45)
+        camera.Azimuth(90)
     elif action == "AZIMUTH_LEFT_MEDIUM":
-        camera.Azimuth(-15)
+        camera.Azimuth(-45)
     elif action == "AZIMUTH_RIGHT_MEDIUM":
-        camera.Azimuth(15)
+        camera.Azimuth(45)
     elif action == "AZIMUTH_LEFT_FINE":
-        camera.Azimuth(-5)
+        camera.Azimuth(-15)
     elif action == "AZIMUTH_RIGHT_FINE":
-        camera.Azimuth(5)
+        camera.Azimuth(15)
     elif action == "AZIMUTH_RIGHT_180":
         camera.Azimuth(180)
     elif action == "ELEVATION_UP_COARSE":
-        camera.Elevation(45)
+        camera.Elevation(90)
     elif action == "ELEVATION_DOWN_COARSE":
-        camera.Elevation(-45)
+        camera.Elevation(-90)
     elif action == "ELEVATION_UP_MEDIUM":
-        camera.Elevation(15)
+        camera.Elevation(45)
     elif action == "ELEVATION_DOWN_MEDIUM":
-        camera.Elevation(-15)
+        camera.Elevation(-45)
     elif action == "ELEVATION_UP_FINE":
-        camera.Elevation(5)
+        camera.Elevation(15)
     elif action == "ELEVATION_DOWN_FINE":
-        camera.Elevation(-5)
+        camera.Elevation(-15)
     elif action == "ELEVATION_UP_180":
         camera.Elevation(180)
     elif action == "ROLL_CW_90":
