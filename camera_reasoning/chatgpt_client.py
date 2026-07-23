@@ -18,13 +18,17 @@ def _encode_image(path: str) -> str:
 
 def ask_chatgpt(
     prompt: str,
-    screenshot_path: str,
+    screenshot_path: Optional[str] = None,
     target_image_path: Optional[str] = None,
     extra_images: Optional[List[Tuple[str, str]]] = None,
     reference_items: Optional[List[Tuple[str, str, str]]] = None,
     model: Optional[str] = None,
 ) -> str:
     """Send the camera-reasoning prompt and screenshot(s) to the OpenAI API and return the reply text.
+
+    `screenshot_path` is optional (default None) so this same call path can also be used for
+    text-only prompts with no rendered image yet available (e.g. a planner/verifier call before
+    any specialist has rendered anything) — when omitted, no image is attached at all.
 
     `extra_images` is an optional list of (label, image_path) pairs, sent after
     screenshot_path/target_image_path — each preceded by a small "[label]" text
@@ -60,10 +64,11 @@ def ask_chatgpt(
 
     content = [{"type": "text", "text": prompt}]
 
-    screenshot_b64 = _encode_image(screenshot_path)
-    content.append(
-        {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{screenshot_b64}"}}
-    )
+    if screenshot_path and Path(screenshot_path).exists():
+        screenshot_b64 = _encode_image(screenshot_path)
+        content.append(
+            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{screenshot_b64}"}}
+        )
 
     if target_image_path and Path(target_image_path).exists():
         target_b64 = _encode_image(target_image_path)

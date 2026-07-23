@@ -22,8 +22,20 @@ def load_transfer_function_json(path) -> tuple:
     return opacity_points, color_points
 
 
-def load_raw_volume(path: str, dimensions: tuple, scalar_type: str = "uint8") -> vtk.vtkImageData:
-    """Read a raw binary volume file into a vtkImageData object."""
+def load_raw_volume(
+    path: str, dimensions: tuple, scalar_type: str = "uint8", spacing: tuple = (1.0, 1.0, 1.0)
+) -> vtk.vtkImageData:
+    """Read a raw binary volume file into a vtkImageData object.
+
+    `spacing` defaults to isotropic (1.0, 1.0, 1.0) -- pass the dataset's real
+    per-axis voxel spacing for anisotropic volumes (e.g. vis_male_128x256x256's
+    (1.57774, 0.995861, 1.00797), see data/vis_male_transfer_function.json /
+    examples/render_skull_transfer_function.py). Getting this wrong silently
+    distorts geometry rather than raising an error -- e.g. defaulting to (1,1,1)
+    for that dataset compresses its 128-slice axis to half the width of the
+    256-slice axes, since 128*1.0 is half of 256*1.0 even though the real
+    physical spacing (1.57774 vs ~1.0) was meant to compensate for it.
+    """
     dx, dy, dz = dimensions
     dtype = np.dtype(scalar_type)
     data = np.fromfile(path, dtype=dtype)
@@ -38,7 +50,7 @@ def load_raw_volume(path: str, dimensions: tuple, scalar_type: str = "uint8") ->
     image = vtk.vtkImageData()
     image.SetDimensions(dx, dy, dz)
     image.SetOrigin(0.0, 0.0, 0.0)
-    image.SetSpacing(1.0, 1.0, 1.0)
+    image.SetSpacing(*spacing)
 
     vtk_array = numpy_support.numpy_to_vtk(
         data.ravel(order="C"), deep=True, array_type=vtk.VTK_UNSIGNED_CHAR
@@ -47,8 +59,14 @@ def load_raw_volume(path: str, dimensions: tuple, scalar_type: str = "uint8") ->
     return image
 
 
-def build_isosurface_pipeline(image: vtk.vtkImageData, isovalue: float):
-    """Return (actor, renderer, render_window) for an isosurface render."""
+def build_isosurface_actor(image: vtk.vtkImageData, isovalue: float) -> vtk.vtkActor:
+    """Build just the isosurface actor for `image` at `isovalue`, with no renderer/window.
+
+    Factored out of build_isosurface_pipeline() so a specialist (e.g. an isovalue-adjustment
+    agent) can rebuild the actor in place at a new isovalue and swap it into an existing
+    renderer, without disturbing that renderer's camera state -- see
+    CameraReasoningSession.set_isovalue().
+    """
     mc = vtk.vtkFlyingEdges3D()
     mc.SetInputData(image)
     mc.SetValue(0, isovalue)
@@ -64,6 +82,12 @@ def build_isosurface_pipeline(image: vtk.vtkImageData, isovalue: float):
     actor.GetProperty().SetColor(0.85, 0.75, 0.65)
     actor.GetProperty().SetSpecular(0.3)
     actor.GetProperty().SetSpecularPower(20)
+    return actor
+
+
+def build_isosurface_pipeline(image: vtk.vtkImageData, isovalue: float):
+    """Return (actor, renderer, render_window) for an isosurface render."""
+    actor = build_isosurface_actor(image, isovalue)
 
     renderer = vtk.vtkRenderer()
     renderer.AddActor(actor)

@@ -24,6 +24,7 @@ from .spatial_knowledge import (
     load_simple_spatial_knowledge,
 )
 from .volume_scene import (
+    build_isosurface_actor,
     build_isosurface_pipeline,
     build_volume_rendering_pipeline,
     load_raw_volume,
@@ -52,6 +53,7 @@ class CameraReasoningSession:
         raw_path: str,
         dimensions: tuple,
         scalar_type: str = "uint8",
+        spacing: tuple = (1.0, 1.0, 1.0),
         isovalue: float = 80,
         use_volume_rendering: bool = False,
         opacity_points: Optional[list] = None,
@@ -69,6 +71,10 @@ class CameraReasoningSession:
         self.raw_path = raw_path
         self.dimensions = dimensions
         self.scalar_type = scalar_type
+        # Real per-axis voxel spacing -- defaults to isotropic (1,1,1). Get this
+        # wrong for an anisotropic dataset and geometry silently distorts rather
+        # than erroring (see load_raw_volume's docstring in volume_scene.py).
+        self.spacing = spacing
         self.isovalue = isovalue
         # Direct-volume-rendering mode (transfer function) instead of a fixed
         # isovalue isosurface. Off by default so existing callers are unaffected.
@@ -118,7 +124,7 @@ class CameraReasoningSession:
     def initialize(self):
         """Load data, build VTK scene, and reset the camera."""
         self._make_output_dirs()
-        self._image_data = load_raw_volume(self.raw_path, self.dimensions, self.scalar_type)
+        self._image_data = load_raw_volume(self.raw_path, self.dimensions, self.scalar_type, self.spacing)
         if self.use_volume_rendering:
             self._actor, self._renderer, self._render_window = build_volume_rendering_pipeline(
                 self._image_data,
@@ -278,6 +284,23 @@ class CameraReasoningSession:
         else:
             self._apply_and_advance(action)
         return action
+
+    def set_isovalue(self, new_isovalue: float):
+        """Rebuild the isosurface actor at a new isovalue in place, preserving camera state.
+
+        Swaps only the actor into the existing renderer (camera/renderer/render_window
+        untouched), so a specialist can adjust the isovalue mid-session without disturbing
+        camera work layered on top of it, and vice versa. Only valid in isosurface mode
+        (use_volume_rendering=False).
+        """
+        self._require_initialized()
+        if self.use_volume_rendering:
+            raise RuntimeError("set_isovalue() is only valid when use_volume_rendering=False.")
+        new_actor = build_isosurface_actor(self._image_data, new_isovalue)
+        self._renderer.RemoveActor(self._actor)
+        self._renderer.AddActor(new_actor)
+        self._actor = new_actor
+        self.isovalue = new_isovalue
 
     def reset_camera(self):
         """Hard-reset camera to fit the scene (destroys manual alignment)."""
