@@ -1,0 +1,25 @@
+{
+  "name": "vis_male_head_transfer_function",
+  "version": "0.1",
+  "purpose": "Direct-volume-rendering transfer function (opacity/color control points) tuned to show the HEAD (skin/soft-tissue surface) instead of bone. Derived from vis_male_transfer_function.json's skull-only preset for the same dataset -- see that file's notes for the underlying histogram.",
+  "raw_path": "vis_male_128x256x256_uint8.raw",
+  "object_context": "human head (skin surface)",
+  "notes": "Background/soft-tissue peak sits around 60-80; bone density climbs from ~90 up through the low 200s (same dataset as vis_male_transfer_function.json). Opacity ramps up starting in the soft-tissue range (from ~50) with a skin-tone color, instead of the skull preset's hard cutoff below 90 -- since soft tissue sits OUTSIDE bone along the viewing ray, giving it a moderate accumulated opacity is enough for the skin surface to occlude the bone beneath it without needing opacity=1.0 per voxel (which would look like a flat, unrealistic shell rather than skin).",
+  "opacity_points": [
+    [0, 0.00],
+    [30, 0.00],
+    [50, 0.05],
+    [65, 0.35],
+    [80, 0.55],
+    [110, 0.65],
+    [200, 0.70],
+    [254, 0.75]
+  ],
+  "color_points": [
+    [0, 0.0, 0.0, 0.0],
+    [40, 0.4, 0.2, 0.15],
+    [65, 0.93, 0.76, 0.65],
+    [110, 0.85, 0.55, 0.45],
+    [254, 0.85, 0.55, 0.45]
+  ]
+}

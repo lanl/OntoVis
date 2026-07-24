@@ -1,0 +1,18 @@
+[
+  {
+    "step": 1,
+    "action": "AZIMUTH_LEFT_COARSE"
+  },
+  {
+    "step": 1,
+    "action": "STOP"
+  },
+  {
+    "step": 2,
+    "action": "AZIMUTH_LEFT_COARSE"
+  },
+  {
+    "step": 2,
+    "action": "STOP"
+  }
+]

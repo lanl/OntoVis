@@ -1024,6 +1024,79 @@ def diagnose_blind_candidates(
     return {"diagnosis": validated_diagnosis, "raw_response": response_text}
 
 
+def diagnose_blind_candidates_sequentially(
+    current_image_path: str,
+    batch: BlindCandidateBatch,
+    target_description: str,
+    target_image_path: Optional[str] = None,
+    reference_image_paths: Optional[Dict[str, str]] = None,
+    node_descriptions: Optional[Dict[str, str]] = None,
+    action_history: Optional[List[Dict]] = None,
+    model: Optional[str] = None,
+    frozen_target: Optional[dict] = None,
+    carried_current: Optional[dict] = None,
+) -> dict:
+    """Same contract and return shape as diagnose_blind_candidates(), but calls the LLM
+    once PER CANDIDATE instead of once for the whole batch -- each call shows the model
+    exactly one candidate image (plus the reference bank, current, and target), so there
+    is nothing for it to mislabel a candidate's score/description against. Costs N LLM
+    calls instead of 1 (N = number of candidates this iteration) and gives up side-by-side
+    candidate comparison, in exchange for eliminating cross-candidate attribution errors
+    -- e.g. reporting a left/right judgment that actually belonged to a different candidate
+    in the same batch.
+
+    Reuses diagnose_blind_candidates() unmodified for each single-candidate call (a
+    BlindCandidateBatch containing just that one candidate), so all existing validation
+    logic applies unchanged, just with N=1 each time.
+
+    The first call's target/current diagnosis is frozen (via frozen_target/carried_current)
+    and reused for every subsequent call this iteration, so the combined diagnosis ends up
+    with exactly one consistent target/current view rather than N slightly different ones
+    -- this is the same freezing mechanism run_blind_visual_rollout_alignment_loop already
+    uses ACROSS iterations, just applied within one iteration's candidate calls too.
+
+    Returns {"diagnosis": <combined diagnosis dict, candidates in batch.visible_items
+    order>, "raw_response": <every call's raw response, concatenated for trace/debugging
+    visibility>}.
+    """
+    combined_candidates = []
+    raw_responses = []
+    iteration_frozen_target = frozen_target
+    iteration_carried_current = carried_current
+
+    for candidate_id, image_path, description in batch.visible_items:
+        single_batch = BlindCandidateBatch(
+            visible_items=[(candidate_id, image_path, description)],
+            candidate_mapping={candidate_id: batch.candidate_mapping[candidate_id]},
+        )
+        result = diagnose_blind_candidates(
+            current_image_path,
+            single_batch,
+            target_description,
+            target_image_path=target_image_path,
+            reference_image_paths=reference_image_paths,
+            node_descriptions=node_descriptions,
+            action_history=action_history,
+            model=model,
+            frozen_target=iteration_frozen_target,
+            carried_current=iteration_carried_current,
+        )
+        raw_responses.append(f"=== {candidate_id} ===\n{result['raw_response']}")
+        combined_candidates.extend(result["diagnosis"]["candidates"])
+
+        if iteration_frozen_target is None:
+            iteration_frozen_target = result["diagnosis"]["target"]
+        if iteration_carried_current is None:
+            iteration_carried_current = result["diagnosis"]["current"]
+
+    combined_diagnosis = {
+        "target": iteration_frozen_target,
+        "current": iteration_carried_current,
+        "candidates": combined_candidates,
+    }
+    return {"diagnosis": combined_diagnosis, "raw_response": "\n\n".join(raw_responses)}
+
+
 # ------------------------------------------------------------------
 # Pass 2 (pure Python, no LLM call): deterministic candidate selection from
 # Pass 1's structured diagnosis
@@ -1363,6 +1436,7 @@ def select_action_from_blind_candidates(
     minimum_confidence: float = 0.5,
     frozen_target: Optional[dict] = None,
     carried_current: Optional[dict] = None,
+    sequential_diagnosis: bool = False,
 ) -> dict:
     """Run the full three-pass pipeline (LLM visual diagnosis, reference-
     grounded via an attached reference-view bank the LLM judges by eye ->
@@ -1379,14 +1453,23 @@ def select_action_from_blind_candidates(
     at all.
 
     `frozen_target`/`carried_current` are passed straight through to
-    diagnose_blind_candidates — see its docstring.
+    diagnose_blind_candidates (or diagnose_blind_candidates_sequentially) — see their
+    docstrings.
+
+    `sequential_diagnosis`, if True, runs Pass 1 via
+    diagnose_blind_candidates_sequentially() instead of diagnose_blind_candidates() --
+    one LLM call per candidate instead of one call for the whole batch. Costs more calls
+    but eliminates cross-candidate attribution errors (the model mislabeling which
+    candidate a score/description belongs to when several similar images are shown at
+    once) -- see that function's docstring.
 
     Returns a rich dict:
         {"visual_diagnosis", "visual_diagnosis_raw_response",
          "selection", "magnitude", "magnitude_raw_response",
          "selected_candidate", "magnitude_recommendation", "final_action"}
     """
-    diagnosis_result = diagnose_blind_candidates(
+    diagnose_fn = diagnose_blind_candidates_sequentially if sequential_diagnosis else diagnose_blind_candidates
+    diagnosis_result = diagnose_fn(
         current_image_path,
         batch,
         target_description,
@@ -1543,9 +1626,15 @@ def run_blind_visual_rollout_alignment_loop(
     stop_improvement_margin: int = 3,
     minimum_confidence: float = 0.5,
     skip_on_indecision: bool = True,
+    sequential_diagnosis: bool = False,
 ) -> dict:
     """Run the blind visual-rollout camera-action-selection loop against an
     already-`.initialize()`d CameraReasoningSession.
+
+    `sequential_diagnosis`, if True, diagnoses candidates one LLM call at a time instead
+    of all together in one call (see diagnose_blind_candidates_sequentially's docstring)
+    -- more LLM calls per iteration, but avoids the model mislabeling which candidate a
+    score/description belongs to when several similar images are shown at once.
 
     Every iteration: render the blind-eligible COARSE/fixed candidates (4
     scalable + len(FIXED_BLIND_ACTIONS) fixed, currently 7 total — including a
@@ -1632,6 +1721,7 @@ def run_blind_visual_rollout_alignment_loop(
                 minimum_confidence=minimum_confidence,
                 frozen_target=frozen_target_diagnosis,
                 carried_current=carried_current_diagnosis,
+                sequential_diagnosis=sequential_diagnosis,
             )
         except BlindSelectionError as exc:
             if not skip_on_indecision:

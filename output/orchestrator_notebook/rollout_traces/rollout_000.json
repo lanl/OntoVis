@@ -1,0 +1,316 @@
+{
+  "iteration": 0,
+  "current_image_path": "../output/orchestrator_notebook/screenshots/latest.png",
+  "candidates": [
+    {
+      "action": "AZIMUTH_LEFT_COARSE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/AZIMUTH_LEFT_COARSE.png"
+    },
+    {
+      "action": "AZIMUTH_LEFT_FINE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/AZIMUTH_LEFT_FINE.png"
+    },
+    {
+      "action": "AZIMUTH_LEFT_MEDIUM",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/AZIMUTH_LEFT_MEDIUM.png"
+    },
+    {
+      "action": "AZIMUTH_RIGHT_180",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/AZIMUTH_RIGHT_180.png"
+    },
+    {
+      "action": "AZIMUTH_RIGHT_COARSE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/AZIMUTH_RIGHT_COARSE.png"
+    },
+    {
+      "action": "AZIMUTH_RIGHT_FINE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/AZIMUTH_RIGHT_FINE.png"
+    },
+    {
+      "action": "AZIMUTH_RIGHT_MEDIUM",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/AZIMUTH_RIGHT_MEDIUM.png"
+    },
+    {
+      "action": "ELEVATION_DOWN_COARSE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/ELEVATION_DOWN_COARSE.png"
+    },
+    {
+      "action": "ELEVATION_DOWN_FINE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/ELEVATION_DOWN_FINE.png"
+    },
+    {
+      "action": "ELEVATION_DOWN_MEDIUM",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/ELEVATION_DOWN_MEDIUM.png"
+    },
+    {
+      "action": "ELEVATION_UP_180",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/ELEVATION_UP_180.png"
+    },
+    {
+      "action": "ELEVATION_UP_COARSE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/ELEVATION_UP_COARSE.png"
+    },
+    {
+      "action": "ELEVATION_UP_FINE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/ELEVATION_UP_FINE.png"
+    },
+    {
+      "action": "ELEVATION_UP_MEDIUM",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/ELEVATION_UP_MEDIUM.png"
+    },
+    {
+      "action": "PAN_DOWN",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/PAN_DOWN.png"
+    },
+    {
+      "action": "PAN_LEFT",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/PAN_LEFT.png"
+    },
+    {
+      "action": "PAN_RIGHT",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/PAN_RIGHT.png"
+    },
+    {
+      "action": "PAN_UP",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/PAN_UP.png"
+    },
+    {
+      "action": "ROLL_CCW_90",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/ROLL_CCW_90.png"
+    },
+    {
+      "action": "ROLL_CCW_FINE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/ROLL_CCW_FINE.png"
+    },
+    {
+      "action": "ROLL_CW_90",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/ROLL_CW_90.png"
+    },
+    {
+      "action": "ROLL_CW_FINE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/ROLL_CW_FINE.png"
+    },
+    {
+      "action": "STOP",
+      "image_path": "../output/orchestrator_notebook/screenshots/latest.png"
+    },
+    {
+      "action": "ZOOM_IN",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/ZOOM_IN.png"
+    },
+    {
+      "action": "ZOOM_OUT",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_000/ZOOM_OUT.png"
+    }
+  ],
+  "selection": {
+    "current_visual_observation": "The skull is shown from a superior (top-down) view, looking directly down at the cranial vault. The frontal bone, nasal cavity, maxilla, teeth, and cervical vertebrae are visible. This is an inferior-superior or top-down perspective.",
+    "target_difference": "Need to achieve a left lateral view of the skull showing a side profile. Currently viewing from above; need to orbit camera to the side to show the left lateral aspect prominently.",
+    "candidate_evaluation": [
+      {
+        "action": "AZIMUTH_LEFT_COARSE",
+        "observed_visual_change": "Camera has orbited 90 degrees left, now showing a clear left lateral side view of the skull with cranium on left, face/jaw in center-right, and cervical spine extending to the right.",
+        "relation_to_target": "This achieves the target precisely - shows left lateral aspect prominently with proper side profile orientation.",
+        "history_check": "new_progress",
+        "verdict": "recommended",
+        "justification": "Perfect left lateral view showing the left side of the skull prominently with clear side profile rather than frontal or posterior view."
+      },
+      {
+        "action": "AZIMUTH_LEFT_FINE",
+        "observed_visual_change": "Camera has orbited approximately 15 degrees left, showing a slight oblique view with more lateral structures becoming visible but still predominantly superior orientation.",
+        "relation_to_target": "Partial progress toward lateral view but insufficient - still too much superior perspective visible.",
+        "history_check": "new_progress",
+        "verdict": "could_help",
+        "justification": "Moves in the correct direction but rotation is too small to achieve the target lateral view."
+      },
+      {
+        "action": "AZIMUTH_LEFT_MEDIUM",
+        "observed_visual_change": "Camera has orbited approximately 45 degrees left, showing an oblique superior-lateral view with more side structures visible but not yet a true lateral profile.",
+        "relation_to_target": "Significant progress toward lateral view but still shows too much superior aspect - not yet a true side profile.",
+        "history_check": "new_progress",
+        "verdict": "could_help",
+        "justification": "Moves substantially toward target but rotation is insufficient for the desired pure lateral view."
+      },
+      {
+        "action": "AZIMUTH_RIGHT_180",
+        "observed_visual_change": "Camera has orbited 180 degrees to show the inferior (bottom) view of the skull, looking up at the base.",
+        "relation_to_target": "Moves away from target - shows inferior view instead of lateral view.",
+        "history_check": "not_applicable",
+        "verdict": "moves_away",
+        "justification": "Shows opposite perspective (inferior vs lateral) with no side profile visible."
+      },
+      {
+        "action": "AZIMUTH_RIGHT_COARSE",
+        "observed_visual_change": "Camera has orbited 90 degrees right, showing a right lateral view of the skull (opposite side from target).",
+        "relation_to_target": "Shows lateral profile but from the wrong side - target requires left lateral view.",
+        "history_check": "not_applicable",
+        "verdict": "moves_away",
+        "justification": "Achieves lateral profile orientation but shows right side instead of required left side."
+      },
+      {
+        "action": "AZIMUTH_RIGHT_FINE",
+        "observed_visual_change": "Camera has orbited approximately 15 degrees right, showing slight oblique view toward right side.",
+        "relation_to_target": "Moves away from target left lateral view by rotating toward right.",
+        "history_check": "not_applicable",
+        "verdict": "moves_away",
+        "justification": "Small rotation in wrong direction away from target left lateral view."
+      },
+      {
+        "action": "AZIMUTH_RIGHT_MEDIUM",
+        "observed_visual_change": "Camera has orbited approximately 45 degrees right, showing oblique superior-right view.",
+        "relation_to_target": "Moves away from target by rotating toward right side instead of left.",
+        "history_check": "not_applicable",
+        "verdict": "moves_away",
+        "justification": "Substantial rotation in wrong direction, showing right oblique view instead of left lateral."
+      },
+      {
+        "action": "ELEVATION_DOWN_COARSE",
+        "observed_visual_change": "Camera has moved to look more directly down, showing predominantly inferior view of skull base and dental arch.",
+        "relation_to_target": "Changes elevation but not azimuth - doesn't achieve lateral side view.",
+        "history_check": "not_applicable",
+        "verdict": "moves_away",
+        "justification": "Maintains superior-inferior axis without providing the needed lateral perspective."
+      },
+      {
+        "action": "ELEVATION_DOWN_FINE",
+        "observed_visual_change": "Camera has moved slightly more inferiorly, still showing predominantly superior view with minor elevation change.",
+        "relation_to_target": "Minimal change that doesn't address the need for lateral viewing angle.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Small elevation adjustment without addressing the fundamental need to orbit laterally."
+      },
+      {
+        "action": "ELEVATION_DOWN_MEDIUM",
+        "observed_visual_change": "Camera has moved moderately downward, showing more of the inferior structures but still superior orientation.",
+        "relation_to_target": "Changes viewing angle vertically but doesn't provide lateral side view.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Elevation change without the necessary azimuthal rotation for lateral view."
+      },
+      {
+        "action": "ELEVATION_UP_180",
+        "observed_visual_change": "Camera has flipped to show skull base from below (inferior view).",
+        "relation_to_target": "Shows inferior view instead of lateral profile view.",
+        "history_check": "not_applicable",
+        "verdict": "moves_away",
+        "justification": "Complete elevation reversal showing bottom view, not lateral side profile."
+      },
+      {
+        "action": "ELEVATION_UP_COARSE",
+        "observed_visual_change": "Camera has elevated to show posterior/occipital aspect from behind and below.",
+        "relation_to_target": "Shows posterior view rather than lateral side profile.",
+        "history_check": "not_applicable",
+        "verdict": "moves_away",
+        "justification": "Shows back of skull rather than left lateral side profile."
+      },
+      {
+        "action": "ELEVATION_UP_FINE",
+        "observed_visual_change": "Camera has elevated slightly, still showing predominantly superior view with minor change.",
+        "relation_to_target": "Minimal elevation change that doesn't address lateral viewing requirement.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Small elevation adjustment without providing lateral perspective."
+      },
+      {
+        "action": "ELEVATION_UP_MEDIUM",
+        "observed_visual_change": "Camera has elevated moderately, still showing predominantly superior view.",
+        "relation_to_target": "Changes elevation without providing lateral side perspective.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Moderate elevation change without necessary azimuthal rotation."
+      },
+      {
+        "action": "PAN_DOWN",
+        "observed_visual_change": "Skull shifts upward in frame, showing more of lower structures.",
+        "relation_to_target": "Panning doesn't change viewing angle - still superior view.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Frame repositioning without changing the fundamental camera angle needed for lateral view."
+      },
+      {
+        "action": "PAN_LEFT",
+        "observed_visual_change": "Skull shifts right in frame, minimal change to viewing angle.",
+        "relation_to_target": "Panning doesn't change viewing perspective to lateral.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Frame repositioning without changing camera orbit angle."
+      },
+      {
+        "action": "PAN_RIGHT",
+        "observed_visual_change": "Skull shifts left in frame, minimal change to viewing angle.",
+        "relation_to_target": "Panning doesn't provide lateral viewing angle.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Frame repositioning without changing camera perspective."
+      },
+      {
+        "action": "PAN_UP",
+        "observed_visual_change": "Skull shifts downward in frame.",
+        "relation_to_target": "Panning doesn't change viewing angle to lateral.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Frame repositioning without changing camera orbit angle."
+      },
+      {
+        "action": "ROLL_CCW_90",
+        "observed_visual_change": "Image rotates 90 degrees counterclockwise, skull appears horizontal but still superior view.",
+        "relation_to_target": "Image rotation doesn't change camera position - still superior view, not lateral.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Roll rotates the image frame but doesn't change camera position to achieve lateral view."
+      },
+      {
+        "action": "ROLL_CCW_FINE",
+        "observed_visual_change": "Image rotates slightly counterclockwise, minimal visual change.",
+        "relation_to_target": "Minor roll doesn't change viewing perspective to lateral.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Small frame rotation without changing camera position."
+      },
+      {
+        "action": "ROLL_CW_90",
+        "observed_visual_change": "Image rotates 90 degrees clockwise, skull appears horizontal but still superior view.",
+        "relation_to_target": "Image rotation doesn't change camera position to lateral view.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Roll rotates frame but doesn't orbit camera to lateral position."
+      },
+      {
+        "action": "ROLL_CW_FINE",
+        "observed_visual_change": "Image rotates slightly clockwise, minimal visual change.",
+        "relation_to_target": "Minor roll doesn't achieve lateral viewing angle.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Small frame rotation without changing camera orbit."
+      },
+      {
+        "action": "STOP",
+        "observed_visual_change": "No change - identical to current superior view.",
+        "relation_to_target": "Current view is superior/top-down, not the target left lateral view.",
+        "history_check": "not_applicable",
+        "verdict": "moves_away",
+        "justification": "Stopping now would leave camera in wrong position (superior view instead of left lateral view)."
+      },
+      {
+        "action": "ZOOM_IN",
+        "observed_visual_change": "Skull appears larger in frame, same superior viewing angle.",
+        "relation_to_target": "Zoom doesn't change viewing angle to lateral.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Magnification change without changing camera position to lateral view."
+      },
+      {
+        "action": "ZOOM_OUT",
+        "observed_visual_change": "Skull appears smaller in frame, same superior viewing angle.",
+        "relation_to_target": "Zoom doesn't change viewing angle to lateral.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Magnification change without changing camera position to lateral view."
+      }
+    ],
+    "selected_action": "AZIMUTH_LEFT_COARSE",
+    "reasoning": "AZIMUTH_LEFT_COARSE is the only action that achieves the target precisely. It orbits the camera 90 degrees to the left, resulting in a perfect left lateral view of the skull showing the left side prominently with a clear side profile. The rendered outcome shows the cranium on the left, facial structures in the center-right, and cervical spine extending right - exactly matching the target criteria of positioning the camera to the left of the skull with the left lateral aspect prominently visible in a side profile orientation."
+  },
+  "selected_candidate_image": "../output/orchestrator_notebook/screenshots/rollouts/step_000/AZIMUTH_LEFT_COARSE.png",
+  "applied_action": "AZIMUTH_LEFT_COARSE"
+}

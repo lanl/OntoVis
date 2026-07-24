@@ -94,9 +94,13 @@ VisualizationExecutor (executor.py)   -- deterministic Python: scheduling, retri
 AgentRegistry (registry.py)           -- decides WHICH agent satisfies a capability
     |
     +--> CameraSpecialist   (specialists/camera_adapter.py)   -- wraps camera_reasoning's
-    |                                                             existing visual-rollout loop
-    +--> IsovalueSpecialist (specialists/isovalue_adapter.py) -- new render/evaluate/adjust
-    |                                                             loop over CameraReasoningSession
+    |                                                             label-blind, three-pass
+    |                                                             visual-rollout loop
+    +--> IsovalueSpecialist (specialists/isovalue_adapter.py) -- histogram-informed
+    |                                                             one-shot candidate sweep
+    +--> OrientationSpecialist (specialists/orientation_adapter.py) -- plain LLM roll
+    |                                                             correction, separate
+    |                                                             from positioning
     +--> future specialists (transfer-function, clipping, segmentation, ...)
     |
     v
@@ -118,6 +122,88 @@ Each specialist still owns its entire internal render -> evaluate -> act -> repe
 individual camera moves or isovalue increments itself. There are two independent levels
 of iteration: the executor iterates over **tasks**; each specialist iterates over its own
 **internal steps**.
+
+### Camera specialist scope and reference grounding
+
+`CameraSpecialist` wraps `camera_reasoning.blind_visual_rollout_agent`, not the plain
+`visual_rollout_agent` -- every iteration, candidate views are rendered, stripped of their
+real action names (replaced with opaque, reshuffled IDs), diagnosed by the LLM, selected
+deterministically in Python, and only then resolved back to a real action. Its candidate
+set is azimuth/elevation framing only (`show_object_from_direction`, `adjust_viewpoint`)
+-- it never proposes zoom, pan, roll, or undo, so those capabilities are not registered
+for this agent at all (a future specialist could add them).
+
+Selection quality depends heavily on having a reference-view bank for Pass 1 to compare
+against; without one, Pass 1 reports everything as "unclear" and Pass 2 falls back to a
+directional sweep. `CameraSpecialist(session, reference_image_paths=..., node_descriptions=...)`
+and `VisualizationOrchestrator(..., camera_reference_image_paths=..., camera_node_descriptions=...)`
+accept one, but nothing loads a bank automatically -- the caller loads and passes one
+explicitly. Two bank formats/loaders are supported (see
+`specialists/camera_adapter.py`):
+
+- `load_simple_reference_bank(descriptions_path)` -- the flat `{node_id: description}`
+  format under `reference_views_medical/<object>/reference_views_simple.json`, with each
+  node's image conventionally at `<node_id>.png` next to it. This doesn't need to be a
+  render of the exact same dataset/isovalue -- Pass 1 judges viewpoint resemblance by eye,
+  not exact pixel/rendering match, so real reference photographs work fine (see
+  `demo.py`/`notebooks/visualization_orchestrator_demo.ipynb`, which use
+  `reference_views_medical/skull/` against the skull VTK dataset).
+- `load_reference_bank(nodes_path, descriptions_path)` -- the graph-based
+  `camera_nodes.json` + `view_descriptions.json` pair produced by
+  `examples/generate_camera_relative_views.py`, for a bank rendered from the exact
+  dataset/isovalue in use.
+
+By default (`CameraSpecialist(..., sequential_diagnosis=True)` /
+`VisualizationOrchestrator(..., camera_sequential_diagnosis=True)`), Pass 1 diagnoses
+candidates one LLM call at a time (`diagnose_blind_candidates_sequentially` in
+`blind_visual_rollout_agent.py`) rather than all 7 in a single batched call -- this costs
+more LLM calls per iteration, but avoids a real observed failure mode where the model
+would mislabel which candidate a score/description belonged to (e.g. reporting a
+left/right judgment that actually applied to a different candidate) when several
+similar-looking renders were shown together. Set it to `False` to go back to the original
+single-call-per-iteration behavior once that gets revisited for cost/latency.
+
+### Isovalue specialist: histogram-informed, multi-angle candidate sweep
+
+`IsovalueSpecialist` is a candidate sweep, not an iterative loop:
+`compute_histogram_local_minima_isovalues` (in `specialists/isovalue_adapter.py`) finds the
+LOCAL MINIMA ("valleys") of the volume's intensity histogram -- thresholds that sit
+*between* two materials, where relatively few voxels share that exact intensity, which
+tends to produce a clean, low-noise surface. Local maxima (the middle of a homogeneous
+material) are deliberately excluded, since thresholding there is what produces fragmented,
+speckly surfaces -- directly relevant to `reduce_surface_noise`.
+
+By default (`multi_angle=True`), `render_isovalue_candidates` renders each candidate from 6
+angles -- front/right/back/left/top/bottom, computed RELATIVE to the session's current
+camera via `camera_actions.apply_action` (not fixed absolute world axes like
+`examples/render_head_iso_candidates.ipynb`'s `six_view_cameras`, which was tuned
+specifically for a different dataset and wouldn't transfer) -- since noise can be visible
+from one angle and hidden from another. Those 6 angles are combined into ONE labeled tiled
+image per candidate (`_combine_views_into_grid`, each tile's angle name burned directly
+into the pixels) rather than sent as 6 separate attachments, so the single final comparison
+call still only has one image per candidate -- N candidates means N image attachments
+either way, `multi_angle` only changes what each one shows. Set `multi_angle=False` to
+render just the current angle per candidate instead of a 6-way grid. An earlier version of
+this specialist used a blind iterative "should the isovalue go up or down?" loop with no
+grounding in the volume's actual data distribution; it's no longer used.
+
+### Orientation specialist: roll correction, separate from positioning
+
+`camera_reasoning`'s blind visual-rollout pipeline (wrapped by `CameraSpecialist`) only
+searches POSITIONAL movements -- azimuth/elevation, i.e. which side of the object is shown.
+`ROLL` isn't even in its candidate action subset, so a correctly-positioned view can still
+render tilted or upside-down with nothing in that pipeline able to fix it. `OrientationSpecialist`
+(`specialists/orientation_adapter.py`, capability `correct_view_orientation`) handles that
+as its own separate task, deliberately NOT folded into `CameraSpecialist`'s loop: one plain
+LLM call per iteration ("is this image upright? if not, how many degrees should the camera
+roll?"), no blind candidate rendering, no reference-bank matching -- "is this tilted" is a
+much simpler visual question than "which side is this", so it doesn't need the heavier
+pipeline. It only ever adjusts `view_up` (roll) and never re-examines which side is shown.
+
+Because the planner prompt is built dynamically from the registry's capability catalog,
+registering this specialist is all that's needed for the planner to start sequencing
+`correct_view_orientation` tasks after camera-positioning tasks when relevant -- no executor
+or prompt-template changes required.
 
 ### Registering a new specialist
 

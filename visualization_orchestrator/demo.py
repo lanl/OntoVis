@@ -19,10 +19,20 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from visualization_orchestrator import VisualizationOrchestrator
+from visualization_orchestrator.specialists import load_simple_reference_bank
 
 DATASET_PATH = "data/skull_256x256x256_uint8.raw"
 DIMENSIONS = (256, 256, 256)
 INITIAL_ISOVALUE = 40
+
+# reference_views_medical/skull/ holds real reference photographs of a physical skull
+# (not renders of this specific VTK dataset) -- pass it explicitly so the camera
+# specialist's blind-loop candidate selection is reference-grounded instead of falling
+# back to a directional sweep. A photo bank is fine here: Pass 1 judges viewpoint
+# resemblance by eye, not exact pixel/rendering match (see
+# camera_reasoning/blind_visual_rollout_agent.py's "Reference grounding" docstring).
+# Not loaded automatically by VisualizationOrchestrator.
+REFERENCE_BANK_DESCRIPTIONS_PATH = "reference_views_medical/skull/reference_views_simple.json"
 
 DEMO_INSTRUCTIONS = [
     "Show the inside of the head from behind.",
@@ -34,11 +44,14 @@ DEMO_INSTRUCTIONS = [
 
 
 def main():
+    reference_image_paths, node_descriptions = load_simple_reference_bank(REFERENCE_BANK_DESCRIPTIONS_PATH)
     orchestrator = VisualizationOrchestrator(
         dataset_path=DATASET_PATH,
         dimensions=DIMENSIONS,
         isovalue=INITIAL_ISOVALUE,
         output_dir="output/orchestrator_demo",
+        camera_reference_image_paths=reference_image_paths,
+        camera_node_descriptions=node_descriptions,
     )
 
     for instruction in DEMO_INSTRUCTIONS:

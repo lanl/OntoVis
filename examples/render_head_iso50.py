@@ -5,7 +5,7 @@ import vtk
 DATASET_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "vis_male_128x256x256_uint8.raw")
 DIMENSIONS = (128, 256, 256)
 SPACING = (1.57774, 0.995861, 1.00797)
-ISOVALUE = 150
+ISOVALUE = 45
 
 reader = vtk.vtkImageReader2()
 reader.SetFileName(DATASET_PATH)

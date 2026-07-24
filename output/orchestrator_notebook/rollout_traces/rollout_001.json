@@ -1,0 +1,328 @@
+{
+  "iteration": 1,
+  "current_image_path": "../output/orchestrator_notebook/screenshots/latest.png",
+  "candidates": [
+    {
+      "action": "AZIMUTH_LEFT_COARSE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/AZIMUTH_LEFT_COARSE.png"
+    },
+    {
+      "action": "AZIMUTH_LEFT_FINE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/AZIMUTH_LEFT_FINE.png"
+    },
+    {
+      "action": "AZIMUTH_LEFT_MEDIUM",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/AZIMUTH_LEFT_MEDIUM.png"
+    },
+    {
+      "action": "AZIMUTH_RIGHT_180",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/AZIMUTH_RIGHT_180.png"
+    },
+    {
+      "action": "AZIMUTH_RIGHT_COARSE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/AZIMUTH_RIGHT_COARSE.png"
+    },
+    {
+      "action": "AZIMUTH_RIGHT_FINE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/AZIMUTH_RIGHT_FINE.png"
+    },
+    {
+      "action": "AZIMUTH_RIGHT_MEDIUM",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/AZIMUTH_RIGHT_MEDIUM.png"
+    },
+    {
+      "action": "ELEVATION_DOWN_COARSE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ELEVATION_DOWN_COARSE.png"
+    },
+    {
+      "action": "ELEVATION_DOWN_FINE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ELEVATION_DOWN_FINE.png"
+    },
+    {
+      "action": "ELEVATION_DOWN_MEDIUM",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ELEVATION_DOWN_MEDIUM.png"
+    },
+    {
+      "action": "ELEVATION_UP_180",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ELEVATION_UP_180.png"
+    },
+    {
+      "action": "ELEVATION_UP_COARSE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ELEVATION_UP_COARSE.png"
+    },
+    {
+      "action": "ELEVATION_UP_FINE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ELEVATION_UP_FINE.png"
+    },
+    {
+      "action": "ELEVATION_UP_MEDIUM",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ELEVATION_UP_MEDIUM.png"
+    },
+    {
+      "action": "PAN_DOWN",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/PAN_DOWN.png"
+    },
+    {
+      "action": "PAN_LEFT",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/PAN_LEFT.png"
+    },
+    {
+      "action": "PAN_RIGHT",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/PAN_RIGHT.png"
+    },
+    {
+      "action": "PAN_UP",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/PAN_UP.png"
+    },
+    {
+      "action": "ROLL_CCW_90",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ROLL_CCW_90.png"
+    },
+    {
+      "action": "ROLL_CCW_FINE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ROLL_CCW_FINE.png"
+    },
+    {
+      "action": "ROLL_CW_90",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ROLL_CW_90.png"
+    },
+    {
+      "action": "ROLL_CW_FINE",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ROLL_CW_FINE.png"
+    },
+    {
+      "action": "STOP",
+      "image_path": "../output/orchestrator_notebook/screenshots/latest.png"
+    },
+    {
+      "action": "UNDO_LAST",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/UNDO_LAST.png"
+    },
+    {
+      "action": "ZOOM_IN",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ZOOM_IN.png"
+    },
+    {
+      "action": "ZOOM_OUT",
+      "image_path": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ZOOM_OUT.png"
+    }
+  ],
+  "selection": {
+    "current_visual_observation": "The skull is viewed from a left lateral oblique angle, showing the cranium on the left side, the face/mandible in the center, and the cervical spine extending to the right. The left side of the cranium is visible but the view includes substantial facial and anterior structures.",
+    "target_difference": "Need a more pure left lateral profile view where the left side of the skull is more prominently displayed and the face/anterior structures are less dominant. The camera should be positioned more directly to the left side of the skull.",
+    "candidate_evaluation": [
+      {
+        "action": "AZIMUTH_LEFT_COARSE",
+        "observed_visual_change": "The view rotates 90 degrees left, showing primarily the top of the cranium with minimal lateral detail visible.",
+        "relation_to_target": "This moves too far past the desired left lateral view, showing mostly superior aspect instead of side profile.",
+        "history_check": "repeated",
+        "verdict": "moves_away",
+        "justification": "The rendered outcome shows the top of the skull rather than a lateral profile, which is further from the target than the current view."
+      },
+      {
+        "action": "AZIMUTH_LEFT_FINE",
+        "observed_visual_change": "The view rotates slightly left (15 degrees), maintaining similar lateral oblique perspective with slightly more emphasis on the cranial left side.",
+        "relation_to_target": "This adjusts the view closer to a true left lateral profile by reducing the amount of facial/anterior structures visible.",
+        "history_check": "new_progress",
+        "verdict": "could_help",
+        "justification": "The rendered image shows a subtle shift that brings the left side of the skull more into prominence while maintaining good lateral profile characteristics."
+      },
+      {
+        "action": "AZIMUTH_LEFT_MEDIUM",
+        "observed_visual_change": "The view rotates 45 degrees left, showing more of the posterior and lateral cranium with the face becoming less prominent.",
+        "relation_to_target": "This moves toward a better left lateral view by emphasizing the left side of the cranium more.",
+        "history_check": "new_progress",
+        "verdict": "could_help",
+        "justification": "The image shows increased prominence of the left lateral skull surface, though it may be starting to show too much posterior aspect."
+      },
+      {
+        "action": "AZIMUTH_RIGHT_180",
+        "observed_visual_change": "The view flips to show the right lateral side of the skull instead of the left.",
+        "relation_to_target": "This shows the opposite (right) side of the skull, which is contrary to the target requirement of viewing from the left.",
+        "history_check": "reversal",
+        "verdict": "moves_away",
+        "justification": "The rendered outcome shows the right lateral view instead of the required left lateral view."
+      },
+      {
+        "action": "AZIMUTH_RIGHT_COARSE",
+        "observed_visual_change": "The view rotates 90 degrees right, showing the skull from underneath/inferior perspective.",
+        "relation_to_target": "This moves completely away from any lateral view, showing inferior skull base structures.",
+        "history_check": "reversal",
+        "verdict": "moves_away",
+        "justification": "The image shows an inferior view which is not a lateral profile at all."
+      },
+      {
+        "action": "AZIMUTH_RIGHT_FINE",
+        "observed_visual_change": "The view rotates slightly right (15 degrees), showing more anterior/facial structures and less of the lateral cranium.",
+        "relation_to_target": "This moves away from the left lateral view by bringing more facial structures into prominence.",
+        "history_check": "reversal",
+        "verdict": "moves_away",
+        "justification": "The rendered image shows increased facial prominence, moving away from a pure lateral profile."
+      },
+      {
+        "action": "AZIMUTH_RIGHT_MEDIUM",
+        "observed_visual_change": "The view rotates 45 degrees right, showing a more oblique angle with increased facial and frontal structures visible.",
+        "relation_to_target": "This significantly reduces the left lateral profile view by rotating toward a more anterior perspective.",
+        "history_check": "reversal",
+        "verdict": "moves_away",
+        "justification": "The image shows too much anterior/facial anatomy, reducing the lateral profile quality."
+      },
+      {
+        "action": "ELEVATION_DOWN_COARSE",
+        "observed_visual_change": "The camera moves down 90 degrees to show an inferior view of the skull base and mandible.",
+        "relation_to_target": "This completely changes from lateral to inferior view, which is not a side profile.",
+        "history_check": "not_applicable",
+        "verdict": "moves_away",
+        "justification": "The rendered outcome shows the skull from below rather than from the side."
+      },
+      {
+        "action": "ELEVATION_DOWN_FINE",
+        "observed_visual_change": "The camera moves down slightly (15 degrees), maintaining the lateral view but from a slightly lower angle.",
+        "relation_to_target": "This maintains the lateral profile while adjusting elevation slightly, which doesn't significantly affect the target match.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "The change in elevation is minimal and doesn't substantially improve or degrade the lateral profile view."
+      },
+      {
+        "action": "ELEVATION_DOWN_MEDIUM",
+        "observed_visual_change": "The camera moves down 45 degrees, showing the skull from a lower lateral oblique angle.",
+        "relation_to_target": "This changes the elevation but maintains lateral viewing, though from a less standard anatomical position.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "The view maintains lateral characteristics but from a non-standard inferior-oblique angle."
+      },
+      {
+        "action": "ELEVATION_UP_180",
+        "observed_visual_change": "The camera flips to show the skull from below at an opposite angle.",
+        "relation_to_target": "This creates an inferior view which is not a lateral profile.",
+        "history_check": "not_applicable",
+        "verdict": "moves_away",
+        "justification": "The rendered image shows an inferior perspective rather than a lateral one."
+      },
+      {
+        "action": "ELEVATION_UP_COARSE",
+        "observed_visual_change": "The camera moves up 90 degrees to show a superior view of the cranium.",
+        "relation_to_target": "This changes from lateral to superior view, losing the side profile entirely.",
+        "history_check": "not_applicable",
+        "verdict": "moves_away",
+        "justification": "The image shows the top of the skull rather than a side view."
+      },
+      {
+        "action": "ELEVATION_UP_FINE",
+        "observed_visual_change": "The camera moves up slightly (15 degrees), maintaining the lateral view from a slightly higher angle.",
+        "relation_to_target": "This maintains the lateral profile while adjusting elevation minimally.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "The elevation change is subtle and doesn't meaningfully affect the lateral profile quality."
+      },
+      {
+        "action": "ELEVATION_UP_MEDIUM",
+        "observed_visual_change": "The camera moves up 45 degrees, showing the skull from a higher lateral oblique angle.",
+        "relation_to_target": "This maintains lateral viewing but from an elevated perspective.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "The view maintains lateral characteristics but from a superior-oblique angle."
+      },
+      {
+        "action": "PAN_DOWN",
+        "observed_visual_change": "The skull shifts downward in frame, showing more of the upper cranium and less of the mandible/spine.",
+        "relation_to_target": "This is a framing adjustment that doesn't affect the lateral profile orientation.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "The pan changes framing but not the fundamental lateral view angle."
+      },
+      {
+        "action": "PAN_LEFT",
+        "observed_visual_change": "The skull shifts left in frame, revealing slightly more of the right edge of the view.",
+        "relation_to_target": "This is a framing adjustment that doesn't change the lateral profile angle.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "The pan is a compositional change without affecting the viewing angle."
+      },
+      {
+        "action": "PAN_RIGHT",
+        "observed_visual_change": "The skull shifts right in frame, centering it slightly differently.",
+        "relation_to_target": "This is a framing adjustment without changing the viewing angle.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "The pan adjusts composition but not the lateral profile orientation."
+      },
+      {
+        "action": "PAN_UP",
+        "observed_visual_change": "The skull shifts upward in frame, showing more of the mandible/spine and less of the upper cranium.",
+        "relation_to_target": "This is a framing adjustment that doesn't affect the lateral viewing angle.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "The pan changes vertical framing without altering the lateral profile."
+      },
+      {
+        "action": "ROLL_CCW_90",
+        "observed_visual_change": "The image rotates 90 degrees counterclockwise, showing the skull in an upright lateral position with excellent left side profile.",
+        "relation_to_target": "This creates a proper anatomical lateral view orientation with the left side prominently displayed in correct upright position.",
+        "history_check": "new_progress",
+        "verdict": "recommended",
+        "justification": "The rendered image shows an ideal left lateral profile with the skull in proper anatomical orientation, clearly displaying the left side of the cranium, facial profile, and a true side view."
+      },
+      {
+        "action": "ROLL_CCW_FINE",
+        "observed_visual_change": "The image rotates slightly counterclockwise (5 degrees), minimally adjusting the orientation.",
+        "relation_to_target": "This makes a subtle rotational adjustment that doesn't significantly improve the lateral profile.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "The roll is too subtle to meaningfully affect the view orientation."
+      },
+      {
+        "action": "ROLL_CW_90",
+        "observed_visual_change": "The image rotates 90 degrees clockwise, showing the skull inverted with the mandible at top.",
+        "relation_to_target": "This creates an inverted view which is not anatomically correct for a standard lateral view.",
+        "history_check": "not_applicable",
+        "verdict": "moves_away",
+        "justification": "The inverted orientation is not appropriate for standard anatomical viewing."
+      },
+      {
+        "action": "ROLL_CW_FINE",
+        "observed_visual_change": "The image rotates slightly clockwise (5 degrees), minimally adjusting the orientation.",
+        "relation_to_target": "This makes a subtle rotational adjustment that doesn't significantly affect the lateral profile.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "The roll is too subtle to meaningfully change the view."
+      },
+      {
+        "action": "STOP",
+        "observed_visual_change": "No change - the current view is maintained.",
+        "relation_to_target": "The current view shows a left lateral oblique angle that includes too much facial/anterior anatomy rather than a pure left lateral profile.",
+        "history_check": "not_applicable",
+        "verdict": "moves_away",
+        "justification": "The current view is not yet optimal for the target left lateral profile requirement."
+      },
+      {
+        "action": "UNDO_LAST",
+        "observed_visual_change": "Returns to the previous state before AZIMUTH_LEFT_COARSE, showing inferior/base view of skull.",
+        "relation_to_target": "This would revert to a view that is not a lateral profile at all.",
+        "history_check": "reversal",
+        "verdict": "moves_away",
+        "justification": "The previous state shows an inferior view rather than any lateral profile."
+      },
+      {
+        "action": "ZOOM_IN",
+        "observed_visual_change": "The skull appears larger in frame, maintaining the same lateral oblique orientation.",
+        "relation_to_target": "This is a scale adjustment that doesn't change the viewing angle or improve the lateral profile.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Zoom changes scale but not the fundamental viewing angle."
+      },
+      {
+        "action": "ZOOM_OUT",
+        "observed_visual_change": "The skull appears smaller in frame, maintaining the same lateral oblique orientation.",
+        "relation_to_target": "This is a scale adjustment that doesn't change the viewing angle or improve the lateral profile.",
+        "history_check": "not_applicable",
+        "verdict": "neutral_or_irrelevant",
+        "justification": "Zoom changes scale but not the viewing angle needed for the target."
+      }
+    ],
+    "selected_action": "ROLL_CCW_90",
+    "reasoning": "ROLL_CCW_90 produces the best match to the target by rotating the current lateral oblique view into a proper upright anatomical left lateral profile. The rendered outcome clearly shows the left side of the skull prominently displayed in correct orientation, with excellent side profile characteristics showing the left lateral cranium, facial profile, and appropriate anatomical positioning. This is superior to all other candidates which either move away from lateral view (azimuth/elevation changes), make insufficient adjustments (fine movements), or are merely compositional changes (pan/zoom)."
+  },
+  "selected_candidate_image": "../output/orchestrator_notebook/screenshots/rollouts/step_001/ROLL_CCW_90.png",
+  "applied_action": "ROLL_CCW_90"
+}
