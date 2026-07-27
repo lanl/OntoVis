@@ -96,8 +96,8 @@ AgentRegistry (registry.py)           -- decides WHICH agent satisfies a capabil
     +--> CameraSpecialist   (specialists/camera_adapter.py)   -- wraps camera_reasoning's
     |                                                             label-blind, three-pass
     |                                                             visual-rollout loop
-    +--> IsovalueSpecialist (specialists/isovalue_adapter.py) -- histogram-informed
-    |                                                             one-shot candidate sweep
+    +--> IsovalueSpecialist (specialists/isovalue_adapter.py) -- histogram-band
+    |                                                             selection + derived ramp
     +--> OrientationSpecialist (specialists/orientation_adapter.py) -- plain LLM roll
     |                                                             correction, separate
     |                                                             from positioning
@@ -163,29 +163,80 @@ left/right judgment that actually applied to a different candidate) when several
 similar-looking renders were shown together. Set it to `False` to go back to the original
 single-call-per-iteration behavior once that gets revisited for cost/latency.
 
-### Isovalue specialist: histogram-informed, multi-angle candidate sweep
+### Isovalue specialist: histogram-band selection + derived opacity ramp
 
-`IsovalueSpecialist` is a candidate sweep, not an iterative loop:
-`compute_histogram_local_minima_isovalues` (in `specialists/isovalue_adapter.py`) finds the
-LOCAL MINIMA ("valleys") of the volume's intensity histogram -- thresholds that sit
-*between* two materials, where relatively few voxels share that exact intensity, which
-tends to produce a clean, low-noise surface. Local maxima (the middle of a homogeneous
-material) are deliberately excluded, since thresholding there is what produces fragmented,
-speckly surfaces -- directly relevant to `reduce_surface_noise`.
+`IsovalueSpecialist` doesn't pick a single isovalue number, and doesn't ask the LLM to
+compare many similar-looking threshold candidates. Instead (`specialists/isovalue_adapter.py`):
 
-By default (`multi_angle=True`), `render_isovalue_candidates` renders each candidate from 6
-angles -- front/right/back/left/top/bottom, computed RELATIVE to the session's current
-camera via `camera_actions.apply_action` (not fixed absolute world axes like
+1. `compute_histogram_bands` segments the volume's own smoothed intensity histogram into
+   material **bands** -- contiguous `[low, high)` ranges, each bounded by two LOCAL MINIMA
+   ("valleys", where relatively few voxels share that intensity -- a natural
+   material-to-material boundary) and containing one local maximum ("peak", the middle of a
+   roughly homogeneous material). Bands below `min_band_fraction` of the volume's total
+   voxels are merged away rather than dropped, via greedy agglomerative merging: at each
+   step the ADJACENT PAIR with the smallest combined voxel count merges first, so several
+   small, noisy fragments of the same real material consolidate with each other before any
+   of them gets swallowed whole by a much larger neighboring band (e.g. background).
+2. One cheap preview per band is rendered under THAT band's own derived opacity ramp via
+   direct volume rendering (`render_band_previews`, reusing the multi-angle tiled-grid
+   rendering below) -- the same rendering `build_opacity_ramp_for_band` produces for the
+   final applied result, NOT a single isosurface at the band's peak. A peak is just wherever
+   the histogram happens to be tallest within a band; for a broad or lopsided band (e.g.
+   several small fragments merged into one large band dominated by a huge low-intensity
+   sub-range) the peak can sit nowhere near where that band's own distinctive material
+   actually renders, so an isosurface preview there could look nothing like what selecting
+   the band actually produces. A single batched LLM call then asks which band's material
+   matches the goal -- so the model is comparing a handful of bands (typically 2-4), not a
+   dozen near-duplicate threshold renders.
+3. `build_opacity_ramp_for_band` then DETERMINISTICALLY derives an opacity/color transfer
+   function from the selected band's own `[low, high]` range and peak -- no hand-tuned
+   constants, no second LLM call. Opacity ramps up gradually from `low` to `peak_opacity` at
+   the band's peak, then holds at a slightly higher `sustain_opacity` from `high` onward.
+   This is applied via direct volume rendering (`CameraReasoningSession.
+   set_transfer_function`), not a single hard isosurface threshold, because a gradual ramp
+   lets THICK, continuous material (many voxels deep along the viewing ray) accumulate to
+   full opacity while THIN/isolated noise at the same intensity stays comparatively faint --
+   see the module docstring for the accumulation argument in full.
+4. If the LLM reports the selected band still looks like a MIX of materials
+   (`refine_further` in `BAND_SELECTION_PROMPT_TEMPLATE`), ONE additional round splits that
+   band evenly into `DEFAULT_REFINEMENT_SUBDIVISIONS` sub-ranges (`_subdivide_band`) and
+   repeats steps 2-3 among just those, bounded to a single round (not recursive). See below
+   for why this matters.
+
+Step 1 depends on the target material actually forming a distinct peak in the volume's
+histogram with real separation from its neighbors -- this works well on
+`data/vis_male_128x256x256_uint8.raw`, which segments cleanly into 3 bands (background,
+soft tissue, bone) matching its known histogram structure, so `converged` typically lands in
+one LLM call with no refinement needed. Some datasets' target material never forms its own
+peak at all -- a smooth, unimodal intensity gradient with no interior valley, where bone
+blends continuously into soft tissue rather than forming a separate population of voxels
+(`data/skull_256x256x256_uint8.raw` and `data/foot_256x256x256_uint8.raw` are both like
+this: only 2 top-level bands come out, "background" and "everything else"). Without step 4,
+the initial comparison has no way to discover a purer sub-range exists, since it was never
+shown one -- it can only report the best of what it was given, even if that's "everything
+above background" rather than the target material specifically (confirmed by inspecting the
+render directly -- the selected band's preview was visibly the whole object, soft tissue
+included, not isolated bone). Step 4's even-width split still lets the LLM zero in on a
+higher- or lower-intensity part of that broad band, since intensity often correlates with
+density even without a discrete peak marking a material boundary. `IsovalueSpecialist(...,
+allow_refinement=False)` / `run_isovalue_band_selection(..., allow_refinement=False)`
+disables this and always accepts the initial top-level selection as final.
+
+By default (`multi_angle=True`), `render_band_previews` renders each band's preview
+from 6 angles -- front/right/back/left/top/bottom, computed RELATIVE to the session's
+current camera via `camera_actions.apply_action` (not fixed absolute world axes like
 `examples/render_head_iso_candidates.ipynb`'s `six_view_cameras`, which was tuned
 specifically for a different dataset and wouldn't transfer) -- since noise can be visible
 from one angle and hidden from another. Those 6 angles are combined into ONE labeled tiled
-image per candidate (`_combine_views_into_grid`, each tile's angle name burned directly
-into the pixels) rather than sent as 6 separate attachments, so the single final comparison
-call still only has one image per candidate -- N candidates means N image attachments
-either way, `multi_angle` only changes what each one shows. Set `multi_angle=False` to
-render just the current angle per candidate instead of a 6-way grid. An earlier version of
-this specialist used a blind iterative "should the isovalue go up or down?" loop with no
-grounding in the volume's actual data distribution; it's no longer used.
+image per band (`_combine_views_into_grid`, each tile's angle name burned directly into the
+pixels) rather than sent as 6 separate attachments, so the final comparison call still only
+has one image per band -- N bands means N image attachments either way, `multi_angle` only
+changes what each one shows. Set `multi_angle=False` to render just the current angle per
+band instead of a 6-way grid.
+
+Earlier versions of this specialist tried a blind iterative "should the isovalue go up or
+down?" loop, and later a batched sweep comparing many individual candidate isovalues
+directly -- both are gone; the histogram-band approach replaced them outright.
 
 ### Orientation specialist: roll correction, separate from positioning
 
@@ -268,9 +319,19 @@ summary, and final verification result for each one.
 ### Tests
 
 ```bash
-for f in tests/test_orchestrator_*.py; do .venv/bin/python "$f"; done
+.venv/bin/pip install pytest  # not in requirements.txt; only needed to run the suite
+.venv/bin/python -m pytest tests/
 ```
 
-These use fake specialists/planner/verifier (`tests/orchestrator_fakes.py`) -- no real LLM
-or VTK calls -- and cover plan validation, registry selection, state-patch ownership, and
-executor scheduling/replanning behavior (see each file's docstring for the exact list).
+`tests/test_orchestrator_*.py` use fake specialists/planner/verifier
+(`tests/orchestrator_fakes.py`) -- no real LLM or VTK calls -- and cover plan validation,
+registry selection, state-patch ownership, and executor scheduling/replanning behavior (see
+each file's docstring for the exact list).
+
+`tests/test_isovalue_band_selection.py` is different: it runs the real VTK pipeline against
+real datasets (histogram computation, per-band preview rendering, applying the derived
+transfer function) and mocks only the LLM call (`ask_chatgpt`) -- it's the one place the
+histogram-band math and the actual renderer are exercised together rather than through a
+fake. `data/vis_male_128x256x256_uint8.raw` (clean 3-band separation) covers the base
+selection path; `data/foot_256x256x256_uint8.raw` (only 2 bands -- no interior peak
+separates bone from soft tissue) covers the refinement round.

@@ -22,6 +22,7 @@ from .models import (
 from .plan_validator import PlanValidationError, validate_plan
 from .planner import Planner, PlannerError
 from .registry import AgentRegistry
+from .render_log import RenderLog
 from .replanner import Replanner
 from .state import (
     PatchValidationError,
@@ -40,6 +41,7 @@ class VisualizationExecutor:
         registry: AgentRegistry,
         planner: Optional[Planner] = None,
         verifier: Optional[FinalVerifier] = None,
+        render_log: Optional[RenderLog] = None,
         max_replans: int = 2,
         max_total_tasks: int = 10,
         max_total_agent_calls: int = 10,
@@ -48,6 +50,9 @@ class VisualizationExecutor:
         self.planner = planner or Planner()
         self.replanner = Replanner(self.planner)
         self.verifier = verifier or FinalVerifier()
+        # Optional -- if given, every successfully-applied task patch is appended here
+        # (see render_log.py). None is fine; the executor works identically without one.
+        self.render_log = render_log
         self.max_replans = max_replans
         self.max_total_tasks = max_total_tasks
         self.max_total_agent_calls = max_total_agent_calls
@@ -93,9 +98,13 @@ class VisualizationExecutor:
                 continue
 
             # every task in remaining_tasks is now in completed_ids -- verify the whole goal.
-            verification = self.verifier.verify(
-                user_instruction, state, records, current_final_criteria
-            )
+            task_ids = {t.task_id for t in remaining_tasks}
+            if self._all_tasks_deterministic(records, task_ids):
+                verification = self._trusted_verification(current_final_criteria)
+            else:
+                verification = self.verifier.verify(
+                    user_instruction, state, current_final_criteria
+                )
             print(
                 f"[Verifier] Final goal satisfied={verification.success} "
                 f"confidence={verification.confidence}"
@@ -137,6 +146,35 @@ class VisualizationExecutor:
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    def _all_tasks_deterministic(self, records: List[TaskExecutionRecord], task_ids: Set[str]) -> bool:
+        """True iff every non-failed record for this plan's tasks came from a
+        `deterministic` specialist (see capabilities.AgentSpec.deterministic) -- i.e. one
+        that already applied an exact, fully-specified value with no visual judgment of
+        its own. Used to skip the vision-LLM FinalVerifier entirely for such a plan: that
+        check exists to catch a goal-based specialist's own uncertain judgment, but for a
+        deterministic action there's nothing legitimate for it to catch, and an unreliable
+        "no" here would trigger a replan that reapplies the same relative delta on top of
+        the already-successful one instead of correcting anything (e.g. a second identical
+        roll compounding 30 degrees into 60 -- see conversation history)."""
+        relevant = [r for r in records if r.task_id in task_ids and r.status in ("success", "partial")]
+        if not relevant:
+            return False
+        return all(
+            r.agent_id is not None and self.registry.get_spec(r.agent_id).deterministic
+            for r in relevant
+        )
+
+    @staticmethod
+    def _trusted_verification(final_success_criteria: List[str]) -> FinalVerificationResult:
+        return FinalVerificationResult(
+            success=True,
+            confidence=1.0,
+            satisfied_criteria=list(final_success_criteria),
+            unsatisfied_criteria=[],
+            diagnosis="Skipped vision-LLM verification -- every task in this plan was a deterministic, exact action.",
+            suggested_capabilities=[],
+        )
 
     def _run_tasks_to_completion_or_stall(
         self,
@@ -294,6 +332,8 @@ class VisualizationExecutor:
             iterations_used=result.iterations_used,
         ))
         history.record(task_id=task.task_id, agent_id=spec.agent_id, status=status, reason=result.reason)
+        if self.render_log is not None:
+            self.render_log.append(agent_id=spec.agent_id, task_id=task.task_id, goal=task.goal, state=new_state)
         return new_state, None
 
     def _try_replan(

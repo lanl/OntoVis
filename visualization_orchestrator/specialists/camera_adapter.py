@@ -133,15 +133,16 @@ class CameraSpecialist(VisualizationSpecialist):
         stop_improvement_margin: int = DEFAULT_STOP_IMPROVEMENT_MARGIN,
         minimum_confidence: float = DEFAULT_MINIMUM_CONFIDENCE,
         on_iteration: Optional[Callable[[dict], None]] = None,
-        sequential_diagnosis: bool = True,
+        sequential_diagnosis: bool = False,
     ):
         self.session = session
         self.model = model
         self.default_max_iterations = default_max_iterations
-        # Diagnose candidates one LLM call at a time (default) instead of all together in
-        # one call -- more LLM calls per iteration, but avoids the model mislabeling which
-        # candidate a score/description belongs to when several similar-looking renders
-        # are shown at once (see diagnose_blind_candidates_sequentially's docstring).
+        # Diagnose all candidates together in one LLM call per iteration (default) --
+        # fast, at the cost of occasional cross-candidate mislabeling. Set True to
+        # diagnose candidates one LLM call at a time instead, trading speed for
+        # eliminating that mislabeling risk (see diagnose_blind_candidates_sequentially's
+        # docstring).
         self.sequential_diagnosis = sequential_diagnosis
         # Optional reference-view bank for Pass 1's grounding judgment (see module
         # docstring, "Reference grounding" in blind_visual_rollout_agent.py). Passing
@@ -239,7 +240,7 @@ class CameraSpecialist(VisualizationSpecialist):
     def _handle_camera_iteration(self, trace_path: str) -> None:
         """Read one iteration's saved blind-rollout trace (see
         blind_visual_rollout_agent.save_blind_rollout_trace) and normalize it into the
-        shared on_iteration shape (see IsovalueSpecialist._handle_loop_iteration for the
+        shared on_iteration shape (see IsovalueSpecialist._handle_band_result for the
         isovalue-side version of this same normalized dict -- a caller can register one
         callback that handles both agents identically).
 

@@ -101,7 +101,7 @@ def build_isosurface_pipeline(image: vtk.vtkImageData, isovalue: float):
     return actor, renderer, render_window
 
 
-def build_volume_rendering_pipeline(
+def build_volume_actor(
     image: vtk.vtkImageData,
     opacity_points: list,
     color_points: list,
@@ -109,28 +109,29 @@ def build_volume_rendering_pipeline(
     gaussian_standard_deviation: float = 1.0,
     gaussian_radius_factor: float = 2.0,
     enable_shading: bool = True,
-):
-    """Return (volume, renderer, render_window) for a direct volume render.
+) -> vtk.vtkVolume:
+    """Build just the direct-volume-rendering prop for `image` under the given transfer
+    function, with no renderer/window.
 
-    Unlike build_isosurface_pipeline (single isovalue -> polygonal surface
-    via vtkFlyingEdges3D), every voxel is classified through opacity_points
-    and color_points transfer functions, so intensity ranges can fade in or
-    out instead of being an in/out binary decision at one threshold. This
-    makes it possible to reveal thin/low-density structures that a single
-    isovalue would either clip or flood with noise.
+    Unlike build_isosurface_actor (single isovalue -> polygonal surface via
+    vtkFlyingEdges3D), every voxel is classified through opacity_points and color_points
+    transfer functions, so intensity ranges can fade in or out instead of being an in/out
+    binary decision at one threshold. This makes it possible to reveal thin/low-density
+    structures that a single isovalue would either clip or flood with noise.
 
     opacity_points: list of (scalar_intensity, opacity) with opacity in [0, 1].
     color_points: list of (scalar_intensity, r, g, b) with each in [0, 1].
 
-    There is no automatic derivation of these points from the volume's
-    histogram yet -- callers choose them per dataset (see
-    examples/render_skull_transfer_function.py for a worked example and
-    examples/show_hist.py for inspecting a volume's histogram first).
+    Factored out of build_volume_rendering_pipeline() so a specialist (e.g. an isovalue
+    agent deriving an opacity ramp from the volume's own histogram) can rebuild the volume
+    prop in place under a new transfer function and swap it into an existing renderer,
+    without disturbing that renderer's camera state -- see
+    CameraReasoningSession.set_transfer_function().
 
-    enable_shading: when True (default), surfaces facing away from the light
-    shade darker regardless of color_points -- gives depth cues but can make
-    a pure-white color transfer function still look gray in places. Set False
-    for a flat, uniformly-colored look with no lighting falloff at all.
+    enable_shading: when True (default), surfaces facing away from the light shade darker
+    regardless of color_points -- gives depth cues but can make a pure-white color transfer
+    function still look gray in places. Set False for a flat, uniformly-colored look with
+    no lighting falloff at all.
     """
     source_image = image
     if enable_smoothing:
@@ -164,6 +165,36 @@ def build_volume_rendering_pipeline(
     volume = vtk.vtkVolume()
     volume.SetMapper(mapper)
     volume.SetProperty(volume_property)
+    return volume
+
+
+def build_volume_rendering_pipeline(
+    image: vtk.vtkImageData,
+    opacity_points: list,
+    color_points: list,
+    enable_smoothing: bool = False,
+    gaussian_standard_deviation: float = 1.0,
+    gaussian_radius_factor: float = 2.0,
+    enable_shading: bool = True,
+):
+    """Return (volume, renderer, render_window) for a direct volume render. See
+    build_volume_actor for the transfer-function/smoothing/shading details -- this just
+    wraps it in its own renderer/window.
+
+    There is no automatic derivation of opacity_points/color_points from the volume's
+    histogram in THIS function -- callers choose them per dataset (see
+    examples/render_skull_transfer_function.py for a worked example,
+    examples/show_hist.py for inspecting a volume's histogram first, and
+    visualization_orchestrator/specialists/isovalue_adapter.py's
+    build_opacity_ramp_for_band for an automatic, histogram-derived alternative).
+    """
+    volume = build_volume_actor(
+        image, opacity_points, color_points,
+        enable_smoothing=enable_smoothing,
+        gaussian_standard_deviation=gaussian_standard_deviation,
+        gaussian_radius_factor=gaussian_radius_factor,
+        enable_shading=enable_shading,
+    )
 
     renderer = vtk.vtkRenderer()
     renderer.AddVolume(volume)

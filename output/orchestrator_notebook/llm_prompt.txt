@@ -39,23 +39,21 @@ Before answering, work through these stages:
      groups and actions have been evaluated.
 
 Target view:
-Move camera to show the head from the front (anterior view) Success criteria: The head is shown from the front (anterior view); The face and frontal features of the skull are visible; The coronal plane is facing the camera; Both sides of the head are visible symmetrically
+Move the camera to show a lateral (side) view of the skull. Success criteria: The skull is shown from the side (lateral view); The profile of the skull is clearly visible
 
 Current render screenshot:
 ../output/orchestrator_notebook/screenshots/latest.png
 
 Current camera:
-  position:       [63.508, -591.963, 128.232]
-  focal_point:    [63.508, 129.717, 128.232]
-  view_up:        [-0.000, 0.000, -1.000]
+  position:       [-679.544, 129.180, 129.254]
+  focal_point:    [100.199, 129.180, 129.254]
+  view_up:        [0.000, 1.000, 0.000]
   view_angle:     30.00
-  clipping_range: [471.283, 1040.801]
-  distance:       721.681
+  clipping_range: [572.562, 1042.394]
+  distance:       779.743
 
 Action history (detect repetition, reversal, and oscillation):
   1. AZIMUTH_LEFT_COARSE
-  2. STOP
-  3. AZIMUTH_LEFT_COARSE
 
 Allowed actions:
   - AZIMUTH_LEFT_COARSE: orbit camera 90 degrees left

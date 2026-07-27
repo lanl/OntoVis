@@ -180,7 +180,7 @@ class OrientationSpecialist(VisualizationSpecialist):
 
     def _handle_iteration(self, entry: dict) -> None:
         """Normalize one iteration into the shared on_iteration shape (see
-        CameraSpecialist._handle_camera_iteration / IsovalueSpecialist._handle_sweep_result
+        CameraSpecialist._handle_camera_iteration / IsovalueSpecialist._handle_band_result
         for the other agents' versions of this same normalized dict)."""
         self.on_iteration({
             "agent_id": self.agent_id,

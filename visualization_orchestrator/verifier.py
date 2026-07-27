@@ -1,15 +1,25 @@
 """Final goal verification: runs once after every planned task succeeds, checking the
 complete original user instruction rather than assuming local per-task success implies
 global success (see prompts/verifier_prompt.py).
+
+Deliberately judges from the rendered image alone (plus the instruction/success
+criteria) -- no textual state summary or task-record history is included. An earlier
+version handed the verifier the raw numeric camera state (position/focal_point/
+view_up) alongside the image, which invited exactly the wrong kind of reasoning: it
+inferred "upside-down" from view_up's sign (which has no universal correct value --
+it depends on this dataset's own coordinate convention and the current azimuth/
+elevation) and overrode a correct visual judgment from the orientation specialist with
+an incorrect numeric one. This is a pure image-vs-goal comparison now, matching what
+the verifier is actually meant to check.
 """
-from typing import List, Optional
+from typing import Optional
 
 from camera_reasoning.chatgpt_client import ask_chatgpt
 
 from .json_utils import extract_json_object
-from .models import FinalVerificationResult, TaskExecutionRecord
+from .models import FinalVerificationResult
 from .prompts.verifier_prompt import build_verifier_prompt
-from .state import VisualizationState, state_summary
+from .state import VisualizationState
 
 
 class FinalVerifier:
@@ -20,12 +30,9 @@ class FinalVerifier:
         self,
         user_instruction: str,
         state: VisualizationState,
-        task_records: List[TaskExecutionRecord],
-        final_success_criteria: List[str],
+        final_success_criteria: list,
     ) -> FinalVerificationResult:
-        prompt = build_verifier_prompt(
-            user_instruction, state_summary(state), task_records, final_success_criteria
-        )
+        prompt = build_verifier_prompt(user_instruction, final_success_criteria)
         raw_response = ask_chatgpt(
             prompt=prompt, screenshot_path=state.rendered_image_path, model=self.model
         )

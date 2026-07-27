@@ -26,6 +26,7 @@ from .spatial_knowledge import (
 from .volume_scene import (
     build_isosurface_actor,
     build_isosurface_pipeline,
+    build_volume_actor,
     build_volume_rendering_pipeline,
     load_raw_volume,
     load_transfer_function_json,
@@ -288,19 +289,49 @@ class CameraReasoningSession:
     def set_isovalue(self, new_isovalue: float):
         """Rebuild the isosurface actor at a new isovalue in place, preserving camera state.
 
-        Swaps only the actor into the existing renderer (camera/renderer/render_window
+        Swaps only the prop into the existing renderer (camera/renderer/render_window
         untouched), so a specialist can adjust the isovalue mid-session without disturbing
-        camera work layered on top of it, and vice versa. Only valid in isosurface mode
-        (use_volume_rendering=False).
+        camera work layered on top of it, and vice versa. Also switches the session INTO
+        isosurface mode if it was currently in volume-rendering mode (see
+        set_transfer_function() for the reverse direction) -- removes whichever prop type
+        (actor or volume) is currently active before adding the new isosurface actor.
         """
         self._require_initialized()
-        if self.use_volume_rendering:
-            raise RuntimeError("set_isovalue() is only valid when use_volume_rendering=False.")
         new_actor = build_isosurface_actor(self._image_data, new_isovalue)
-        self._renderer.RemoveActor(self._actor)
+        if self.use_volume_rendering:
+            self._renderer.RemoveVolume(self._actor)
+        else:
+            self._renderer.RemoveActor(self._actor)
         self._renderer.AddActor(new_actor)
         self._actor = new_actor
+        self.use_volume_rendering = False
         self.isovalue = new_isovalue
+
+    def set_transfer_function(self, opacity_points, color_points):
+        """Rebuild the volume-rendering prop under a new opacity/color transfer function in
+        place, preserving camera state. Mirrors set_isovalue()'s swap-in-place pattern but
+        for direct volume rendering -- switches the session INTO volume-rendering mode if it
+        was currently in isosurface mode (removing whichever prop type is currently active
+        before adding the new volume), or just updates the transfer function if already in
+        volume-rendering mode.
+        """
+        self._require_initialized()
+        new_volume = build_volume_actor(
+            self._image_data, opacity_points, color_points,
+            enable_smoothing=self.enable_smoothing,
+            gaussian_standard_deviation=self.gaussian_standard_deviation,
+            gaussian_radius_factor=self.gaussian_radius_factor,
+            enable_shading=self.enable_shading,
+        )
+        if self.use_volume_rendering:
+            self._renderer.RemoveVolume(self._actor)
+        else:
+            self._renderer.RemoveActor(self._actor)
+        self._renderer.AddVolume(new_volume)
+        self._actor = new_volume
+        self.use_volume_rendering = True
+        self.opacity_points = opacity_points
+        self.color_points = color_points
 
     def reset_camera(self):
         """Hard-reset camera to fit the scene (destroys manual alignment)."""

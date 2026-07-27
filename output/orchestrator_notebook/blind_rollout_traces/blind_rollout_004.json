@@ -1,0 +1,191 @@
+{
+  "iteration": 4,
+  "current_image_path": "../output/orchestrator_notebook/screenshots/latest.png",
+  "blind_candidates": [
+    {
+      "candidate_id": "CANDIDATE_6MKGN",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_6mkgn.png"
+    },
+    {
+      "candidate_id": "CANDIDATE_2GRXD",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_2grxd.png"
+    },
+    {
+      "candidate_id": "CANDIDATE_V1MRB",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_v1mrb.png"
+    },
+    {
+      "candidate_id": "CANDIDATE_BUBNH",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_bubnh.png"
+    },
+    {
+      "candidate_id": "CANDIDATE_I8XH3",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_i8xh3.png"
+    },
+    {
+      "candidate_id": "CANDIDATE_L52W8",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_l52w8.png"
+    },
+    {
+      "candidate_id": "CANDIDATE_3GCI6",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_3gci6.png"
+    }
+  ],
+  "private_candidate_mapping": {
+    "CANDIDATE_6MKGN": "ELEVATION_UP_180",
+    "CANDIDATE_2GRXD": "ELEVATION_UP",
+    "CANDIDATE_V1MRB": "AZIMUTH_RIGHT_180",
+    "CANDIDATE_BUBNH": "ELEVATION_DOWN",
+    "CANDIDATE_I8XH3": "AZIMUTH_LEFT",
+    "CANDIDATE_L52W8": "STOP",
+    "CANDIDATE_3GCI6": "AZIMUTH_RIGHT"
+  },
+  "pass_1_visual_diagnosis": {
+    "parsed": {
+      "target": {
+        "view_description": "The target shows a skull from the anterior (front) view with both orbits (eye sockets) visible and symmetric, the nasal cavity centered between them, teeth visible, and the overall frontal surface of the cranium and facial bones prominently displayed. No posterior structures are visible.",
+        "closest_reference_id": "skull_002",
+        "closest_reference_description": "Front view of the human skull.",
+        "reference_match_quality": "exact",
+        "reference_match_differences": "No meaningful difference observed. The target matches the reference anterior view precisely with symmetric orbits, centered nasal cavity, and frontal orientation.",
+        "reference_match_confidence": 1.0,
+        "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=exact)."
+      },
+      "current": {
+        "view_description": "This candidate shows the skull from an inferior-anterior oblique angle, looking up at the skull from below and somewhat from the front. The maxillary teeth, palate, inferior aspects of the orbits, nasal cavity from below, and zygomatic structures are visible. The perspective combines both inferior and anterior viewing components.",
+        "closest_reference_id": null,
+        "closest_reference_description": "unclear",
+        "reference_match_quality": "unclear",
+        "reference_match_differences": "No reference view closely matches this inferior-anterior oblique perspective. It represents a transitional viewpoint between inferior and anterior orientations not represented in the reference bank.",
+        "reference_match_confidence": 0.0,
+        "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+        "similarity_score": 35,
+        "confidence": 0.75,
+        "difference_from_target": "This candidate is closer to the target than the pure inferior views, but still incorrect. While some anterior facial structures are becoming visible, the viewing angle is still primarily from below rather than directly from the front. The orbits would not appear symmetric and properly oriented as required by the target."
+      },
+      "candidates": [
+        {
+          "candidate_id": "CANDIDATE_6MKGN",
+          "view_description": "This candidate shows a superior (top) view of the skull, looking down onto the cranial vault. The sagittal suture runs vertically through the center, and the overall outline shows the rounded contour of the calvarium from above. No facial features or orbits are visible.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "No reference view shows a superior perspective; the reference bank contains only lateral and frontal views.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate is entirely different from the target. The target requires an anterior view showing both orbits and the nasal cavity, while this candidate shows a superior view of the skull cap with no facial structures visible.",
+          "similarity_score": 0,
+          "confidence": 1.0
+        },
+        {
+          "candidate_id": "CANDIDATE_2GRXD",
+          "view_description": "This candidate shows an inferior-posterior view of the skull base, displaying the occipital bone, foramen magnum, and cervical vertebrae from below. The perspective emphasizes posterior structures of the skull base and upper cervical spine.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "No reference view shows this inferior-posterior perspective.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate is entirely different from the target. The target shows an anterior view with symmetric orbits and centered nasal cavity, while this candidate shows the posterior skull base from below with no anterior structures visible.",
+          "similarity_score": 0,
+          "confidence": 1.0
+        },
+        {
+          "candidate_id": "CANDIDATE_V1MRB",
+          "view_description": "This candidate shows a superior view of the skull, looking down onto the top of the cranial vault. The sagittal suture is visible running along the midline, and the overall shape shows the rounded contour of the skull from above with no facial features visible.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "No reference view shows a superior perspective.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate is entirely different from the target. The target shows an anterior view with orbits and nasal cavity visible, while this candidate shows the top of the skull with only the cranial vault surface visible.",
+          "similarity_score": 0,
+          "confidence": 1.0
+        },
+        {
+          "candidate_id": "CANDIDATE_BUBNH",
+          "view_description": "This candidate shows an inferior view of the skull, looking up at the skull base. The palate, teeth, zygomatic arches, and portions of the skull base are visible. This is a basal view showing the underside of the skull with orbits viewed from below.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "No reference view shows this inferior basal perspective.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate is very different from the target. The target shows an anterior view with the face and orbits visible frontally, while this candidate shows the skull from below with the palate and skull base prominent. The orbits, if visible at all, would be seen from an inferior angle rather than frontally.",
+          "similarity_score": 5,
+          "confidence": 0.9
+        },
+        {
+          "candidate_id": "CANDIDATE_I8XH3",
+          "view_description": "This candidate shows a posterior-lateral oblique view of the skull with the skull tilted to show posterior and lateral surfaces. The occipital region is prominent, the cervical spine is visible, and the orientation emphasizes the back and side of the skull rather than the front.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "The oblique posterior-lateral angle of this candidate does not match any reference view in the bank.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate is very different from the target. The target requires an anterior view with symmetric orbits and centered nasal cavity, while this candidate shows primarily posterior and lateral surfaces with minimal anterior structures visible.",
+          "similarity_score": 10,
+          "confidence": 0.8
+        },
+        {
+          "candidate_id": "CANDIDATE_L52W8",
+          "view_description": "This candidate shows an inferior view of the skull, nearly identical to the current view. The skull base, foramen magnum, cervical vertebrae, and mandible are visible from below. This is a basal/inferior perspective showing primarily inferior and posterior structures.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "No reference view shows this inferior basal perspective.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate is fundamentally different from the target. The target shows an anterior view with symmetric orbits and centered nasal cavity visible frontally, while this candidate shows the skull from below with the skull base and no anterior facial features visible.",
+          "similarity_score": 0,
+          "confidence": 1.0
+        },
+        {
+          "candidate_id": "CANDIDATE_3GCI6",
+          "view_description": "This candidate shows a posterior-lateral oblique view of the skull, similar to CANDIDATE_I8XH3. The posterior skull surface and lateral aspects are prominent, with the cervical spine visible. The view emphasizes the back and side rather than the anterior face.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "The oblique posterior-lateral angle does not match any reference view.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate is very different from the target. The target shows an anterior view with both orbits visible and the nasal cavity centered, while this candidate shows primarily posterior and lateral surfaces with no clear anterior facial features.",
+          "similarity_score": 10,
+          "confidence": 0.8
+        }
+      ]
+    },
+    "raw_response": "```json\n{\n  \"target\": {\n    \"view_description\": \"The target image shows a skull from an anterior (front) view. Both orbits (eye sockets) are fully visible and appear symmetric. The nasal cavity is centered in the view. The teeth and maxilla are visible. The overall silhouette is characteristic of a frontal skull view with the facial features prominently displayed and no significant posterior structures visible.\",\n    \"closest_reference_id\": \"skull_002\",\n    \"reference_match_quality\": \"exact\",\n    \"reference_match_differences\": \"No meaningful difference observed; the target shows the same frontal orientation as skull_002 with both orbits symmetric, centered nasal cavity, and no posterior structures prominent.\"\n  },\n  \"current\": {\n    \"view_description\": \"The current image shows a skull from an inferior (bottom) view, looking up through the base of the skull. The foramen magnum, cervical vertebrae, and the basilar portion of the occipital bone are prominently visible. The mandible is seen from below. This is a basal/inferior perspective showing primarily posterior and inferior structures, the opposite of an anterior view.\",\n    \"difference_from_target\": \"The current view is fundamentally opposite to the target. The target shows an anterior view with symmetric orbits and centered nasal cavity, while the current shows an inferior view displaying the skull base, foramen magnum, and cervical spine. No anterior facial features are visible in the current view.\",\n    \"closest_reference_id\": null,\n    \"reference_match_quality\": \"unclear\",\n    \"reference_match_differences\": \"No reference view in the bank shows an inferior/basal perspective; all references show lateral or frontal orientations.\",\n    \"similarity_score\": 0,\n    \"confidence\": 1.0\n  },\n  \"candidates\": [\n    {\n      \"candidate_id\": \"CANDIDATE_6MKGN\",\n      \"view_description\": \"This candidate shows a superior (top) view of the skull, looking down onto the cranial vault. The sagittal suture runs vertically through the center, and the overall outline shows the rounded contour of the calvarium from above. No facial features or orbits are visible.\",\n      \"comparison_to_target\": \"This candidate is entirely different from the target. The target requires an anterior view showing both orbits and the nasal cavity, while this candidate shows a superior view of the skull cap with no facial structures visible.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference view shows a superior perspective; the reference bank contains only lateral and frontal views.\",\n      \"similarity_score\": 0,\n      \"confidence\": 1.0\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_2GRXD\",\n      \"view_description\": \"This candidate shows an inferior-posterior view of the skull base, displaying the occipital bone, foramen magnum, and cervical vertebrae from below. The perspective emphasizes posterior structures of the skull base and upper cervical spine.\",\n      \"comparison_to_target\": \"This candidate is entirely different from the target. The target shows an anterior view with symmetric orbits and centered nasal cavity, while this candidate shows the posterior skull base from below with no anterior structures visible.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference view shows this inferior-posterior perspective.\",\n      \"similarity_score\": 0,\n      \"confidence\": 1.0\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_V1MRB\",\n      \"view_description\": \"This candidate shows a superior view of the skull, looking down onto the top of the cranial vault. The sagittal suture is visible running along the midline, and the overall shape shows the rounded contour of the skull from above with no facial features visible.\",\n      \"comparison_to_target\": \"This candidate is entirely different from the target. The target shows an anterior view with orbits and nasal cavity visible, while this candidate shows the top of the skull with only the cranial vault surface visible.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference view shows a superior perspective.\",\n      \"similarity_score\": 0,\n      \"confidence\": 1.0\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_BUBNH\",\n      \"view_description\": \"This candidate shows an inferior view of the skull, looking up at the skull base. The palate, teeth, zygomatic arches, and portions of the skull base are visible. This is a basal view showing the underside of the skull with orbits viewed from below.\",\n      \"comparison_to_target\": \"This candidate is very different from the target. The target shows an anterior view with the face and orbits visible frontally, while this candidate shows the skull from below with the palate and skull base prominent. The orbits, if visible at all, would be seen from an inferior angle rather than frontally.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference view shows this inferior basal perspective.\",\n      \"similarity_score\": 5,\n      \"confidence\": 0.9\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_I8XH3\",\n      \"view_description\": \"This candidate shows a posterior-lateral oblique view of the skull with the skull tilted to show posterior and lateral surfaces. The occipital region is prominent, the cervical spine is visible, and the orientation emphasizes the back and side of the skull rather than the front.\",\n      \"comparison_to_target\": \"This candidate is very different from the target. The target requires an anterior view with symmetric orbits and centered nasal cavity, while this candidate shows primarily posterior and lateral surfaces with minimal anterior structures visible.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"The oblique posterior-lateral angle of this candidate does not match any reference view in the bank.\",\n      \"similarity_score\": 10,\n      \"confidence\": 0.8\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_L52W8\",\n      \"view_description\": \"This candidate shows an inferior view of the skull, nearly identical to the current view. The skull base, foramen magnum, cervical vertebrae, and mandible are visible from below. This is a basal/inferior perspective showing primarily inferior and posterior structures.\",\n      \"comparison_to_target\": \"This candidate is fundamentally different from the target. The target shows an anterior view with symmetric orbits and centered nasal cavity visible frontally, while this candidate shows the skull from below with the skull base and no anterior facial features visible.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference view shows this inferior basal perspective.\",\n      \"similarity_score\": 0,\n      \"confidence\": 1.0\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_3GCI6\",\n      \"view_description\": \"This candidate shows a posterior-lateral oblique view of the skull, similar to CANDIDATE_I8XH3. The posterior skull surface and lateral aspects are prominent, with the cervical spine visible. The view emphasizes the back and side rather than the anterior face.\",\n      \"comparison_to_target\": \"This candidate is very different from the target. The target shows an anterior view with both orbits visible and the nasal cavity centered, while this candidate shows primarily posterior and lateral surfaces with no clear anterior facial features.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"The oblique posterior-lateral angle does not match any reference view.\",\n      \"similarity_score\": 10,\n      \"confidence\": 0.8\n    }\n  ]\n}\n```"
+  },
+  "pass_2_deterministic_selection": {
+    "decision": "candidate",
+    "selected_candidate": "CANDIDATE_BUBNH",
+    "selection_reason": "All 7 candidates have unclear reference-bank grounding; continuing the same direction as the last applied movement ('ELEVATION_DOWN') rather than re-picking arbitrarily, to keep sweeping toward a view the reference bank recognizes. Selected CANDIDATE_BUBNH (similarity_score=5, confidence=0.9).",
+    "selected_diagnosis": {
+      "candidate_id": "CANDIDATE_BUBNH",
+      "view_description": "This candidate shows an inferior view of the skull, looking up at the skull base. The palate, teeth, zygomatic arches, and portions of the skull base are visible. This is a basal view showing the underside of the skull with orbits viewed from below.",
+      "closest_reference_id": null,
+      "closest_reference_description": "unclear",
+      "reference_match_quality": "unclear",
+      "reference_match_differences": "No reference view shows this inferior basal perspective.",
+      "reference_match_confidence": 0.0,
+      "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+      "comparison_to_target": "This candidate is very different from the target. The target shows an anterior view with the face and orbits visible frontally, while this candidate shows the skull from below with the palate and skull base prominent. The orbits, if visible at all, would be seen from an inferior angle rather than frontally.",
+      "similarity_score": 5,
+      "confidence": 0.9
+    }
+  },
+  "pass_3_magnitude_estimation": {
+    "parsed": {
+      "selected_candidate": "CANDIDATE_BUBNH",
+      "magnitude_recommendation": "full",
+      "magnitude_reasoning": "The current view shows the skull from an inferior (bottom-up) perspective, with the base of the skull, cervical spine, and mandible prominently visible. The candidate view demonstrates a complete rotation to show the skull from a superior-anterior angle, displaying both orbits symmetrically and the nasal cavity centered. The target anterior view requires this full rotational trajectory from the current inferior perspective to achieve the frontal presentation with symmetric orbits and centered nasal cavity as specified. The candidate endpoint closely matches the target requirements without apparent overshoot.",
+      "expected_visual_result": "The camera will rotate from the current inferior view to an anterior-superior perspective, transforming the visible anatomy from the skull base and cervical spine to a frontal view showing both eye sockets symmetrically positioned with the nasal cavity centered between them."
+    },
+    "raw_response": "```json\n{\n  \"selected_candidate\": \"CANDIDATE_BUBNH\",\n  \"magnitude_recommendation\": \"full\",\n  \"magnitude_reasoning\": \"The current view shows the skull from an inferior (bottom-up) perspective, with the base of the skull, cervical spine, and mandible prominently visible. The candidate view demonstrates a complete rotation to show the skull from a superior-anterior angle, displaying both orbits symmetrically and the nasal cavity centered. The target anterior view requires this full rotational trajectory from the current inferior perspective to achieve the frontal presentation with symmetric orbits and centered nasal cavity as specified. The candidate endpoint closely matches the target requirements without apparent overshoot.\",\n  \"expected_visual_result\": \"The camera will rotate from the current inferior view to an anterior-superior perspective, transforming the visible anatomy from the skull base and cervical spine to a frontal view showing both eye sockets symmetrically positioned with the nasal cavity centered between them.\"\n}\n```"
+  },
+  "final_action": "ELEVATION_DOWN_COARSE",
+  "applied_action": "ELEVATION_DOWN_COARSE"
+}

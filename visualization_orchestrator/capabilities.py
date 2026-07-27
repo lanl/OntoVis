@@ -27,6 +27,15 @@ class AgentSpec:
     side_effects: List[str] = field(default_factory=list)
     cost: float = 1.0
     priority: int = 0
+    # True for specialists that apply an exact, already-fully-specified value with no
+    # internal visual judgment of their own (see specialists/direct_adapter.py) -- the
+    # executor trusts their own goal_satisfied report and skips the vision-LLM
+    # FinalVerifier for a plan made up entirely of these. Re-running one of these (e.g.
+    # after a false-negative verifier replan) applies its stated delta AGAIN rather than
+    # converging toward a goal, so letting an unreliable vision check second-guess and
+    # replan a deterministic action risks silently compounding it instead of fixing
+    # anything -- see the roll-doubling bug this was introduced to prevent.
+    deterministic: bool = False
 
     def capability_names(self) -> Set[str]:
         return {c.name for c in self.capabilities}

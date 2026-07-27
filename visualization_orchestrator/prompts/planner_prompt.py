@@ -32,7 +32,17 @@ Rules you must follow:
    task_id values, no dependency on a task_id that doesn't exist in this plan.
 9. State any assumptions you had to make in "assumptions" (e.g. "assuming the isovalue
    agent can expose the requested internal content").
-10. Return ONLY the JSON object described below -- no prose, no markdown fences, no
+10. Some capabilities are DIRECT: they apply an exact value the user already fully
+    specified (a number, a named action, a reset) with no rendered-candidate comparison or
+    visual judgment needed, and their descriptions say exactly which "constraints" they
+    require. Prefer a direct capability over a goal-based one whenever the instruction
+    already gives everything that capability's constraints need (e.g. "set isovalue to 60"
+    -> the direct isovalue capability with an "isovalue" constraint, not the goal-based
+    surface-extraction one). Use a goal-based capability instead whenever the instruction
+    describes a destination or outcome without a ready-made value for the direct
+    capability's required constraint(s) (e.g. "show me the skull", "make it upright") --
+    those genuinely need a render-and-judge loop to confirm the result.
+11. Return ONLY the JSON object described below -- no prose, no markdown fences, no
     chain-of-thought.
 """
 
