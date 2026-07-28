@@ -1,0 +1,191 @@
+{
+  "iteration": 7,
+  "current_image_path": "../output/orchestrator_notebook/screenshots/latest.png",
+  "blind_candidates": [
+    {
+      "candidate_id": "CANDIDATE_LV4RH",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_007/candidate_lv4rh.png"
+    },
+    {
+      "candidate_id": "CANDIDATE_QAN0L",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_007/candidate_qan0l.png"
+    },
+    {
+      "candidate_id": "CANDIDATE_1MLG9",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_007/candidate_1mlg9.png"
+    },
+    {
+      "candidate_id": "CANDIDATE_GVOQI",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_007/candidate_gvoqi.png"
+    },
+    {
+      "candidate_id": "CANDIDATE_5UO18",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_007/candidate_5uo18.png"
+    },
+    {
+      "candidate_id": "CANDIDATE_ABJF5",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_007/candidate_abjf5.png"
+    },
+    {
+      "candidate_id": "CANDIDATE_XWZ8L",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_007/candidate_xwz8l.png"
+    }
+  ],
+  "private_candidate_mapping": {
+    "CANDIDATE_LV4RH": "AZIMUTH_RIGHT",
+    "CANDIDATE_QAN0L": "STOP",
+    "CANDIDATE_1MLG9": "ELEVATION_UP",
+    "CANDIDATE_GVOQI": "ELEVATION_DOWN",
+    "CANDIDATE_5UO18": "AZIMUTH_RIGHT_180",
+    "CANDIDATE_ABJF5": "ELEVATION_UP_180",
+    "CANDIDATE_XWZ8L": "AZIMUTH_LEFT"
+  },
+  "pass_1_visual_diagnosis": {
+    "parsed": {
+      "target": {
+        "view_description": "The target shows a lateral (side) view of a skull. The sagittal profile is clearly visible, displaying the characteristic curved outline from the frontal bone through the parietal region to the occipital bone. The maxilla and mandible are visible in profile, showing the anterior (front) aspect with visible dentition, and the posterior (back) curvature of the cranium is also visible. This is a classic anatomical side view showing the full length profile of the skull from front to back.",
+        "closest_reference_id": "skull_001",
+        "closest_reference_description": "Right view of the human skull.",
+        "reference_match_quality": "exact",
+        "reference_match_differences": "No meaningful difference observed; both show the same right lateral perspective of a skull with full sagittal profile visibility.",
+        "reference_match_confidence": 1.0,
+        "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=exact)."
+      },
+      "current": {
+        "view_description": "This candidate shows an oblique lateral-anterior view with a large rectangular obstruction blocking much of the skull. The view appears to be from the side-front with significant occlusion from the geometric obstacle.",
+        "closest_reference_id": null,
+        "closest_reference_description": "unclear",
+        "reference_match_quality": "unclear",
+        "reference_match_differences": "The obstruction and altered perspective prevent meaningful comparison to reference views.",
+        "reference_match_confidence": 0.0,
+        "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+        "similarity_score": 12,
+        "confidence": 0.7,
+        "difference_from_target": "While this candidate appears to have some lateral component, a large rectangular obstruction blocks much of the skull, preventing clear assessment of the sagittal profile and anterior-posterior balance required by the target."
+      },
+      "candidates": [
+        {
+          "candidate_id": "CANDIDATE_LV4RH",
+          "view_description": "This candidate shows an oblique posterolateral view very similar to the current view, with the posterior cranium visible, one ear showing, and a rectangular overlay. The angle appears nearly identical to the current state with minimal change in viewpoint.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "This oblique posterior-superior view does not match any reference view in the bank, which primarily contains lateral and frontal perspectives.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate fails to achieve the target lateral profile. It maintains an oblique posterior-superior perspective rather than showing the required sagittal profile with both anterior and posterior aspects visible in a true side view.",
+          "similarity_score": 15,
+          "confidence": 0.9
+        },
+        {
+          "candidate_id": "CANDIDATE_QAN0L",
+          "view_description": "This candidate shows an essentially identical view to the current state, with the same oblique posterolateral angle, posterior cranium exposure, visible ear on the left, and rectangular overlay obscuring the facial region.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "This view matches none of the reference views, which show proper lateral and frontal perspectives rather than this oblique posterior angle.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate does not approach the target lateral view. It maintains the same problematic oblique posterior angle that fails to show the sagittal profile required by the target.",
+          "similarity_score": 15,
+          "confidence": 0.9
+        },
+        {
+          "candidate_id": "CANDIDATE_1MLG9",
+          "view_description": "This candidate shows a superior (top-down) view of the skull, looking down onto the cranial vault. The top of the skull dominates the frame, with the posterior portion at the top of the image and some anterior structures visible at the bottom. A rectangular element is visible at the lower edge.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "No reference view shows this superior axial perspective; all references show lateral or frontal views from horizontal viewing angles.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate moves away from the target. The target requires a lateral side profile, but this shows a superior axial view looking down from above, which is perpendicular to the required lateral perspective.",
+          "similarity_score": 5,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "CANDIDATE_GVOQI",
+          "view_description": "This candidate shows an inferior (bottom-up) view of the skull, looking upward from below. The base of the skull and mandible are prominently visible, with the cranial vault receding into the upper portion of the frame. This is an axial view from underneath.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "The reference bank contains no inferior views; all views are from horizontal or slightly elevated angles showing frontal or lateral perspectives.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate is opposite to the target requirement. The target needs a lateral sagittal profile, while this provides an inferior axial view that shows neither the lateral profile nor the anterior-posterior relationship in the correct plane.",
+          "similarity_score": 5,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "CANDIDATE_5UO18",
+          "view_description": "This candidate shows an oblique posterolateral view from a slightly different angle than the current view. The posterior cranium is visible along with one ear on the left side. A rectangular geometric element appears on the left. The view is from behind and to the side, elevated above horizontal.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "This oblique elevated posterior view does not correspond to any reference view in the bank, which focuses on lateral and frontal perspectives from horizontal angles.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate does not achieve the target lateral profile. It maintains an oblique posterior perspective rather than showing the clear sagittal profile with both anterior and posterior aspects visible in a true lateral view.",
+          "similarity_score": 12,
+          "confidence": 0.85
+        },
+        {
+          "candidate_id": "CANDIDATE_ABJF5",
+          "view_description": "This candidate shows an oblique superior-lateral view of the skull. The top and side of the cranial vault are visible, with one ear visible on the right side. A rectangular geometric overlay appears at the bottom right. The view is from above and to the side.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "This elevated oblique angle does not match the horizontal lateral views in the reference bank (skull_001, skull_003) or any of their rotated variants.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate fails to match the target lateral profile. While it shows more lateral exposure than some other candidates, it remains an elevated oblique view rather than the horizontal lateral profile required, and does not clearly show both anterior and posterior aspects in the sagittal plane.",
+          "similarity_score": 18,
+          "confidence": 0.8
+        },
+        {
+          "candidate_id": "CANDIDATE_XWZ8L",
+          "view_description": "This candidate shows an oblique superior view of the skull from above, showing the top of the cranium with one ear visible on the right side. A rectangular geometric element is visible at the upper right. The view is elevated, looking down onto the skull from an angle.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "This elevated superior-oblique view does not match any reference view, which are all taken from approximately horizontal viewing angles.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate does not achieve the target lateral profile. It shows a superior oblique perspective rather than the horizontal lateral view that would display the sagittal profile with both anterior and posterior aspects clearly visible.",
+          "similarity_score": 10,
+          "confidence": 0.85
+        }
+      ]
+    },
+    "raw_response": "```json\n{\n  \"target\": {\n    \"view_description\": \"The target shows a skull from a lateral (side) perspective. The sagittal profile is clearly visible with both the anterior (facial) and posterior (occipital) aspects visible in profile. The skull appears to be viewed from the right side, showing the complete profile from front to back including the jaw, eye orbit, nasal opening, and cranial vault.\",\n    \"closest_reference_id\": \"skull_001\",\n    \"reference_match_quality\": \"exact\",\n    \"reference_match_differences\": \"No meaningful difference observed; both show the same right lateral profile view with identical anatomical exposure and camera angle.\"\n  },\n  \"current\": {\n    \"view_description\": \"The current view shows an oblique posterolateral view of the skull from above and behind. The posterior cranial vault is prominently visible, with one ear visible on the left side. A large rectangular geometric overlay obscures much of the facial aspect. The view is neither frontal nor lateral, showing mostly the back and top of the skull.\",\n    \"difference_from_target\": \"The current view is fundamentally different from the target. The target shows a clear lateral profile with both front and back visible in the sagittal plane, while the current view shows an oblique superior-posterior angle with the skull tilted and rotated, obscuring the lateral profile entirely.\",\n    \"closest_reference_id\": null,\n    \"reference_match_quality\": \"unclear\",\n    \"reference_match_differences\": \"No reference view matches this oblique superior-posterior angle; the reference bank contains primarily lateral and frontal views along with their rotations, none of which correspond to this elevated posterior perspective.\",\n    \"similarity_score\": 15,\n    \"confidence\": 0.95\n  },\n  \"candidates\": [\n    {\n      \"candidate_id\": \"CANDIDATE_LV4RH\",\n      \"view_description\": \"This candidate shows an oblique posterolateral view very similar to the current view, with the posterior cranium visible, one ear showing, and a rectangular overlay. The angle appears nearly identical to the current state with minimal change in viewpoint.\",\n      \"comparison_to_target\": \"This candidate fails to achieve the target lateral profile. It maintains an oblique posterior-superior perspective rather than showing the required sagittal profile with both anterior and posterior aspects visible in a true side view.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"This oblique posterior-superior view does not match any reference view in the bank, which primarily contains lateral and frontal perspectives.\",\n      \"similarity_score\": 15,\n      \"confidence\": 0.9\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_QAN0L\",\n      \"view_description\": \"This candidate shows an essentially identical view to the current state, with the same oblique posterolateral angle, posterior cranium exposure, visible ear on the left, and rectangular overlay obscuring the facial region.\",\n      \"comparison_to_target\": \"This candidate does not approach the target lateral view. It maintains the same problematic oblique posterior angle that fails to show the sagittal profile required by the target.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"This view matches none of the reference views, which show proper lateral and frontal perspectives rather than this oblique posterior angle.\",\n      \"similarity_score\": 15,\n      \"confidence\": 0.9\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_1MLG9\",\n      \"view_description\": \"This candidate shows a superior (top-down) view of the skull, looking down onto the cranial vault. The top of the skull dominates the frame, with the posterior portion at the top of the image and some anterior structures visible at the bottom. A rectangular element is visible at the lower edge.\",\n      \"comparison_to_target\": \"This candidate moves away from the target. The target requires a lateral side profile, but this shows a superior axial view looking down from above, which is perpendicular to the required lateral perspective.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference view shows this superior axial perspective; all references show lateral or frontal views from horizontal viewing angles.\",\n      \"similarity_score\": 5,\n      \"confidence\": 0.95\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_GVOQI\",\n      \"view_description\": \"This candidate shows an inferior (bottom-up) view of the skull, looking upward from below. The base of the skull and mandible are prominently visible, with the cranial vault receding into the upper portion of the frame. This is an axial view from underneath.\",\n      \"comparison_to_target\": \"This candidate is opposite to the target requirement. The target needs a lateral sagittal profile, while this provides an inferior axial view that shows neither the lateral profile nor the anterior-posterior relationship in the correct plane.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"The reference bank contains no inferior views; all views are from horizontal or slightly elevated angles showing frontal or lateral perspectives.\",\n      \"similarity_score\": 5,\n      \"confidence\": 0.95\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_5UO18\",\n      \"view_description\": \"This candidate shows an oblique posterolateral view from a slightly different angle than the current view. The posterior cranium is visible along with one ear on the left side. A rectangular geometric element appears on the left. The view is from behind and to the side, elevated above horizontal.\",\n      \"comparison_to_target\": \"This candidate does not achieve the target lateral profile. It maintains an oblique posterior perspective rather than showing the clear sagittal profile with both anterior and posterior aspects visible in a true lateral view.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"This oblique elevated posterior view does not correspond to any reference view in the bank, which focuses on lateral and frontal perspectives from horizontal angles.\",\n      \"similarity_score\": 12,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_ABJF5\",\n      \"view_description\": \"This candidate shows an oblique superior-lateral view of the skull. The top and side of the cranial vault are visible, with one ear visible on the right side. A rectangular geometric overlay appears at the bottom right. The view is from above and to the side.\",\n      \"comparison_to_target\": \"This candidate fails to match the target lateral profile. While it shows more lateral exposure than some other candidates, it remains an elevated oblique view rather than the horizontal lateral profile required, and does not clearly show both anterior and posterior aspects in the sagittal plane.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"This elevated oblique angle does not match the horizontal lateral views in the reference bank (skull_001, skull_003) or any of their rotated variants.\",\n      \"similarity_score\": 18,\n      \"confidence\": 0.8\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_XWZ8L\",\n      \"view_description\": \"This candidate shows an oblique superior view of the skull from above, showing the top of the cranium with one ear visible on the right side. A rectangular geometric element is visible at the upper right. The view is elevated, looking down onto the skull from an angle.\",\n      \"comparison_to_target\": \"This candidate does not achieve the target lateral profile. It shows a superior oblique perspective rather than the horizontal lateral view that would display the sagittal profile with both anterior and posterior aspects clearly visible.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"This elevated superior-oblique view does not match any reference view, which are all taken from approximately horizontal viewing angles.\",\n      \"similarity_score\": 10,\n      \"confidence\": 0.85\n    }\n  ]\n}\n```"
+  },
+  "pass_2_deterministic_selection": {
+    "decision": "candidate",
+    "selected_candidate": "CANDIDATE_LV4RH",
+    "selection_reason": "All 7 candidates have unclear reference-bank grounding; continuing the same direction as the last applied movement ('AZIMUTH_RIGHT') rather than re-picking arbitrarily, to keep sweeping toward a view the reference bank recognizes. Selected CANDIDATE_LV4RH (similarity_score=15, confidence=0.9).",
+    "selected_diagnosis": {
+      "candidate_id": "CANDIDATE_LV4RH",
+      "view_description": "This candidate shows an oblique posterolateral view very similar to the current view, with the posterior cranium visible, one ear showing, and a rectangular overlay. The angle appears nearly identical to the current state with minimal change in viewpoint.",
+      "closest_reference_id": null,
+      "closest_reference_description": "unclear",
+      "reference_match_quality": "unclear",
+      "reference_match_differences": "This oblique posterior-superior view does not match any reference view in the bank, which primarily contains lateral and frontal perspectives.",
+      "reference_match_confidence": 0.0,
+      "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+      "comparison_to_target": "This candidate fails to achieve the target lateral profile. It maintains an oblique posterior-superior perspective rather than showing the required sagittal profile with both anterior and posterior aspects visible in a true side view.",
+      "similarity_score": 15,
+      "confidence": 0.9
+    }
+  },
+  "pass_3_magnitude_estimation": {
+    "parsed": {
+      "selected_candidate": "CANDIDATE_LV4RH",
+      "magnitude_recommendation": "minimal",
+      "magnitude_reasoning": "The current view already shows a clear lateral (side) perspective of the skull with the ear visible, sagittal profile evident, and both anterior and posterior aspects visible in profile. The candidate shows continued rotation in the same direction, which would move the view further around toward a more anterior-oblique perspective, moving away from the optimal lateral view. Given that recent steps have repeated the same movement and the current view is already very close to the target lateral view, only a minimal adjustment along this trajectory is warranted to avoid overshooting past the ideal side profile.",
+      "expected_visual_result": "A very slight rotation that maintains the current lateral profile view with minimal change in the overall viewpoint geometry, keeping the ear centered and the sagittal profile clearly visible without rotating further toward the front of the skull."
+    },
+    "raw_response": "```json\n{\n  \"selected_candidate\": \"CANDIDATE_LV4RH\",\n  \"magnitude_recommendation\": \"minimal\",\n  \"magnitude_reasoning\": \"The current view already shows a clear lateral (side) perspective of the skull with the ear visible, sagittal profile evident, and both anterior and posterior aspects visible in profile. The candidate shows continued rotation in the same direction, which would move the view further around toward a more anterior-oblique perspective, moving away from the optimal lateral view. Given that recent steps have repeated the same movement and the current view is already very close to the target lateral view, only a minimal adjustment along this trajectory is warranted to avoid overshooting past the ideal side profile.\",\n  \"expected_visual_result\": \"A very slight rotation that maintains the current lateral profile view with minimal change in the overall viewpoint geometry, keeping the ear centered and the sagittal profile clearly visible without rotating further toward the front of the skull.\"\n}\n```"
+  },
+  "final_action": "AZIMUTH_RIGHT_FINE",
+  "applied_action": "AZIMUTH_RIGHT_FINE"
+}

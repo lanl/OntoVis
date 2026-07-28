@@ -3,184 +3,184 @@
   "current_image_path": "../output/orchestrator_notebook/screenshots/latest.png",
   "blind_candidates": [
     {
-      "candidate_id": "CANDIDATE_B66S6",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_b66s6.png"
+      "candidate_id": "CANDIDATE_WZF6D",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_wzf6d.png"
     },
     {
-      "candidate_id": "CANDIDATE_G9KOX",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_g9kox.png"
+      "candidate_id": "CANDIDATE_IS195",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_is195.png"
     },
     {
-      "candidate_id": "CANDIDATE_ECCYL",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_eccyl.png"
+      "candidate_id": "CANDIDATE_RBC3Q",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_rbc3q.png"
     },
     {
-      "candidate_id": "CANDIDATE_U4RZQ",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_u4rzq.png"
+      "candidate_id": "CANDIDATE_YN68M",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_yn68m.png"
     },
     {
-      "candidate_id": "CANDIDATE_346CV",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_346cv.png"
+      "candidate_id": "CANDIDATE_Y8CH3",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_y8ch3.png"
     },
     {
-      "candidate_id": "CANDIDATE_I3VE2",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_i3ve2.png"
+      "candidate_id": "CANDIDATE_ZPFOU",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_zpfou.png"
     },
     {
-      "candidate_id": "CANDIDATE_ZEH6S",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_zeh6s.png"
+      "candidate_id": "CANDIDATE_4LFRW",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_001/candidate_4lfrw.png"
     }
   ],
   "private_candidate_mapping": {
-    "CANDIDATE_B66S6": "AZIMUTH_RIGHT_180",
-    "CANDIDATE_G9KOX": "ELEVATION_DOWN",
-    "CANDIDATE_ECCYL": "AZIMUTH_LEFT",
-    "CANDIDATE_U4RZQ": "ELEVATION_UP",
-    "CANDIDATE_346CV": "STOP",
-    "CANDIDATE_I3VE2": "ELEVATION_UP_180",
-    "CANDIDATE_ZEH6S": "AZIMUTH_RIGHT"
+    "CANDIDATE_WZF6D": "ELEVATION_UP_180",
+    "CANDIDATE_IS195": "AZIMUTH_RIGHT",
+    "CANDIDATE_RBC3Q": "ELEVATION_DOWN",
+    "CANDIDATE_YN68M": "AZIMUTH_LEFT",
+    "CANDIDATE_Y8CH3": "STOP",
+    "CANDIDATE_ZPFOU": "ELEVATION_UP",
+    "CANDIDATE_4LFRW": "AZIMUTH_RIGHT_180"
   },
   "pass_1_visual_diagnosis": {
     "parsed": {
       "target": {
-        "view_description": "The target shows a lateral (side) view of a human skull. The profile is clearly visible with the full side contour of the cranium, zygomatic arch, maxilla, and mandible. The teeth are visible in profile, and the eye orbit, nasal opening, and temporal region are all seen from the side. This is a classic anatomical lateral view showing one complete side of the skull.",
+        "view_description": "The target shows a lateral (side) view of a human skull with the sagittal profile clearly visible. The view presents a true lateral perspective showing the full profile from front to back, including the frontal bone, orbit, nasal aperture, maxilla with teeth, mandible with teeth, zygomatic arch, temporal bone, and occipital region. The skull is photographed against a light background with professional lighting.",
         "closest_reference_id": "skull_001",
         "closest_reference_description": "Right view of the human skull.",
         "reference_match_quality": "exact",
-        "reference_match_differences": "No meaningful difference observed - both show the same right lateral view of a human skull with the profile clearly visible.",
+        "reference_match_differences": "No meaningful difference observed; the reference shows the same right lateral perspective with identical anatomical exposure and viewing angle.",
         "reference_match_confidence": 1.0,
         "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=exact)."
       },
       "current": {
-        "view_description": "This candidate shows a lateral view of the skull from the right side, displaying the full profile with the cranium, facial bones, mandible, and teeth visible in side profile. The zygomatic arch, orbit, and nasal opening are all clearly visible from the side.",
+        "view_description": "This candidate shows a right lateral view of the skull with the sagittal profile clearly visible, showing the full side contour from frontal bone through occipital region, including orbital cavity, nasal aperture, maxilla, mandible, and temporal structures.",
         "closest_reference_id": "skull_001",
         "closest_reference_description": "Right view of the human skull.",
-        "reference_match_quality": "exact",
-        "reference_match_differences": "No meaningful difference observed - both show the same right lateral profile view of the skull.",
-        "reference_match_confidence": 1.0,
-        "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=exact).",
+        "reference_match_quality": "close",
+        "reference_match_differences": "Very similar lateral perspective to the reference; minor differences in exact camera angle or distance may be present, and the anatomical instance differs but the viewpoint orientation is essentially the same.",
+        "reference_match_confidence": 0.8,
+        "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=close).",
         "similarity_score": 95,
-        "confidence": 1.0,
-        "difference_from_target": "This candidate matches the target viewpoint extremely well, both showing a right lateral view of the skull with the profile clearly visible. The overall orientation and visible anatomical structures correspond very closely to the target."
+        "confidence": 0.95,
+        "difference_from_target": "This candidate closely matches the target viewpoint, showing a true lateral perspective with the sagittal profile clearly displayed. The anatomical surfaces exposed match the target's lateral orientation."
       },
       "candidates": [
         {
-          "candidate_id": "CANDIDATE_B66S6",
-          "view_description": "This candidate shows an oblique view similar to the current state, with the skull viewed from a three-quarter angle showing left lateral and posterior surfaces, with the dental arcade visible extending to the right. The orientation remains oblique rather than a true profile.",
+          "candidate_id": "CANDIDATE_WZF6D",
+          "view_description": "This candidate shows a lateral view of the skull with the face pointing left, showing the sagittal profile. The cranial vault, facial structures, mandible, and cervical spine are visible from the side. This is a left lateral perspective.",
+          "closest_reference_id": "skull_003",
+          "closest_reference_description": "Left view of the human skull.",
+          "reference_match_quality": "close",
+          "reference_match_differences": "Similar left lateral orientation to skull_003 but with medical imaging rendering, darker background, and additional cervical spine elements visible.",
+          "reference_match_confidence": 0.8,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=close).",
+          "comparison_to_target": "This candidate shows a left lateral view while the target shows a right lateral view - they are opposite sides. Both display true lateral perspectives with clear sagittal profiles, but from mirror-image sides of the skull.",
+          "similarity_score": 75,
+          "confidence": 0.85
+        },
+        {
+          "candidate_id": "CANDIDATE_IS195",
+          "view_description": "This candidate shows a superior (top) view of the skull, looking down onto the cranial vault. The rounded dome of the calvarium dominates the view, with bilateral symmetry visible. This is a top-down perspective showing the superior aspect of the skull.",
           "closest_reference_id": null,
           "closest_reference_description": "unclear",
           "reference_match_quality": "unclear",
-          "reference_match_differences": "No reference view corresponds to this oblique orientation showing mixed lateral and posterior surfaces with the protruding dental arcade.",
+          "reference_match_differences": "No reference image in the bank shows a superior view matching this candidate's viewpoint.",
           "reference_match_confidence": 0.0,
           "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate does not match the target. The target requires a pure lateral profile view showing the full sagittal silhouette, while this candidate maintains an oblique three-quarter perspective showing mixed surfaces rather than a clean side profile.",
-          "similarity_score": 25,
-          "confidence": 0.8
+          "comparison_to_target": "This candidate shows a completely different viewpoint - superior rather than lateral. The target shows a side profile while this shows the top of the skull. No sagittal profile is visible here.",
+          "similarity_score": 5,
+          "confidence": 0.95
         },
         {
-          "candidate_id": "CANDIDATE_G9KOX",
-          "view_description": "This candidate shows a view looking down onto the skull from above (superior view), displaying the top of the cranium, the dental arcade from above, and the facial skeleton flattened by the overhead perspective. This is a top-down view.",
-          "closest_reference_id": "skull_002_rot180",
-          "closest_reference_description": "Front view of the human skull. Rotated 180 degrees clockwise.",
+          "candidate_id": "CANDIDATE_RBC3Q",
+          "view_description": "This candidate shows an inferior (bottom) view of the skull, looking up at the base. The basilar structures, palate, teeth, and foramen magnum area are visible. This is a basal perspective showing the underside of the skull.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "No reference image in the bank shows an inferior view matching this candidate's viewpoint.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate shows a completely different viewpoint - inferior rather than lateral. The target shows a side profile while this shows the bottom of the skull. No sagittal profile is visible.",
+          "similarity_score": 5,
+          "confidence": 0.95
+        },
+        {
+          "candidate_id": "CANDIDATE_YN68M",
+          "view_description": "This candidate shows an inferior-anterior oblique view of the skull, looking up from below and slightly from the front. The base of the skull, mandible, and facial structures are visible from this angled underneath perspective.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "No reference image in the bank shows an inferior-anterior oblique view matching this candidate's viewpoint.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate shows a completely different viewpoint - inferior-anterior oblique rather than lateral. The target shows a clean side profile while this shows the skull from below and front. No sagittal profile is visible.",
+          "similarity_score": 10,
+          "confidence": 0.9
+        },
+        {
+          "candidate_id": "CANDIDATE_Y8CH3",
+          "view_description": "This candidate shows the same left lateral view as the current state. The skull is viewed from the left side with the face pointing left, displaying the sagittal profile clearly. The cranial vault, facial bones, and mandible are visible in lateral perspective.",
+          "closest_reference_id": "skull_003",
+          "closest_reference_description": "Left view of the human skull.",
+          "reference_match_quality": "close",
+          "reference_match_differences": "Similar left lateral orientation to skull_003 but with medical imaging rendering, darker background, and cervical spine elements visible.",
+          "reference_match_confidence": 0.8,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=close).",
+          "comparison_to_target": "This candidate shows a left lateral view while the target shows a right lateral view - they are opposite sides. Both are true lateral perspectives with sagittal profiles clearly visible, but from mirror-image sides.",
+          "similarity_score": 75,
+          "confidence": 0.85
+        },
+        {
+          "candidate_id": "CANDIDATE_ZPFOU",
+          "view_description": "This candidate shows an anterior (front) view of the skull. Both orbits, the nasal cavity, upper and lower teeth, and the frontal bone are visible symmetrically. This is a frontal perspective looking directly at the face of the skull.",
+          "closest_reference_id": "skull_002",
+          "closest_reference_description": "Front view of the human skull.",
           "reference_match_quality": "partial",
-          "reference_match_differences": "Similar superior viewing angle showing the top of the cranium and dental arcade from above, though the exact rotation and tilt may differ slightly from the reference.",
+          "reference_match_differences": "Similar frontal orientation to skull_002 but with medical imaging rendering, darker background, and cervical spine visible below the skull.",
           "reference_match_confidence": 0.5,
           "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=partial).",
-          "comparison_to_target": "This candidate is very different from the target. The target shows a lateral profile view, whereas this candidate presents a superior (top-down) view showing entirely different surfaces\u2014the cranial vault from above rather than the sagittal profile from the side.",
-          "similarity_score": 5,
-          "confidence": 0.9
-        },
-        {
-          "candidate_id": "CANDIDATE_ECCYL",
-          "view_description": "This candidate shows a view of the superior (top) surface of the cranium, looking down from above. The rounded dome of the cranial vault dominates the image, with minimal visibility of facial structures. This is a top view of the skull.",
-          "closest_reference_id": null,
-          "closest_reference_description": "unclear",
-          "reference_match_quality": "unclear",
-          "reference_match_differences": "No reference view shows this specific superior perspective focused on the cranial dome from directly above.",
-          "reference_match_confidence": 0.0,
-          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate is very different from the target. The target requires a lateral profile showing the side silhouette, whereas this candidate shows the superior surface from above, presenting the cranial dome rather than any profile view.",
-          "similarity_score": 3,
-          "confidence": 0.85
-        },
-        {
-          "candidate_id": "CANDIDATE_U4RZQ",
-          "view_description": "This candidate shows a posterior-superior oblique view, looking down at the back and top of the skull. The occipital region of the cranium is prominent, along with portions of the superior surface and the cervical spine/vertebrae visible below. This is a rear-top view.",
-          "closest_reference_id": null,
-          "closest_reference_description": "unclear",
-          "reference_match_quality": "unclear",
-          "reference_match_differences": "No reference view matches this posterior-superior oblique perspective showing the occipital region and cervical spine.",
-          "reference_match_confidence": 0.0,
-          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate is very different from the target. The target shows a lateral profile from the side, whereas this candidate shows posterior and superior surfaces from a rear-top angle, with no lateral profile visible.",
-          "similarity_score": 5,
-          "confidence": 0.85
-        },
-        {
-          "candidate_id": "CANDIDATE_346CV",
-          "view_description": "This candidate shows the same oblique three-quarter view as the current state, with the skull oriented to show left lateral and posterior surfaces, the dental arcade protruding to the right, and a tilted perspective. The viewpoint appears essentially unchanged from the current state.",
-          "closest_reference_id": null,
-          "closest_reference_description": "unclear",
-          "reference_match_quality": "unclear",
-          "reference_match_differences": "No reference view corresponds to this specific oblique angle showing mixed surfaces and the protruding dental arcade.",
-          "reference_match_confidence": 0.0,
-          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate does not match the target. The target requires a pure lateral profile showing the complete sagittal silhouette, while this candidate maintains the same oblique three-quarter orientation as the current view, showing mixed surfaces rather than a clean side profile.",
-          "similarity_score": 25,
-          "confidence": 0.8
-        },
-        {
-          "candidate_id": "CANDIDATE_I3VE2",
-          "view_description": "This candidate shows an oblique view looking at the skull from below and to the side, revealing the inferior surfaces of the mandible, portions of the cranial base, the dental arcade, and lateral surfaces. This is an inferior-lateral oblique view.",
-          "closest_reference_id": null,
-          "closest_reference_description": "unclear",
-          "reference_match_quality": "unclear",
-          "reference_match_differences": "No reference view matches this inferior-lateral oblique perspective showing the cranial base and mandible from below.",
-          "reference_match_confidence": 0.0,
-          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate is different from the target. The target shows a lateral profile from the side at mid-level, whereas this candidate shows an oblique view from below, emphasizing inferior and basal surfaces rather than presenting a clean lateral profile.",
+          "comparison_to_target": "This candidate shows a frontal view while the target shows a lateral view - completely different perspectives. The target displays a sagittal profile from the side, while this shows the face head-on with no profile visible.",
           "similarity_score": 15,
-          "confidence": 0.8
+          "confidence": 0.9
         },
         {
-          "candidate_id": "CANDIDATE_ZEH6S",
-          "view_description": "This candidate shows an inferior view of the skull, looking up from below. The mandible, cranial base, and inferior surfaces of the facial skeleton are visible. This is a bottom-up view showing the basal aspect of the skull.",
-          "closest_reference_id": null,
-          "closest_reference_description": "unclear",
-          "reference_match_quality": "unclear",
-          "reference_match_differences": "No reference view shows this inferior perspective looking up at the cranial base from below.",
-          "reference_match_confidence": 0.0,
-          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate is very different from the target. The target shows a lateral profile from the side, whereas this candidate shows the inferior surface from below, presenting entirely different anatomical surfaces\u2014the skull base rather than the lateral profile.",
-          "similarity_score": 3,
-          "confidence": 0.9
+          "candidate_id": "CANDIDATE_4LFRW",
+          "view_description": "This candidate shows a right lateral view of the skull with the face pointing right. The sagittal profile is clearly visible from the right side, showing the cranial vault, facial structures, mandible in profile, and cervical spine elements.",
+          "closest_reference_id": "skull_001",
+          "closest_reference_description": "Right view of the human skull.",
+          "reference_match_quality": "close",
+          "reference_match_differences": "Similar right lateral orientation to skull_001 but with medical imaging rendering, darker background, and cervical spine elements extending from the skull base.",
+          "reference_match_confidence": 0.8,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=close).",
+          "comparison_to_target": "This candidate shows a right lateral view matching the same side as the target. Both display the sagittal profile from the right side with similar lateral perspectives. The viewpoint orientation is very similar.",
+          "similarity_score": 95,
+          "confidence": 0.95
         }
       ]
     },
-    "raw_response": "```json\n{\n  \"target\": {\n    \"view_description\": \"The target shows a lateral (side) view of a skull. The profile is clearly visible, showing the full curvature of the cranium from front to back, the jaw structure in profile, the orbital cavity, and the teeth aligned horizontally. This is a classic anatomical side view showing the entire sagittal profile of the skull.\",\n    \"closest_reference_id\": \"skull_001\",\n    \"reference_match_quality\": \"exact\",\n    \"reference_match_differences\": \"No meaningful difference observed. Both show a right lateral view with the skull's profile clearly presented, the full cranial curvature visible, and the jaw and teeth in lateral alignment.\"\n  },\n  \"current\": {\n    \"view_description\": \"The current view shows a three-quarter oblique view of the skull, oriented with the face slightly toward the viewer and tilted/rotated such that we see portions of the left lateral surface, some posterior cranium, and the upper dental arcade protruding to the right. This is not a true lateral profile view.\",\n    \"difference_from_target\": \"The current view is an oblique three-quarter angle showing mixed surfaces (lateral, posterior, and partial superior), whereas the target is a pure lateral profile showing the full side silhouette. The target presents a clear sagittal profile; the current view does not present the profile clearly and shows the skull from an angled perspective.\",\n    \"closest_reference_id\": null,\n    \"reference_match_quality\": \"unclear\",\n    \"reference_match_differences\": \"No reference view matches this specific oblique angle showing the mixed surfaces and tilted orientation visible in the current image.\",\n    \"similarity_score\": 25,\n    \"confidence\": 0.85\n  },\n  \"candidates\": [\n    {\n      \"candidate_id\": \"CANDIDATE_B66S6\",\n      \"view_description\": \"This candidate shows an oblique view similar to the current state, with the skull viewed from a three-quarter angle showing left lateral and posterior surfaces, with the dental arcade visible extending to the right. The orientation remains oblique rather than a true profile.\",\n      \"comparison_to_target\": \"This candidate does not match the target. The target requires a pure lateral profile view showing the full sagittal silhouette, while this candidate maintains an oblique three-quarter perspective showing mixed surfaces rather than a clean side profile.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference view corresponds to this oblique orientation showing mixed lateral and posterior surfaces with the protruding dental arcade.\",\n      \"similarity_score\": 25,\n      \"confidence\": 0.8\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_G9KOX\",\n      \"view_description\": \"This candidate shows a view looking down onto the skull from above (superior view), displaying the top of the cranium, the dental arcade from above, and the facial skeleton flattened by the overhead perspective. This is a top-down view.\",\n      \"comparison_to_target\": \"This candidate is very different from the target. The target shows a lateral profile view, whereas this candidate presents a superior (top-down) view showing entirely different surfaces\u2014the cranial vault from above rather than the sagittal profile from the side.\",\n      \"closest_reference_id\": \"skull_002_rot180\",\n      \"reference_match_quality\": \"partial\",\n      \"reference_match_differences\": \"Similar superior viewing angle showing the top of the cranium and dental arcade from above, though the exact rotation and tilt may differ slightly from the reference.\",\n      \"similarity_score\": 5,\n      \"confidence\": 0.9\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_ECCYL\",\n      \"view_description\": \"This candidate shows a view of the superior (top) surface of the cranium, looking down from above. The rounded dome of the cranial vault dominates the image, with minimal visibility of facial structures. This is a top view of the skull.\",\n      \"comparison_to_target\": \"This candidate is very different from the target. The target requires a lateral profile showing the side silhouette, whereas this candidate shows the superior surface from above, presenting the cranial dome rather than any profile view.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference view shows this specific superior perspective focused on the cranial dome from directly above.\",\n      \"similarity_score\": 3,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_U4RZQ\",\n      \"view_description\": \"This candidate shows a posterior-superior oblique view, looking down at the back and top of the skull. The occipital region of the cranium is prominent, along with portions of the superior surface and the cervical spine/vertebrae visible below. This is a rear-top view.\",\n      \"comparison_to_target\": \"This candidate is very different from the target. The target shows a lateral profile from the side, whereas this candidate shows posterior and superior surfaces from a rear-top angle, with no lateral profile visible.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference view matches this posterior-superior oblique perspective showing the occipital region and cervical spine.\",\n      \"similarity_score\": 5,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_346CV\",\n      \"view_description\": \"This candidate shows the same oblique three-quarter view as the current state, with the skull oriented to show left lateral and posterior surfaces, the dental arcade protruding to the right, and a tilted perspective. The viewpoint appears essentially unchanged from the current state.\",\n      \"comparison_to_target\": \"This candidate does not match the target. The target requires a pure lateral profile showing the complete sagittal silhouette, while this candidate maintains the same oblique three-quarter orientation as the current view, showing mixed surfaces rather than a clean side profile.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference view corresponds to this specific oblique angle showing mixed surfaces and the protruding dental arcade.\",\n      \"similarity_score\": 25,\n      \"confidence\": 0.8\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_I3VE2\",\n      \"view_description\": \"This candidate shows an oblique view looking at the skull from below and to the side, revealing the inferior surfaces of the mandible, portions of the cranial base, the dental arcade, and lateral surfaces. This is an inferior-lateral oblique view.\",\n      \"comparison_to_target\": \"This candidate is different from the target. The target shows a lateral profile from the side at mid-level, whereas this candidate shows an oblique view from below, emphasizing inferior and basal surfaces rather than presenting a clean lateral profile.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference view matches this inferior-lateral oblique perspective showing the cranial base and mandible from below.\",\n      \"similarity_score\": 15,\n      \"confidence\": 0.8\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_ZEH6S\",\n      \"view_description\": \"This candidate shows an inferior view of the skull, looking up from below. The mandible, cranial base, and inferior surfaces of the facial skeleton are visible. This is a bottom-up view showing the basal aspect of the skull.\",\n      \"comparison_to_target\": \"This candidate is very different from the target. The target shows a lateral profile from the side, whereas this candidate shows the inferior surface from below, presenting entirely different anatomical surfaces\u2014the skull base rather than the lateral profile.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference view shows this inferior perspective looking up at the cranial base from below.\",\n      \"similarity_score\": 3,\n      \"confidence\": 0.9\n    }\n  ]\n}\n```"
+    "raw_response": "```json\n{\n  \"target\": {\n    \"view_description\": \"The target shows a lateral (side) view of a skull. The sagittal profile is clearly visible, showing the characteristic side contour from front to back. The maxilla, mandible, orbit, and cranial vault are all seen in profile. The skull is oriented with the face pointing left, displaying a true lateral perspective where only one side of the skull is visible.\",\n    \"closest_reference_id\": \"skull_001\",\n    \"reference_match_quality\": \"close\",\n    \"reference_match_differences\": \"The target shows a similar right lateral view but appears to be from a medical imaging dataset (CT or similar) with different rendering style, darker background, and shows additional cervical spine elements extending from the skull base. The viewpoint angle is very similar though slightly different in exact camera position.\"\n  },\n  \"current\": {\n    \"view_description\": \"The current view shows a left lateral (side) view of the skull. The sagittal profile is visible with the face pointing toward the left side of the frame. The cranial vault, facial bones, mandible, and cervical spine extensions are visible in profile. This is also a lateral view but from the opposite side compared to the target.\",\n    \"difference_from_target\": \"The current view shows the left lateral aspect while the target shows the right lateral aspect - they are opposite sides of the skull. Both are lateral views showing sagittal profiles, but they are mirror perspectives of each other.\",\n    \"closest_reference_id\": \"skull_003\",\n    \"reference_match_quality\": \"close\",\n    \"reference_match_differences\": \"The current view matches the left lateral orientation of skull_003 but is from a different skull specimen with medical imaging rendering style, darker background, and includes cervical spine elements not present in the reference.\",\n    \"similarity_score\": 75,\n    \"confidence\": 0.85\n  },\n  \"candidates\": [\n    {\n      \"candidate_id\": \"CANDIDATE_WZF6D\",\n      \"view_description\": \"This candidate shows a lateral view of the skull with the face pointing left, showing the sagittal profile. The cranial vault, facial structures, mandible, and cervical spine are visible from the side. This is a left lateral perspective.\",\n      \"comparison_to_target\": \"This candidate shows a left lateral view while the target shows a right lateral view - they are opposite sides. Both display true lateral perspectives with clear sagittal profiles, but from mirror-image sides of the skull.\",\n      \"closest_reference_id\": \"skull_003\",\n      \"reference_match_quality\": \"close\",\n      \"reference_match_differences\": \"Similar left lateral orientation to skull_003 but with medical imaging rendering, darker background, and additional cervical spine elements visible.\",\n      \"similarity_score\": 75,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_IS195\",\n      \"view_description\": \"This candidate shows a superior (top) view of the skull, looking down onto the cranial vault. The rounded dome of the calvarium dominates the view, with bilateral symmetry visible. This is a top-down perspective showing the superior aspect of the skull.\",\n      \"comparison_to_target\": \"This candidate shows a completely different viewpoint - superior rather than lateral. The target shows a side profile while this shows the top of the skull. No sagittal profile is visible here.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference image in the bank shows a superior view matching this candidate's viewpoint.\",\n      \"similarity_score\": 5,\n      \"confidence\": 0.95\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_RBC3Q\",\n      \"view_description\": \"This candidate shows an inferior (bottom) view of the skull, looking up at the base. The basilar structures, palate, teeth, and foramen magnum area are visible. This is a basal perspective showing the underside of the skull.\",\n      \"comparison_to_target\": \"This candidate shows a completely different viewpoint - inferior rather than lateral. The target shows a side profile while this shows the bottom of the skull. No sagittal profile is visible.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference image in the bank shows an inferior view matching this candidate's viewpoint.\",\n      \"similarity_score\": 5,\n      \"confidence\": 0.95\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_YN68M\",\n      \"view_description\": \"This candidate shows an inferior-anterior oblique view of the skull, looking up from below and slightly from the front. The base of the skull, mandible, and facial structures are visible from this angled underneath perspective.\",\n      \"comparison_to_target\": \"This candidate shows a completely different viewpoint - inferior-anterior oblique rather than lateral. The target shows a clean side profile while this shows the skull from below and front. No sagittal profile is visible.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference image in the bank shows an inferior-anterior oblique view matching this candidate's viewpoint.\",\n      \"similarity_score\": 10,\n      \"confidence\": 0.9\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_Y8CH3\",\n      \"view_description\": \"This candidate shows the same left lateral view as the current state. The skull is viewed from the left side with the face pointing left, displaying the sagittal profile clearly. The cranial vault, facial bones, and mandible are visible in lateral perspective.\",\n      \"comparison_to_target\": \"This candidate shows a left lateral view while the target shows a right lateral view - they are opposite sides. Both are true lateral perspectives with sagittal profiles clearly visible, but from mirror-image sides.\",\n      \"closest_reference_id\": \"skull_003\",\n      \"reference_match_quality\": \"close\",\n      \"reference_match_differences\": \"Similar left lateral orientation to skull_003 but with medical imaging rendering, darker background, and cervical spine elements visible.\",\n      \"similarity_score\": 75,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_ZPFOU\",\n      \"view_description\": \"This candidate shows an anterior (front) view of the skull. Both orbits, the nasal cavity, upper and lower teeth, and the frontal bone are visible symmetrically. This is a frontal perspective looking directly at the face of the skull.\",\n      \"comparison_to_target\": \"This candidate shows a frontal view while the target shows a lateral view - completely different perspectives. The target displays a sagittal profile from the side, while this shows the face head-on with no profile visible.\",\n      \"closest_reference_id\": \"skull_002\",\n      \"reference_match_quality\": \"partial\",\n      \"reference_match_differences\": \"Similar frontal orientation to skull_002 but with medical imaging rendering, darker background, and cervical spine visible below the skull.\",\n      \"similarity_score\": 15,\n      \"confidence\": 0.9\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_4LFRW\",\n      \"view_description\": \"This candidate shows a right lateral view of the skull with the face pointing right. The sagittal profile is clearly visible from the right side, showing the cranial vault, facial structures, mandible in profile, and cervical spine elements.\",\n      \"comparison_to_target\": \"This candidate shows a right lateral view matching the same side as the target. Both display the sagittal profile from the right side with similar lateral perspectives. The viewpoint orientation is very similar.\",\n      \"closest_reference_id\": \"skull_001\",\n      \"reference_match_quality\": \"close\",\n      \"reference_match_differences\": \"Similar right lateral orientation to skull_001 but with medical imaging rendering, darker background, and cervical spine elements extending from the skull base.\",\n      \"similarity_score\": 95,\n      \"confidence\": 0.95\n    }\n  ]\n}\n```"
   },
   "pass_2_deterministic_selection": {
     "decision": "stop",
     "selected_candidate": "STOP",
-    "selection_reason": "STOP: current render similarity_score=95 (>= threshold 92) with confidence=1.0 (>= minimum 0.5); closest reference 'skull_001' ('Right view of the human skull.'), match_quality=exact [No meaningful difference observed - both show the same right lateral profile view of the skull.]; best candidate only improves similarity by -70 (< margin 3). difference_from_target: This candidate matches the target viewpoint extremely well, both showing a right lateral view of the skull with the profile clearly visible. The overall orientation and visible anatomical structures correspond very closely to the target.",
+    "selection_reason": "STOP: current render similarity_score=95 (>= threshold 92) with confidence=0.95 (>= minimum 0.5); closest reference 'skull_001' ('Right view of the human skull.'), match_quality=close [Very similar lateral perspective to the reference; minor differences in exact camera angle or distance may be present, and the anatomical instance differs but the viewpoint orientation is essentially the same.]; best candidate only improves similarity by 0 (< margin 3). difference_from_target: This candidate closely matches the target viewpoint, showing a true lateral perspective with the sagittal profile clearly displayed. The anatomical surfaces exposed match the target's lateral orientation.",
     "selected_diagnosis": {
-      "view_description": "This candidate shows a lateral view of the skull from the right side, displaying the full profile with the cranium, facial bones, mandible, and teeth visible in side profile. The zygomatic arch, orbit, and nasal opening are all clearly visible from the side.",
+      "view_description": "This candidate shows a right lateral view of the skull with the sagittal profile clearly visible, showing the full side contour from frontal bone through occipital region, including orbital cavity, nasal aperture, maxilla, mandible, and temporal structures.",
       "closest_reference_id": "skull_001",
       "closest_reference_description": "Right view of the human skull.",
-      "reference_match_quality": "exact",
-      "reference_match_differences": "No meaningful difference observed - both show the same right lateral profile view of the skull.",
-      "reference_match_confidence": 1.0,
-      "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=exact).",
+      "reference_match_quality": "close",
+      "reference_match_differences": "Very similar lateral perspective to the reference; minor differences in exact camera angle or distance may be present, and the anatomical instance differs but the viewpoint orientation is essentially the same.",
+      "reference_match_confidence": 0.8,
+      "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=close).",
       "similarity_score": 95,
-      "confidence": 1.0,
-      "difference_from_target": "This candidate matches the target viewpoint extremely well, both showing a right lateral view of the skull with the profile clearly visible. The overall orientation and visible anatomical structures correspond very closely to the target."
+      "confidence": 0.95,
+      "difference_from_target": "This candidate closely matches the target viewpoint, showing a true lateral perspective with the sagittal profile clearly displayed. The anatomical surfaces exposed match the target's lateral orientation."
     }
   },
   "pass_3_magnitude_estimation": {
     "parsed": {
       "selected_candidate": "STOP",
       "magnitude_recommendation": "not_applicable",
-      "magnitude_reasoning": "STOP: current render similarity_score=95 (>= threshold 92) with confidence=1.0 (>= minimum 0.5); closest reference 'skull_001' ('Right view of the human skull.'), match_quality=exact [No meaningful difference observed - both show the same right lateral profile view of the skull.]; best candidate only improves similarity by -70 (< margin 3). difference_from_target: This candidate matches the target viewpoint extremely well, both showing a right lateral view of the skull with the profile clearly visible. The overall orientation and visible anatomical structures correspond very closely to the target.",
+      "magnitude_reasoning": "STOP: current render similarity_score=95 (>= threshold 92) with confidence=0.95 (>= minimum 0.5); closest reference 'skull_001' ('Right view of the human skull.'), match_quality=close [Very similar lateral perspective to the reference; minor differences in exact camera angle or distance may be present, and the anatomical instance differs but the viewpoint orientation is essentially the same.]; best candidate only improves similarity by 0 (< margin 3). difference_from_target: This candidate closely matches the target viewpoint, showing a true lateral perspective with the sagittal profile clearly displayed. The anatomical surfaces exposed match the target's lateral orientation.",
       "expected_visual_result": "The viewpoint remains unchanged."
     },
     "raw_response": null

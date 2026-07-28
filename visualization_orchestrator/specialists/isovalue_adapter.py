@@ -1,53 +1,89 @@
-"""Isovalue specialist: segments the volume's own intensity histogram into material BANDS
-(valley-to-valley ranges, each containing one peak), asks the LLM which band's material
-matches the goal (from cheap per-band preview renders), then DETERMINISTICALLY derives an
-opacity/color transfer function from that band's own [low, high] range and applies it via
-direct volume rendering -- instead of picking a single hand-tuned isovalue number by
-comparing many similar candidate renders.
+"""Isovalue specialist: splits the volume's full intensity range into a FIXED set of
+equal-width WINDOWS (no dependence on the volume's own histogram shape), then selects one
+via a TWO-STAGE, GOAL-BLIND pipeline, then DETERMINISTICALLY derives an opacity/color
+transfer function from that window's own [low, high] range and applies it via direct volume
+rendering.
 
-Why: a single isovalue is a hard binary threshold -- every voxel crossing it becomes
-surface, with no way to distinguish a thin/isolated noise speck from a thick, continuous
-real structure. A gradual opacity ramp across the whole target band lets THICK material
-(many voxels deep) accumulate to full opacity along the viewing ray while THIN/isolated
-noise (little depth) stays comparatively faint -- the same physics behind
-examples/render_skull_transfer_function.py's hand-tuned head preset, but here the ramp's
-shape is computed directly from this dataset's own histogram band boundaries
-(build_opacity_ramp_for_band) instead of guessed constants.
+Why fixed windows instead of histogram-derived bands: an earlier version segmented the
+histogram into bands via valley-finding (local minima between peaks), which worked when a
+target material formed a genuinely separate histogram peak but produced only 1-2 useless
+bands for datasets where materials blend as a smooth, unimodal intensity gradient with no
+interior valley at all (bone never separates from soft tissue in some CT volumes). A fixed,
+dataset-agnostic grid sidesteps that: it never depends on the histogram having any
+particular shape.
 
-Per-band previews (render_band_previews) render EACH band under its OWN derived opacity
-ramp via direct volume rendering -- the same build_opacity_ramp_for_band call used for the
-final applied result -- rather than a single isosurface at the band's peak. A peak is just
-wherever the histogram happens to be tallest within a band; for a broad or lopsided band
-(e.g. several small fragments merged into one large band dominated by a huge low-intensity
-sub-range) the peak can sit nowhere near where that band's own distinctive material actually
-renders, making a peak-only isosurface a poor stand-in for the band as a whole. Previewing
-with the exact mechanism used for the final result also means there's no risk of the
-selected band's actual look differing from whatever got judged. Multi-angle tiling
-(render_band_previews) still applies -- there are only ~2-4 bands per dataset, versus up to
-16 individual isovalue candidates previously, so this is also cheaper per comparison call.
+Why the selection pipeline is two-stage and GOAL-BLIND in its first stage: earlier versions
+let the vision LLM see the rendered image AND the goal in the same call (both in one batched
+comparison, and later one call per window). Both were found, by direct visual inspection, to
+confidently hallucinate goal-implied structure that wasn't actually present -- e.g. asked to
+"show the skull", the model described a smooth, featureless, soft-tissue head (visible ear,
+scalp dome, neck skin folds -- no sutures, no facial bones, nothing bone-like) as "a complete
+skull... clear anatomical detail including the cranium, facial bones, and suture lines",
+with high self-reported confidence, EVEN when that image was the only one shown in an
+isolated single-image call. That ruled out simple cross-candidate mislabeling as the (sole)
+cause -- the model was inventing goal-consistent detail from a plausible silhouette and
+color, not confusing one candidate's description for another's. The fix: never let a stage
+that's looking at an image also know what it's "supposed" to find there.
 
-Some datasets' target material never forms its own histogram peak at all -- a smooth,
-unimodal intensity gradient where e.g. bone blends continuously into soft tissue rather than
-forming a separate population of voxels (data/skull_256x256x256_uint8.raw and
-data/foot_256x256x256_uint8.raw are both like this). For those, run_isovalue_band_selection
-can run ONE bounded refinement round: if the LLM reports the band it picked still looks like
-a mix of materials, that band gets split evenly into sub-ranges (_subdivide_band) and
-compared again, so the model gets a chance to isolate a purer sub-range instead of silently
-settling for "everything above background". See that function's docstring for the mechanism
-in full.
+    Window renders (6 SEPARATE full-resolution views per window, never tiled)
+        |
+        v
+    Stage 1 (per window, BLIND): ONE call showing all of that window's views TOGETHER as
+        separate images -- describes only visible geometry -- no goal, no window
+        name/intensity, no other candidates, opaque "candidate_N" ids only, opaque
+        "view_N" ids only (never front/back/left/right/top/bottom)
+        |
+        v
+    Stage 2 (ONE call, TEXT-ONLY): given the goal and every candidate's stored blind
+        observation (no images), select the best match or abstain ("no_match")
+        |
+        v
+    Selected window (mapped back from its opaque id) or no_match
+
+Each window's 6 views are sent to Stage 1 as 6 SEPARATE full-resolution images in one call
+(via `extra_images`), not combined into a single tiled composite -- tiling shrinks each view
+and can visually compress detail that matters for the observation. View ids ("view_0",
+"view_1", ...) are opaque for the same reason window/goal identity is hidden: the initial
+camera orientation the sweep starts from is arbitrary (whatever the session's camera
+happened to be pointed at before this call), so labeling them "front"/"back"/"left"/"right"/
+"top"/"bottom" would assert a semantic/anatomical meaning that doesn't actually exist for an
+arbitrary starting orientation. The real camera transformation behind each view id (see
+VIEW_ACTIONS) is kept internal, for our own debugging/logging only -- never sent to the LLM.
+
+Stage 2 never sees the images again -- it can only reason from what Stage 1 already
+observed, so it cannot introduce visual "evidence" beyond what was actually reported.
+Abstention ("no_match") is a legitimate outcome, not a failure to paper over -- if no
+candidate's blind observation supports the goal, nothing gets silently guessed.
+
+Evaluation previews are rendered in a NEUTRAL GRAYSCALE palette (build_evaluation_ramp_for_
+window), not the warm beige/tan used for the final applied result -- every window
+previously rendered in the same warm "bone-like" tone regardless of what material it
+actually contained, which is a plausible contributor to the hallucination above (pattern-
+matching on a shared "looks bone-colored" cue instead of on structure). All windows share
+the SAME grayscale mapping (not a unique color per window), since a per-window color would
+just create a new candidate-identity shortcut for the model to exploit. The final applied
+result (after a window is actually selected) still uses build_opacity_ramp_for_band's normal
+warm palette -- neutrality is specifically an evaluation-time concern.
+
+No numerical confidence score (no "match_quality") drives selection anywhere in this
+pipeline -- Stage 1 reports only structured, ungraded visual observations, and Stage 2's
+selection is a categorical decision ("selected" or "no_match") grounded in those
+observations, not a number.
+
+This module deliberately avoids any goal-, dataset-, or anatomy-specific vocabulary in its
+own code and prompts -- window/candidate descriptions are generic geometric properties
+(shape, continuity, cavities, fragments, symmetry, etc.) that apply to arbitrary scientific
+volumes, not just medical scans.
 
 Operates on an existing, already-`.initialize()`d CameraReasoningSession, via
-CameraReasoningSession.set_transfer_function() -- used both for per-band previews (restored
-afterward) and the final applied result -- which preserves camera state and can switch the
-session between isosurface and volume-rendering mode in place, so a camera task that ran
-before or after this one composes onto the same render correctly.
+CameraReasoningSession.set_transfer_function() -- used both for per-window previews
+(restored afterward) and the final applied result -- which preserves camera state and can
+switch the session between isosurface and volume-rendering mode in place, so a camera task
+that ran before or after this one composes onto the same render correctly.
 """
-import math
+import json
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
-
-import numpy as np
-from PIL import Image as PILImage, ImageDraw
 
 from camera_reasoning.camera_actions import apply_action
 from camera_reasoning.camera_state import get_camera_state, set_camera_state
@@ -61,38 +97,46 @@ from ..models import AgentExecutionResult
 from ..state import VisualizationState
 from .base import VisualizationSpecialist
 
-DEFAULT_NUM_BINS = 256
 DEFAULT_VALUE_RANGE = (0.0, 256.0)
-DEFAULT_SMOOTHING_WINDOW = 9
-DEFAULT_MIN_BAND_FRACTION = 0.01  # drop bands with <1% of the volume's voxels (noise slivers)
+DEFAULT_NUM_WINDOWS = 8  # how many equal-width windows to split the full intensity range into
 DEFAULT_PEAK_OPACITY = 0.55
 DEFAULT_SUSTAIN_OPACITY = 0.70
-DEFAULT_REFINEMENT_SUBDIVISIONS = 3  # sub-ranges to split a band into for the refinement round
 
-# Six views per band preview, computed RELATIVE to the session's camera state at the moment
-# the sweep runs (via camera_actions.apply_action) rather than fixed absolute world axes --
-# see examples/render_head_iso_candidates.ipynb's six_view_cameras, which used absolute axes
-# tuned specifically for vis_male_128x256x256_uint8.raw and wouldn't transfer to other
-# datasets, so these labels mean "relative to wherever the camera already was".
-MULTI_ANGLE_VIEWS: List[Tuple[str, Optional[str]]] = [
-    ("front", None),
-    ("right", "AZIMUTH_RIGHT_COARSE"),
-    ("back", "AZIMUTH_RIGHT_180"),
-    ("left", "AZIMUTH_LEFT_COARSE"),
-    ("top", "ELEVATION_UP_COARSE"),
-    ("bottom", "ELEVATION_DOWN_COARSE"),
+# Neutral grayscale shades (dim, bright) used for EVERY window's evaluation preview -- same
+# hue and relative brightness curve regardless of a window's actual [low, high] (see
+# build_evaluation_ramp_for_window for how these get anchored to each window's own range),
+# so color can't act as a false "this looks like the target material" cue, and no window
+# gets a visually distinctive color that could itself become a new identity shortcut. Only
+# used for evaluation renders; the final applied result uses build_opacity_ramp_for_band's
+# normal warm palette instead.
+EVALUATION_GRAY_SHADES: Tuple[float, float] = (0.35, 0.8)
+
+# The 6 real camera transformations behind the opaque "view_0".."view_5" ids exposed to
+# Stage 1 -- computed RELATIVE to the session's camera state at the moment the sweep runs
+# (via camera_actions.apply_action) rather than fixed absolute world axes -- see
+# examples/render_head_iso_candidates.ipynb's six_view_cameras, which used absolute axes
+# tuned specifically for one dataset and wouldn't transfer to others -- so this mapping
+# means "relative to wherever the camera already was", not any semantic direction. Kept OUT
+# of every prompt; this exists purely for our own debugging/logging (see
+# run_isovalue_band_selection's returned "view_action_map"). Position 0 (None) is the
+# current/starting orientation.
+VIEW_ACTIONS: List[Optional[str]] = [
+    None,
+    "AZIMUTH_RIGHT_COARSE",
+    "AZIMUTH_RIGHT_180",
+    "AZIMUTH_LEFT_COARSE",
+    "ELEVATION_UP_COARSE",
+    "ELEVATION_DOWN_COARSE",
 ]
-
-GRID_COLUMNS = 3
-GRID_LABEL_HEIGHT = 28
 
 ISOVALUE_AGENT_SPEC = AgentSpec(
     agent_id="isovalue_controller",
     description=(
-        "Segments the volume's intensity histogram into material bands, asks the LLM "
-        "which band matches the goal from cheap per-band previews, then deterministically "
-        "derives an opacity ramp from that band's own range and renders it via direct "
-        "volume rendering."
+        "Splits the volume's full intensity range into fixed equal-width windows, "
+        "describes each window's preview BLIND to the goal (Stage 1), then makes one "
+        "text-only, goal-aware selection from those stored observations (Stage 2, may "
+        "abstain), then deterministically derives an opacity ramp from the selected "
+        "window's own range and renders it via direct volume rendering."
     ),
     capabilities=[
         AgentCapability(
@@ -121,225 +165,169 @@ ISOVALUE_AGENT_SPEC = AgentSpec(
     side_effects=["changes extracted geometry"],
 )
 
-BAND_SELECTION_PROMPT_TEMPLATE = """You are selecting which MATERIAL BAND best matches the goal, by comparing rendered
-previews of each band -- not by reasoning about the numbers alone.
+# --- Stage 1: blind visual observation ----------------------------------------------------
+#
+# Deliberately STATIC -- no goal, window name, intensity range, or other candidate's
+# information is ever interpolated into this prompt. See module docstring for why.
+BLIND_WINDOW_OBSERVATION_PROMPT_TEMPLATE = """
+Observe the provided images of one scientific volume-rendering candidate.
 
-Goal: {goal}
+The provided images show the same rendered candidate from different camera viewpoints, each
+preceded by its own opaque id (e.g. "view_0", "view_1", ...).
+
+The identifiers view_0, view_1, and so on are arbitrary. They do not indicate the semantic
+front, back, left, right, top, or bottom of the object -- the camera's starting orientation
+for this sweep was arbitrary, so no such labels are meaningful here.
+
+You do not know the user's intended visualization goal. Do not guess it.
+
+Inspect each view independently first. Then summarize visual properties that are
+consistently supported across one or more views.
+
+Describe only visual evidence directly supported by the images.
+
+Do not infer object identity, semantic class, anatomy, or material from:
+- color,
+- overall familiarity,
+- expected dataset contents,
+- assumptions about what the user may want.
+
+Analyze general visible properties:
+
+1. Overall geometry
+   - smooth or irregular
+   - continuous or fragmented
+   - compact, elongated, layered, branching, sheet-like, tubular, or other
+   - enclosed outer surface or exposed internal structures
+
+2. Visible structures
+   - cavities or openings
+   - protrusions
+   - thin structures
+   - repeated components
+   - nested or layered regions
+   - disconnected fragments
+   - surface folds or ridges
+
+3. Image quality
+   - amount of isolated noise
+   - occlusion
+   - missing regions
+   - whether important structures appear obscured
+
+4. Cross-view consistency
+   - for every observation, record exactly which opaque view ids support it
+   - distinguish clearly visible observations from uncertain interpretations
+
+Rules:
+- Do not mention the intended goal.
+- Do not decide whether the candidate satisfies a goal.
+- Do not use color as evidence of identity or material.
+- Do not claim a structure unless you can state which view id(s) it appears in.
+- Do not treat view ids or their ordering as meaningful beyond distinguishing one image from
+  another.
+- Prefer neutral geometric descriptions over semantic labels.
+- When uncertain, explicitly mark the observation as uncertain.
+- Do not invent absent features.
+
+Respond with STRICT JSON ONLY, no prose outside the JSON, matching this shape:
+{
+  "per_view_observations": {
+    "view_0": ["<short observation specific to this view>", "..."],
+    "view_1": ["..."]
+  },
+  "cross_view_summary": {
+    "clear_observations": [
+      {"description": "<specific visible structure/feature>", "supporting_views": ["<view ids>"]}
+    ],
+    "uncertain_observations": [
+      {"description": "<possible but not clearly confirmed feature>", "supporting_views": ["<view ids>"]}
+    ]
+  },
+  "noise_and_artifacts": {
+    "isolated_fragments": "<e.g. none | low | moderate | high>",
+    "surface_noise": "<e.g. none | low | moderate | high>",
+    "occlusion": "<e.g. none | low | moderate | high>"
+  }
+}
+
+Include an entry in "per_view_observations" for every view id you were shown, even if its
+value is an empty list.
+"""
+
+# --- Stage 2: goal-aware selection from stored observations (text-only) -------------------
+GOAL_AWARE_WINDOW_SELECTION_PROMPT_TEMPLATE = """Select the candidate whose blind visual observation best satisfies the user's
+visualization goal.
+
+User goal:
+{goal}
 
 Success criteria this selection must satisfy:
 {success_criteria_block}
 
-Each band is a contiguous RANGE of scalar intensities from the volume's own intensity
-histogram, roughly corresponding to one material (e.g. background, soft tissue, bone). The
-image shown for each band is rendered with that band's own opacity ramp already applied --
-the SAME rendering the final result will use if this band is selected -- so judge each
-preview as an accurate representation of that band's actual appearance.{multi_angle_note}
+Candidate observations:
+{candidate_observations}
 
-You are given one image per band, each preceded by "[{label_prefix}<low>_<high>]".
+The candidate observations were created without knowing the user goal.
 
-Bands available this call: {band_list}
-
-Evaluate every band listed above exactly once -- do not shortlist, group, or skip any.
-
-Additionally, judge whether the band you SELECT looks like ONE relatively uniform material,
-or a MIX of more than one structure/density blended together (e.g. the target is present but
-not cleanly separated from something else, such as bone blended with soft tissue because this
-band spans both). Set "refine_further" to true if narrowing the selected band's own intensity
-range further would likely isolate the target more cleanly; set it to false if the selected
-band already looks like one clean, well-isolated material.
+Rules:
+- Base the decision only on the supplied observations.
+- Do not introduce structures or properties absent from the observations.
+- Favor clear observations over uncertain observations.
+- Consider both evidence supporting the goal and evidence contradicting it.
+- Do not select a candidate merely because its general silhouette could be associated with
+  the requested target.
+- Do not use candidate IDs or their ordering as evidence.
+- If no candidate has sufficient visible evidence, return "no_match".
+- Do not force a selection.
 
 Respond with STRICT JSON ONLY, no prose outside the JSON:
 {{
-  "band_evaluation": [
-    {{"band": "{label_prefix}<low>_<high>", "observation": "<what material/structure this band shows>", "satisfies_goal": true | false}}
-  ],
-  "selected_band": "<MUST be exactly one of the bands listed above>",
-  "goal_satisfied": true | false,
-  "refine_further": true | false,
-  "reasoning": "<why the selected band is the best match for the goal, referencing the other bands>"
+  "decision": "selected" | "no_match",
+  "selected_candidate": "<candidate_N from the list above, or null if no_match>",
+  "supporting_observations": ["<observation text(s) that justify the decision>"],
+  "contradictory_observations": ["<observation text(s) that argue against it, if any>"],
+  "explanation": "<why this candidate was selected, or why none qualified>"
 }}
 """
 
-MULTI_ANGLE_NOTE = (
-    " Each band's image is a single tiled grid combining 6 different camera angles "
-    "(front/right/back/left/top/bottom), each sub-panel labeled with its angle name in the "
-    "top-left corner. Judge using ALL sub-panels together -- a structure that looks clean "
-    "in one sub-panel can still be fragmented or absent in another."
-)
-
-BAND_LABEL_PREFIX = "BAND_"
+WINDOW_LABEL_PREFIX = "WINDOW_"
+CANDIDATE_ID_PREFIX = "candidate_"
 
 
-def _compute_smoothed_histogram(
-    raw_path: str,
-    scalar_type: str,
-    num_bins: int,
-    value_range: Tuple[float, float],
-    smoothing_window: int,
-) -> Tuple[np.ndarray, np.ndarray, int]:
-    """Read raw_path once and return (raw histogram, smoothed histogram, total voxel count)
-    -- shared by compute_histogram_bands and run_isovalue_band_selection's refinement round
-    (_subdivide_band) so a refinement doesn't need its own separate pass over the volume."""
-    intensities = np.fromfile(raw_path, dtype=np.dtype(scalar_type))
-    total_voxels = intensities.size
-    hist, _ = np.histogram(intensities, bins=num_bins, range=value_range)
-    kernel = np.ones(smoothing_window) / smoothing_window
-    smoothed_hist = np.convolve(hist, kernel, mode="same")
-    return hist, smoothed_hist, total_voxels
-
-
-def _bands_from_histogram(
-    hist: np.ndarray,
-    smoothed_hist: np.ndarray,
-    total_voxels: int,
-    num_bins: int,
-    min_band_fraction: float,
-) -> List[dict]:
-    """Segment an already-computed histogram into material BANDS using local minima
-    ("valleys") as boundaries -- each band roughly corresponds to one material (background,
-    soft tissue, bone, ...), bounded by valleys and containing one local maximum ("peak"). A
-    valley sits between two materials, where relatively few voxels share that exact
-    intensity; a peak sits in the middle of a homogeneous material. See
-    compute_histogram_bands (the public entry point that also computes the histogram).
-
-    Bands below `min_band_fraction` of the whole volume's voxels are MERGED into their
-    larger neighbor (repeatedly, until every remaining band clears the threshold) rather
-    than simply dropped -- a real material can still form a thin shell with a small overall
-    voxel count (e.g. bone in a skull scan) fragmented by several closely-spaced, noisy
-    valleys; dropping those slivers outright would silently delete that whole material
-    instead of just cleaning up spurious fragmentation within it.
-
-    Returns bands sorted by intensity, each {"low": int, "high": int, "peak": int,
-    "voxel_fraction": float}.
-    """
-    diff = np.diff(smoothed_hist)
-    sign = np.sign(diff)
-    sign[sign == 0] = 1
-    sign_changes = np.diff(sign)
-    local_minima = sorted(int(v) for v in (np.flatnonzero(sign_changes > 0) + 1))
-
-    # Boundaries are treated as HALF-OPEN [low, high) ranges internally (num_bins, not
-    # num_bins - 1, as the final edge) so adjacent bands never share a bin -- summing
-    # voxel_count across all bands must exactly reproduce the volume's total voxel count,
-    # with no double-counting at shared boundaries.
-    boundaries = sorted({0, num_bins, *local_minima})
-
-    def _band_from_range(low: int, high: int) -> dict:
-        segment = smoothed_hist[low:high]
-        peak = low + int(np.argmax(segment))
-        voxel_count = float(hist[low:high].sum())
-        return {"low": low, "high": high, "peak": peak, "voxel_count": voxel_count}
-
-    bands = [
-        _band_from_range(low, high)
-        for low, high in zip(boundaries[:-1], boundaries[1:])
-        if high > low
-    ]
-
-    # Merge bands below threshold using greedy agglomerative merging: at each step, merge
-    # whichever ADJACENT PAIR (among pairs involving an under-threshold band) has the
-    # SMALLEST combined voxel count, not just "the bigger of a small band's two neighbors".
-    # A naive "always merge into the bigger neighbor" rule lets one dominant band (e.g.
-    # background) swallow small fragments one at a time before they ever get a chance to
-    # consolidate with each other -- e.g. many small, noisy bone-density fragments would
-    # each merge individually into a much larger background band instead of first combining
-    # into one sensible "bone" band. Preferring the cheapest (smallest-combined) merge each
-    # round lets genuinely related small fragments coalesce first.
-    min_voxel_count = min_band_fraction * total_voxels
-    while len(bands) > 1:
-        under_threshold = [i for i, b in enumerate(bands) if b["voxel_count"] < min_voxel_count]
-        if not under_threshold:
-            break
-
-        best = None  # (combined_voxel_count, low_index, high_index)
-        for i in under_threshold:
-            for target_index in (i - 1, i + 1):
-                if 0 <= target_index < len(bands):
-                    pair = tuple(sorted((i, target_index)))
-                    combined = bands[pair[0]]["voxel_count"] + bands[pair[1]]["voxel_count"]
-                    if best is None or combined < best[0]:
-                        best = (combined, pair[0], pair[1])
-
-        _, lo, hi = best
-        merged = _band_from_range(bands[lo]["low"], bands[hi]["high"])
-        bands = bands[:lo] + [merged] + bands[hi + 1:]
-
-    return [
-        {"low": b["low"], "high": b["high"], "peak": b["peak"],
-         "voxel_fraction": b["voxel_count"] / total_voxels if total_voxels else 0.0}
-        for b in bands
-    ]
-
-
-def compute_histogram_bands(
-    raw_path: str,
-    scalar_type: str = "uint8",
-    num_bins: int = DEFAULT_NUM_BINS,
+def compute_fixed_windows(
+    num_windows: int = DEFAULT_NUM_WINDOWS,
     value_range: Tuple[float, float] = DEFAULT_VALUE_RANGE,
-    smoothing_window: int = DEFAULT_SMOOTHING_WINDOW,
-    min_band_fraction: float = DEFAULT_MIN_BAND_FRACTION,
 ) -> List[dict]:
-    """Segment the volume's own intensity histogram into material bands. Reads the raw
-    scalar values directly from `raw_path` (shape doesn't matter for a histogram, so no
-    `dimensions` argument is needed here). See _bands_from_histogram for the valley-finding
-    and merge logic, and build_opacity_ramp_for_band for how a band's own [low, high] range
-    becomes an opacity ramp instead of a single arbitrary threshold.
+    """Split the full intensity range into `num_windows` equal-width [low, high) windows,
+    covering the whole range regardless of the volume's actual data distribution -- no file
+    is read, this is pure arithmetic. See the module docstring for why this replaced an
+    earlier histogram-band approach.
 
-    Returns bands sorted by intensity, each {"low": int, "high": int, "peak": int,
-    "voxel_fraction": float}.
+    Returns windows sorted by intensity, each {"low": int, "high": int, "peak": int} --
+    "peak" here is just each window's own midpoint (there's no histogram to find a real
+    peak in), used only as build_opacity_ramp_for_band's "where peak_opacity is reached"
+    reference point.
     """
-    hist, smoothed_hist, total_voxels = _compute_smoothed_histogram(
-        raw_path, scalar_type, num_bins, value_range, smoothing_window
-    )
-    return _bands_from_histogram(hist, smoothed_hist, total_voxels, num_bins, min_band_fraction)
+    low0, high0 = value_range
+    width = (high0 - low0) / num_windows
 
-
-def _subdivide_band(
-    band: dict,
-    hist: np.ndarray,
-    smoothed_hist: np.ndarray,
-    total_voxels: int,
-    num_parts: int = DEFAULT_REFINEMENT_SUBDIVISIONS,
-) -> List[dict]:
-    """Split ONE band's [low, high) range evenly into `num_parts` contiguous sub-ranges,
-    each with its own peak (local maximum of the smoothed histogram WITHIN that sub-range)
-    and voxel_fraction -- used for the refinement round in run_isovalue_band_selection, when
-    a band has no internal valley to split at naturally (see that function's docstring for
-    why: some datasets' target material never separates into its own histogram peak at all,
-    e.g. a smooth CT attenuation gradient). An even split by intensity still lets the LLM
-    zero in on a higher- or lower-intensity part of an otherwise undifferentiated band,
-    since intensity often correlates with density even without a discrete peak marking a
-    material boundary.
-
-    Returns [band] unchanged if the band is too narrow to split into `num_parts` distinct
-    integer sub-ranges.
-    """
-    low, high = band["low"], band["high"]
-    width = high - low
-    if width < num_parts:
-        return [band]
-
-    edges = [low + round(i * width / num_parts) for i in range(num_parts + 1)]
-    edges[-1] = high
-
-    sub_bands = []
-    for a, b in zip(edges[:-1], edges[1:]):
-        if b <= a:
-            continue
-        segment = smoothed_hist[a:b]
-        peak = a + int(np.argmax(segment))
-        voxel_count = float(hist[a:b].sum())
-        sub_bands.append({
-            "low": a, "high": b, "peak": peak,
-            "voxel_fraction": voxel_count / total_voxels if total_voxels else 0.0,
+    windows = []
+    for i in range(num_windows):
+        low = low0 + i * width
+        high = high0 if i == num_windows - 1 else low0 + (i + 1) * width
+        windows.append({
+            "low": int(round(low)),
+            "high": int(round(high)),
+            "peak": int(round((low + high) / 2)),
         })
-    return sub_bands
+    return windows
 
 
 def _strictly_increasing(points: List[tuple]) -> List[tuple]:
     """Drop any point whose first element doesn't strictly exceed the previous kept point's
     -- vtkPiecewiseFunction/vtkColorTransferFunction expect strictly increasing scalar
-    positions; degenerate bands (e.g. peak coinciding with low) could otherwise produce
+    positions; a degenerate window (e.g. peak coinciding with low) could otherwise produce
     duplicate x-values."""
     kept: List[tuple] = []
     for point in points:
@@ -356,18 +344,23 @@ def build_opacity_ramp_for_band(
     peak_opacity: float = DEFAULT_PEAK_OPACITY,
     sustain_opacity: float = DEFAULT_SUSTAIN_OPACITY,
 ) -> Tuple[List[Tuple[float, float]], List[Tuple[float, float, float, float]]]:
-    """Deterministically derive an opacity/color transfer function from ONE histogram
-    band's own [low, high] range and peak -- instead of hand-tuned constants.
+    """Deterministically derive an opacity/color transfer function from ONE window's own
+    [low, high] range and peak -- instead of hand-tuned constants. (Named `band`/
+    `build_opacity_ramp_for_band` rather than `window` for historical reasons -- the
+    fixed-window dict shape is identical to the earlier histogram-band dict shape, {"low",
+    "high", "peak"}, so this function works unchanged for either.) Used for the FINAL
+    applied result -- see build_evaluation_ramp_for_window for the neutral-color variant
+    used during evaluation.
 
-    Shape: opacity stays 0 below the band, ramps up GRADUALLY starting at `low` (never a
-    hard step) to `peak_opacity` by the band's own peak, then a slightly higher
-    `sustain_opacity` from `high` onward. Gradual ramps let THICK, continuous material (the
-    real target, many voxels deep along the viewing ray) accumulate to full opacity via
-    depth, while THIN/isolated structures at the same intensity (noise) stay comparatively
-    faint since they have little depth to accumulate over -- see the isovalue specialist's
-    module docstring.
+    Shape: opacity stays 0 below the window, ramps up GRADUALLY starting at `low` (never a
+    hard step) to `peak_opacity` by the window's own peak (its midpoint), then a slightly
+    higher `sustain_opacity` from `high` onward. Gradual ramps let THICK, continuous
+    material (the real target, many voxels deep along the viewing ray) accumulate to full
+    opacity via depth, while THIN/isolated structures at the same intensity (noise) stay
+    comparatively faint since they have little depth to accumulate over -- see the isovalue
+    specialist's module docstring.
 
-    Color: near-black below the band (invisible anyway), transitioning to a neutral warm
+    Color: near-black below the window (invisible anyway), transitioning to a neutral warm
     tone by the peak and held through to max_value (mostly occluded by then regardless).
     """
     low, high, peak = band["low"], band["high"], band["peak"]
@@ -391,59 +384,79 @@ def build_opacity_ramp_for_band(
     return opacity_points, color_points
 
 
-def _combine_views_into_grid(
-    views: List[Tuple[str, str]],
-    output_path: str,
-    columns: int = GRID_COLUMNS,
-) -> str:
-    """Tile several labeled view images into ONE combined image -- each tile's angle label
-    is drawn directly onto the tile (not just a separate caption), so it survives being
-    sent as a single image attachment rather than several labeled ones. Assumes all views
-    are the same size (true here -- every render uses the session's fixed render window).
+def build_evaluation_ramp_for_window(
+    band: dict,
+    min_value: float = DEFAULT_VALUE_RANGE[0],
+    max_value: float = DEFAULT_VALUE_RANGE[1],
+    peak_opacity: float = DEFAULT_PEAK_OPACITY,
+    sustain_opacity: float = DEFAULT_SUSTAIN_OPACITY,
+) -> Tuple[List[Tuple[float, float]], List[Tuple[float, float, float, float]]]:
+    """Same opacity ramp SHAPE as build_opacity_ramp_for_band, and the same idea for color
+    -- anchored to the window's OWN [low, peak] range, not the absolute [min_value,
+    max_value] scale -- but with a NEUTRAL GRAYSCALE hue (R=G=B, EVALUATION_GRAY_SHADES)
+    instead of the warm beige/tan used for the final applied result. Used only for Stage 1's
+    blind-observation previews.
+
+    Anchoring to the window's own range (rather than a fixed absolute-position ramp like
+    "black at 0, light gray at 256") matters for visibility: a LOW window's actual material
+    sits at a low absolute intensity, so a globally-anchored ramp would render it very
+    close to black regardless of hue -- confirmed by direct observation, low windows were
+    rendering nearly invisible. Anchoring locally keeps every window's material at a
+    consistent, visible brightness, exactly like build_opacity_ramp_for_band already does
+    for its warm palette -- only the HUE changes here (gray, not warm), not the shape.
+
+    Every window still gets the SAME neutral hue and the SAME relative brightness curve
+    (not a per-window-unique color), so color still can't act as a candidate-identity
+    shortcut -- see the module docstring.
     """
-    tiles = [(view_label, PILImage.open(path).convert("RGB")) for view_label, path in views]
-    tile_w, tile_h = tiles[0][1].size
-    rows = math.ceil(len(tiles) / columns)
+    opacity_points, _ = build_opacity_ramp_for_band(
+        band, min_value=min_value, max_value=max_value,
+        peak_opacity=peak_opacity, sustain_opacity=sustain_opacity,
+    )
+    low, high, peak = band["low"], band["high"], band["peak"]
+    transition = max(1, (peak - low) // 2)
+    ramp_start = max(min_value, low - transition)
+    dim_shade, bright_shade = EVALUATION_GRAY_SHADES
 
-    canvas = PILImage.new("RGB", (tile_w * columns, (tile_h + GRID_LABEL_HEIGHT) * rows), color=(15, 15, 15))
-    draw = ImageDraw.Draw(canvas)
-    for index, (view_label, image) in enumerate(tiles):
-        col, row = index % columns, index // columns
-        x, y = col * tile_w, row * (tile_h + GRID_LABEL_HEIGHT)
-        draw.rectangle([x, y, x + tile_w, y + GRID_LABEL_HEIGHT], fill=(15, 15, 15))
-        draw.text((x + 8, y + 6), view_label, fill=(255, 255, 255))
-        canvas.paste(image, (x, y + GRID_LABEL_HEIGHT))
-
-    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-    canvas.save(output_path)
-    return output_path
+    color_points = _strictly_increasing([
+        (min_value, 0.0, 0.0, 0.0),
+        (ramp_start, 0.0, 0.0, 0.0),
+        (low, dim_shade, dim_shade, dim_shade),
+        (peak, bright_shade, bright_shade, bright_shade),
+        (high, bright_shade, bright_shade, bright_shade),
+        (max_value, bright_shade, bright_shade, bright_shade),
+    ])
+    return opacity_points, color_points
 
 
-def render_band_previews(
+def view_action_map(multi_angle: bool = True) -> Dict[str, Optional[str]]:
+    """The opaque "view_N" id -> real camera-action mapping currently in effect -- for our
+    own debugging/logging only (see run_isovalue_band_selection's returned
+    "view_action_map"); never sent to the LLM."""
+    actions = VIEW_ACTIONS if multi_angle else VIEW_ACTIONS[:1]
+    return {f"view_{i}": action for i, action in enumerate(actions)}
+
+
+def render_window_previews(
     session: CameraReasoningSession,
-    bands: List[dict],
+    windows: List[dict],
     output_dir: str,
     value_range: Tuple[float, float] = DEFAULT_VALUE_RANGE,
     multi_angle: bool = True,
-) -> List[Tuple[dict, str]]:
-    """Render one preview per band, using THAT band's own derived opacity ramp
-    (build_opacity_ramp_for_band) via direct volume rendering -- NOT a single isosurface at
-    the band's peak.
-
-    A peak is just wherever the histogram happens to be tallest within a band -- for a
-    broad or lopsided band (e.g. several small fragments merged into one large band
-    dominated by a huge low-intensity sub-range) the peak can sit nowhere near where the
-    band's own most distinctive material actually shows up, making a peak-only isosurface a
-    poor stand-in for what selecting that band would actually produce. Rendering each
-    preview with the SAME ramp-building logic used for the final applied result also means
-    the preview IS accurate -- there's no risk of the selected band's actual look differing
-    from whatever was judged.
+) -> List[Tuple[dict, Dict[str, str]]]:
+    """Render EVALUATION previews per window -- one full-resolution image PER VIEW, saved
+    SEPARATELY (never combined into a tile), using the neutral-grayscale ramp
+    (build_evaluation_ramp_for_window) via direct volume rendering -- NOT the final warm
+    palette (that's only applied after a window is actually selected, in
+    run_isovalue_band_selection). Each view is labeled only with an OPAQUE id ("view_0",
+    "view_1", ...) -- see module docstring for why semantic labels aren't used.
 
     Restores the session's transfer function/isovalue (whichever mode it was in) AND camera
     state to whatever they were before this call afterward, even if a render fails partway
     through.
 
-    Returns [(band, image_path), ...] in the same order as `bands`.
+    Returns [(window, {view_id: image_path}), ...] in the same order as `windows`. When
+    `multi_angle=False`, each window's dict has just `{"view_0": path}`.
     """
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -455,32 +468,28 @@ def render_band_previews(
     camera = session._renderer.GetActiveCamera()
     original_camera_state = get_camera_state(camera)
 
-    views_to_render = MULTI_ANGLE_VIEWS if multi_angle else MULTI_ANGLE_VIEWS[:1]
+    actions_to_render = VIEW_ACTIONS if multi_angle else VIEW_ACTIONS[:1]
 
-    rendered: List[Tuple[dict, str]] = []
+    rendered: List[Tuple[dict, Dict[str, str]]] = []
     try:
-        for band in bands:
-            opacity_points, color_points = build_opacity_ramp_for_band(
-                band, min_value=value_range[0], max_value=value_range[1]
+        for window in windows:
+            opacity_points, color_points = build_evaluation_ramp_for_window(
+                window, min_value=value_range[0], max_value=value_range[1]
             )
             session.set_transfer_function(opacity_points, color_points)
-            candidate_views: List[Tuple[str, str]] = []
-            for view_label, action in views_to_render:
+            view_images: Dict[str, str] = {}
+            for view_index, action in enumerate(actions_to_render):
+                view_id = f"view_{view_index}"
                 set_camera_state(camera, original_camera_state)
                 if action is not None:
                     apply_action(action, camera, session._renderer)
                 else:
                     session._renderer.ResetCameraClippingRange()
-                image_path = str(out_dir / f"band_{band['low']}_{band['high']}_{view_label}.png")
+                image_path = str(out_dir / f"window_{window['low']}_{window['high']}_{view_id}.png")
                 save_screenshot(session._render_window, image_path)
-                candidate_views.append((view_label, image_path))
+                view_images[view_id] = image_path
 
-            if multi_angle:
-                grid_path = str(out_dir / f"band_{band['low']}_{band['high']}_grid.png")
-                _combine_views_into_grid(candidate_views, grid_path)
-                rendered.append((band, grid_path))
-            else:
-                rendered.append((band, candidate_views[0][1]))
+            rendered.append((window, view_images))
     finally:
         if original_use_volume_rendering:
             session.set_transfer_function(original_opacity_points, original_color_points)
@@ -492,40 +501,74 @@ def render_band_previews(
     return rendered
 
 
-def _run_band_comparison(
-    session: CameraReasoningSession,
+def _observe_window_blind(
+    view_images: Dict[str, str], model: Optional[str]
+) -> Tuple[Optional[dict], str]:
+    """Stage 1: ONE LLM call per window/candidate, showing ALL of that window's rendered
+    views TOGETHER as SEPARATE full-resolution images (via `extra_images`, never combined
+    into a tile) -- the prompt is fully static (BLIND_WINDOW_OBSERVATION_PROMPT_TEMPLATE),
+    so no goal, window name, intensity range, or other candidate's information is ever sent
+    in this call. Each image is preceded only by its OPAQUE view id ("view_0", ...) -- see
+    module docstring for why semantic labels (front/back/etc.) aren't used.
+
+    `view_images`: {view_id: image_path}, in the order views should be shown (dict
+    insertion order, as produced by render_window_previews).
+
+    Returns (parsed_response_or_None, raw_response_text).
+    """
+    extra_images = list(view_images.items())
+    response_text = ask_chatgpt(
+        prompt=BLIND_WINDOW_OBSERVATION_PROMPT_TEMPLATE, extra_images=extra_images, model=model
+    )
+    parsed = extract_json_object(response_text)
+    return parsed, response_text
+
+
+def _select_candidate_from_observations(
     goal: str,
     success_criteria: List[str],
-    bands: List[dict],
+    candidate_observations: List[dict],
     model: Optional[str],
-    multi_angle: bool,
-    render_dir: str,
-    value_range: Tuple[float, float],
-) -> Tuple[Dict[str, str], Optional[dict], str]:
-    """Render one preview per band and make ONE LLM call comparing them -- the render +
-    prompt + call + parse logic shared by run_isovalue_band_selection's initial top-level
-    comparison and its (optional) refinement-round comparison over sub-bands, so that logic
-    only lives in one place.
+) -> Tuple[Optional[dict], str]:
+    """Stage 2: ONE text-only LLM call (no images) given the goal and every candidate's
+    Stage-1 blind observation, keyed by OPAQUE candidate ids ("candidate_0", ...) only --
+    real window labels/intensities are never included, so the selection can't be biased by
+    them (see module docstring). Grounded only in what Stage 1 already reported; may return
+    "no_match" (abstain) rather than forcing a selection.
 
-    Returns (band_images: {label: path}, parsed_response_or_None, raw_response_text).
+    `candidate_observations`: [{"candidate_id": str, "observation": dict | None}, ...].
+    Entries with observation=None (a failed Stage-1 call) are still listed so the model
+    knows that candidate exists but has no usable observation.
+
+    Returns (parsed_response_or_None, raw_response_text).
     """
-    rendered = render_band_previews(
-        session, bands, render_dir, value_range=value_range, multi_angle=multi_angle
-    )
-    band_labels = [f"{BAND_LABEL_PREFIX}{band['low']}_{band['high']}" for band in bands]
-    band_images = {label: path for label, (_, path) in zip(band_labels, rendered)}
-    reference_items = [(label, band_images[label], "") for label in band_labels]
+    blocks = []
+    for entry in candidate_observations:
+        observation = entry["observation"] if entry["observation"] is not None else {"error": "no observation available"}
+        blocks.append(f"[{entry['candidate_id']}]\n{json.dumps(observation, indent=2)}")
 
-    prompt = BAND_SELECTION_PROMPT_TEMPLATE.format(
+    prompt = GOAL_AWARE_WINDOW_SELECTION_PROMPT_TEMPLATE.format(
         goal=goal,
         success_criteria_block="\n".join(f"- {c}" for c in success_criteria) or "- (none specified)",
-        multi_angle_note=MULTI_ANGLE_NOTE if multi_angle else "",
-        label_prefix=BAND_LABEL_PREFIX,
-        band_list=", ".join(band_labels),
+        candidate_observations="\n\n".join(blocks),
     )
-    response_text = ask_chatgpt(prompt=prompt, reference_items=reference_items, model=model)
+    response_text = ask_chatgpt(prompt=prompt, model=model)
     parsed = extract_json_object(response_text)
-    return band_images, parsed, response_text
+    return parsed, response_text
+
+
+def _summarize_observation(observation: Optional[dict]) -> str:
+    """Turn a Stage-1 structured observation into one readable line -- for on_iteration
+    display and human-facing reasoning text, not used in any prompt."""
+    if not observation:
+        return "(no observation available)"
+    summary = observation.get("cross_view_summary") or {}
+    parts = [
+        item["description"]
+        for item in summary.get("clear_observations", []) or []
+        if isinstance(item, dict) and item.get("description")
+    ]
+    return "; ".join(parts) if parts else "(no clear observations)"
 
 
 def run_isovalue_band_selection(
@@ -533,138 +576,120 @@ def run_isovalue_band_selection(
     goal: str,
     success_criteria: List[str],
     model: Optional[str] = None,
-    num_bins: int = DEFAULT_NUM_BINS,
+    num_windows: int = DEFAULT_NUM_WINDOWS,
     value_range: Tuple[float, float] = DEFAULT_VALUE_RANGE,
-    smoothing_window: int = DEFAULT_SMOOTHING_WINDOW,
-    min_band_fraction: float = DEFAULT_MIN_BAND_FRACTION,
     output_dir: Optional[str] = None,
     multi_angle: bool = True,
-    allow_refinement: bool = True,
 ) -> dict:
-    """Segment the volume's histogram into bands, render one preview per band, ask the LLM
-    which band matches `goal` in a single batched comparison call, then deterministically
-    derive and apply an opacity ramp from the selected band's own range.
+    """Split the full intensity range into `num_windows` fixed windows, render one
+    (neutral-grayscale) evaluation preview per window, run the two-stage blind-observation
+    pipeline (see module docstring) to pick one, then deterministically derive and apply an
+    opacity ramp from the selected window's own range using the normal warm palette.
+    (Function name kept as `run_isovalue_band_selection` for backward compatibility with
+    existing callers -- "band" here means "fixed window".)
 
-    If the LLM reports the selected band still looks like a MIX of materials
-    ("refine_further" in BAND_SELECTION_PROMPT_TEMPLATE), ONE additional round splits that
-    band into DEFAULT_REFINEMENT_SUBDIVISIONS even sub-ranges (_subdivide_band) and repeats
-    the comparison among just those -- bounded to a single round (not recursive), to keep
-    cost predictable. This matters for datasets whose target material never separates into
-    its own histogram band at all -- a smooth, unimodal intensity gradient with no interior
-    valley (e.g. bone in data/skull_256x256x256_uint8.raw and
-    data/foot_256x256x256_uint8.raw never forms its own peak; it blends continuously into
-    soft tissue). Without refinement, the initial comparison has no way to discover a purer
-    sub-range exists, since it was never shown one -- it can only report the best of what it
-    was given, even if that's "everything above background" rather than the target material
-    specifically. Pass allow_refinement=False to disable this and always accept the initial
-    top-level selection as final.
+    Stage 1 (`_observe_window_blind`): `num_windows` calls, one per window -- each call
+    shows ALL of that window's rendered views TOGETHER as separate full-resolution images
+    (never tiled), with a fully static, goal-blind prompt. Stage 2
+    (`_select_candidate_from_observations`): ONE text-only call given the goal and every
+    candidate's stored observation (opaque "candidate_N" ids, no images, no real window
+    labels), which may select one or return "no_match". Real window labels are only mapped
+    back from the selected opaque id AFTER Stage 2 completes.
 
-    Returns {"converged": bool, "bands": [...], "band_images": {label: path},
-    "band_evaluation": [...], "selected_band_label": str | None,
-    "initial_selected_band_label": str | None (the top-level pick, even if later refined),
-    "refined": bool, "refinement_bands": [...] | None, "refinement_band_images":
-    {label: path} | None, "refinement_band_evaluation": [...] | None,
+    Returns {"converged": bool, "bands": [...] (the windows), "band_images": {label: path}
+    (one representative view per window, for simple display), "view_images": {label:
+    {view_id: path}} (every view actually shown to Stage 1, for logging/debugging),
+    "view_action_map": {view_id: real camera action or None}, "band_evaluation": [{"window":
+    label, "observation": dict | None}, ...], "selected_band_label": str | None,
     "final_opacity_points"/"final_color_points": the applied ramp or None,
     "final_image_path": str, "reasoning": str, "raw_response": str}.
     """
-    hist, smoothed_hist, total_voxels = _compute_smoothed_histogram(
-        session.raw_path, session.scalar_type, num_bins, value_range, smoothing_window
-    )
-    bands = _bands_from_histogram(hist, smoothed_hist, total_voxels, num_bins, min_band_fraction)
-    if not bands:
-        # Degenerate histogram (e.g. perfectly flat) -- nothing to compare against; fall
-        # back to a single band spanning the whole range rather than guessing.
-        bands = [{"low": int(value_range[0]), "high": int(value_range[1]), "peak": int(session.isovalue), "voxel_fraction": 1.0}]
+    windows = compute_fixed_windows(num_windows=num_windows, value_range=value_range)
 
-    render_dir = output_dir or str(Path(session.output_dir) / "screenshots" / "isovalue_bands")
-    band_images, parsed, response_text = _run_band_comparison(
-        session, goal, success_criteria, bands, model, multi_angle, render_dir, value_range
+    render_dir = output_dir or str(Path(session.output_dir) / "screenshots" / "isovalue_windows")
+    rendered = render_window_previews(
+        session, windows, render_dir, value_range=value_range, multi_angle=multi_angle
     )
 
-    band_labels = [f"{BAND_LABEL_PREFIX}{band['low']}_{band['high']}" for band in bands]
-    label_to_band = dict(zip(band_labels, bands))
-    selected_label = parsed.get("selected_band") if parsed else None
+    window_labels = [f"{WINDOW_LABEL_PREFIX}{w['low']}_{w['high']}" for w in windows]
+    window_view_images = {label: views for label, (_, views) in zip(window_labels, rendered)}
+    window_images = {label: next(iter(views.values())) for label, views in window_view_images.items()}
+    candidate_ids = [f"{CANDIDATE_ID_PREFIX}{i}" for i in range(len(windows))]
+    candidate_to_window = dict(zip(candidate_ids, windows))
+    candidate_to_label = dict(zip(candidate_ids, window_labels))
 
-    if not parsed or selected_label not in label_to_band:
-        # Invalid/unresolvable response -- report failure rather than guessing a band.
+    # --- Stage 1: blind, per-candidate, all views for that candidate in ONE call --------
+    raw_responses = []
+    candidate_observations = []
+    for candidate_id, label in zip(candidate_ids, window_labels):
+        parsed, response_text = _observe_window_blind(window_view_images[label], model)
+        candidate_observations.append({"candidate_id": candidate_id, "observation": parsed})
+        raw_responses.append(
+            f"=== {candidate_id} (blind observation, views={list(window_view_images[label])}) ===\n"
+            f"{response_text}"
+        )
+
+    band_evaluation = [
+        {"window": candidate_to_label[c["candidate_id"]], "observation": c["observation"]}
+        for c in candidate_observations
+    ]
+
+    # --- Stage 2: goal-aware, text-only, from stored observations only -------------------
+    selection_parsed, selection_raw = _select_candidate_from_observations(
+        goal, success_criteria, candidate_observations, model
+    )
+    raw_responses.append(f"=== stage 2 selection ===\n{selection_raw}")
+    raw_response = "\n\n".join(raw_responses)
+
+    decision = (selection_parsed or {}).get("decision")
+    selected_candidate_id = (selection_parsed or {}).get("selected_candidate")
+
+    if not selection_parsed or decision != "selected" or selected_candidate_id not in candidate_to_window:
+        # Either an invalid/unresolvable response, or a legitimate "no_match" abstention --
+        # either way, report failure rather than guessing a window.
+        reasoning = (
+            (selection_parsed or {}).get("explanation")
+            or ("Model abstained: no candidate had sufficient visible evidence for the goal."
+                if decision == "no_match" else
+                "Model response was not valid JSON or selected an unknown candidate.")
+        )
         return {
             "converged": False,
-            "bands": bands,
-            "band_images": band_images,
-            "band_evaluation": (parsed or {}).get("band_evaluation", []),
+            "bands": windows,
+            "band_images": window_images,
+            "view_images": window_view_images,
+            "view_action_map": view_action_map(multi_angle),
+            "band_evaluation": band_evaluation,
             "selected_band_label": None,
-            "initial_selected_band_label": None,
-            "refined": False,
-            "refinement_bands": None,
-            "refinement_band_images": None,
-            "refinement_band_evaluation": None,
             "final_opacity_points": session.opacity_points,
             "final_color_points": session.color_points,
             "final_image_path": session.render_and_save(),
-            "reasoning": "Model response was not valid JSON or selected an unknown band.",
-            "raw_response": response_text,
+            "reasoning": reasoning,
+            "raw_response": raw_response,
         }
 
-    initial_selected_label = selected_label
-    final_band = label_to_band[selected_label]
-    final_parsed = parsed
-    final_response_text = response_text
-
-    refined = False
-    refinement_bands = None
-    refinement_band_images = None
-    refinement_band_evaluation = None
-
-    if allow_refinement and parsed.get("refine_further"):
-        sub_bands = _subdivide_band(final_band, hist, smoothed_hist, total_voxels)
-        if len(sub_bands) > 1:
-            refine_dir = str(Path(render_dir) / "refine")
-            sub_band_images, sub_parsed, sub_response_text = _run_band_comparison(
-                session, goal, success_criteria, sub_bands, model, multi_angle, refine_dir, value_range
-            )
-            sub_labels = [f"{BAND_LABEL_PREFIX}{b['low']}_{b['high']}" for b in sub_bands]
-            sub_label_to_band = dict(zip(sub_labels, sub_bands))
-            sub_selected_label = sub_parsed.get("selected_band") if sub_parsed else None
-
-            refinement_bands = sub_bands
-            refinement_band_images = sub_band_images
-            refinement_band_evaluation = (sub_parsed or {}).get("band_evaluation", [])
-
-            if sub_parsed and sub_selected_label in sub_label_to_band:
-                final_band = sub_label_to_band[sub_selected_label]
-                final_parsed = sub_parsed
-                final_response_text = sub_response_text
-                selected_label = sub_selected_label
-                refined = True
-            # else: refinement call was invalid/unresolvable -- silently keep the
-            # round-1 selection rather than failing outright.
+    selected_window = candidate_to_window[selected_candidate_id]
+    selected_label = candidate_to_label[selected_candidate_id]
 
     opacity_points, color_points = build_opacity_ramp_for_band(
-        final_band, min_value=value_range[0], max_value=value_range[1]
+        selected_window, min_value=value_range[0], max_value=value_range[1]
     )
     session.set_transfer_function(opacity_points, color_points)
     final_image_path = session.render_and_save()
 
-    reasoning = final_parsed.get("reasoning", "")
-    if refined:
-        reasoning = f"{parsed.get('reasoning', '')} Refined further: {reasoning}"
-
     return {
-        "converged": bool(final_parsed.get("goal_satisfied", True)),
-        "bands": bands,
-        "band_images": band_images,
-        "band_evaluation": parsed.get("band_evaluation", []),
+        "converged": True,
+        "bands": windows,
+        "band_images": window_images,
+        "view_images": window_view_images,
+        "view_action_map": view_action_map(multi_angle),
+        "band_evaluation": band_evaluation,
         "selected_band_label": selected_label,
-        "initial_selected_band_label": initial_selected_label,
-        "refined": refined,
-        "refinement_bands": refinement_bands,
-        "refinement_band_images": refinement_band_images,
-        "refinement_band_evaluation": refinement_band_evaluation,
         "final_opacity_points": opacity_points,
         "final_color_points": color_points,
         "final_image_path": final_image_path,
-        "reasoning": reasoning,
-        "raw_response": final_response_text,
+        "reasoning": selection_parsed.get("explanation", ""),
+        "raw_response": raw_response,
     }
 
 
@@ -675,30 +700,21 @@ class IsovalueSpecialist(VisualizationSpecialist):
         self,
         session: CameraReasoningSession,
         model: Optional[str] = None,
-        num_bins: int = DEFAULT_NUM_BINS,
+        num_windows: int = DEFAULT_NUM_WINDOWS,
         value_range: Tuple[float, float] = DEFAULT_VALUE_RANGE,
-        smoothing_window: int = DEFAULT_SMOOTHING_WINDOW,
-        min_band_fraction: float = DEFAULT_MIN_BAND_FRACTION,
         multi_angle: bool = True,
-        allow_refinement: bool = True,
         on_iteration: Optional[Callable[[dict], None]] = None,
     ):
         self.session = session
         self.model = model
-        self.num_bins = num_bins
+        self.num_windows = num_windows
         self.value_range = value_range
-        self.smoothing_window = smoothing_window
-        self.min_band_fraction = min_band_fraction
-        # Render each band's preview as a 6-angle tiled grid instead of 1 flat view
-        # (default) -- still just one image attachment per band in the comparison call.
+        # Render 6 separate full-resolution views per window instead of 1 (default) -- all
+        # 6 are sent together in ONE Stage-1 call per window (via extra_images), never
+        # combined into a tile and never split into 6 separate calls.
         self.multi_angle = multi_angle
-        # When the LLM reports the selected band still looks like a mix of materials, allow
-        # ONE extra round narrowing it into sub-ranges (see run_isovalue_band_selection's
-        # docstring). Set False to always accept the initial top-level selection as final.
-        self.allow_refinement = allow_refinement
-        # Called once (twice if a refinement round ran) with a normalized dict after band
-        # selection completes (see _handle_band_result) -- e.g. a notebook display callback.
-        # Optional.
+        # Called once with a normalized dict after selection completes (see
+        # _handle_band_result) -- e.g. a notebook display callback. Optional.
         self.on_iteration = on_iteration
 
     def run_until_complete(
@@ -717,12 +733,9 @@ class IsovalueSpecialist(VisualizationSpecialist):
             goal=goal,
             success_criteria=success_criteria,
             model=self.model,
-            num_bins=self.num_bins,
+            num_windows=self.num_windows,
             value_range=self.value_range,
-            smoothing_window=self.smoothing_window,
-            min_band_fraction=self.min_band_fraction,
             multi_angle=self.multi_angle,
-            allow_refinement=self.allow_refinement,
         )
 
         if self.on_iteration:
@@ -732,8 +745,8 @@ class IsovalueSpecialist(VisualizationSpecialist):
             "transfer_function": (self.session.opacity_points, self.session.color_points),
             "rendered_image_path": band_result["final_image_path"],
         }
-        num_bands = len(band_result["bands"])
-        refined_note = " (refined into sub-ranges)" if band_result["refined"] else ""
+        num_windows = len(band_result["bands"])
+        iterations_used = num_windows + 1  # Stage 1: one call per window, Stage 2: one call
 
         if band_result["converged"] and band_result["selected_band_label"]:
             return AgentExecutionResult(
@@ -742,23 +755,22 @@ class IsovalueSpecialist(VisualizationSpecialist):
                 goal_satisfied=True,
                 state_patch=state_patch,
                 confidence=0.75,
-                reason=f"Selected {band_result['selected_band_label']} from {num_bands} histogram "
-                       f"band(s){refined_note}: {band_result['reasoning']}",
+                reason=f"Selected {band_result['selected_band_label']} from {num_windows} intensity "
+                       f"window(s): {band_result['reasoning']}",
                 satisfied_criteria=list(success_criteria),
                 unsatisfied_criteria=[],
                 suggested_capabilities=[],
-                iterations_used=2 if band_result["refined"] else 1,
+                iterations_used=iterations_used,
                 artifacts=[band_result["final_image_path"]],
             )
 
         return AgentExecutionResult(
             agent_id=self.agent_id,
-            status="partial" if num_bands else "failed",
+            status="partial" if num_windows else "failed",
             goal_satisfied=False,
             state_patch=state_patch,
             confidence=0.3,
-            reason=f"Could not confidently match a histogram band to the goal{refined_note}: "
-                   f"{band_result['reasoning']}",
+            reason=f"Could not confidently match an intensity window to the goal: {band_result['reasoning']}",
             satisfied_criteria=[],
             unsatisfied_criteria=list(success_criteria),
             suggested_capabilities=[
@@ -767,75 +779,47 @@ class IsovalueSpecialist(VisualizationSpecialist):
                 "segment_target_structure",
             ],
             failure_type="capability_insufficient",
-            iterations_used=2 if band_result["refined"] else 1,
+            iterations_used=iterations_used,
             artifacts=[band_result["final_image_path"]],
         )
 
     def _handle_band_result(self, band_result: dict) -> None:
-        """Normalize each band-selection round into the shared on_iteration shape (see
+        """Normalize one window selection into the shared on_iteration shape (see
         CameraSpecialist._handle_camera_iteration for the camera-side version of this same
-        normalized dict). Reports iteration 0 for the top-level band comparison, and --
-        only when a refinement round actually ran -- iteration 1 for the sub-band
-        comparison."""
-        self._emit_band_round(
-            iteration=0,
-            bands=band_result["bands"],
-            band_images=band_result["band_images"],
-            band_evaluation=band_result["band_evaluation"],
-            selected_label=band_result["initial_selected_band_label"],
-            reasoning=band_result.get("reasoning") or "",
-            image_path=band_result["final_image_path"],
-            extra={"converged": band_result["converged"], "refined": band_result["refined"]},
-        )
-        if band_result.get("refinement_bands"):
-            self._emit_band_round(
-                iteration=1,
-                bands=band_result["refinement_bands"],
-                band_images=band_result["refinement_band_images"] or {},
-                band_evaluation=band_result["refinement_band_evaluation"] or [],
-                selected_label=band_result["selected_band_label"] if band_result["refined"] else None,
-                reasoning=band_result.get("reasoning") or "",
-                image_path=band_result["final_image_path"],
-                extra={"converged": band_result["converged"], "refined": band_result["refined"]},
-            )
-
-    def _emit_band_round(
-        self,
-        iteration: int,
-        bands: List[dict],
-        band_images: Dict[str, str],
-        band_evaluation: List[dict],
-        selected_label: Optional[str],
-        reasoning: str,
-        image_path: str,
-        extra: dict,
-    ) -> None:
-        evaluation_by_label = {
-            e["band"]: e
-            for e in band_evaluation
-            if isinstance(e, dict) and isinstance(e.get("band"), str)
+        normalized dict). Reported as a single "iteration" (index 0) -- the two-stage
+        pipeline underneath is still one logical selection, not a multi-round loop."""
+        observation_by_label = {
+            e["window"]: e["observation"]
+            for e in band_result.get("band_evaluation", [])
+            if isinstance(e, dict) and isinstance(e.get("window"), str)
         }
 
+        view_images_by_label = band_result.get("view_images", {})
+
         candidates = []
-        for band in bands:
-            label = f"{BAND_LABEL_PREFIX}{band['low']}_{band['high']}"
-            evaluation = evaluation_by_label.get(label, {})
+        for window in band_result["bands"]:
+            label = f"{WINDOW_LABEL_PREFIX}{window['low']}_{window['high']}"
+            observation = observation_by_label.get(label)
             candidates.append({
                 "label": label,
-                "image_path": band_images.get(label),
-                "selected": label == selected_label,
+                "image_path": band_result["band_images"].get(label),
+                "selected": label == band_result["selected_band_label"],
                 "real_action": None,
-                "observation": evaluation.get("observation"),
-                "satisfies_goal": evaluation.get("satisfies_goal"),
-                "range": f"{band['low']}-{band['high']} (peak {band['peak']})",
+                "observation": _summarize_observation(observation),
+                "satisfies_goal": None,  # no per-candidate goal judgment in this pipeline -- see module docstring
+                "range": f"{window['low']}-{window['high']} (peak {window['peak']})",
+                "view_images": view_images_by_label.get(label, {}),  # {view_id: path}, for debugging/logging
             })
 
         self.on_iteration({
             "agent_id": self.agent_id,
-            "iteration": iteration,
-            "current_image_path": image_path,
+            "iteration": 0,
+            "current_image_path": band_result["final_image_path"],
             "candidates": candidates,
-            "selected_label": selected_label,
-            "reasoning": reasoning,
-            "extra": extra,
+            "selected_label": band_result["selected_band_label"],
+            "reasoning": band_result.get("reasoning") or "",
+            "extra": {
+                "selected_window": band_result["selected_band_label"],
+                "converged": band_result["converged"],
+            },
         })

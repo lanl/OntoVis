@@ -1,7 +1,7 @@
 [
   {
     "step": 1,
-    "action": "AZIMUTH_LEFT_COARSE"
+    "action": "AZIMUTH_RIGHT_COARSE"
   },
   {
     "step": 1,
