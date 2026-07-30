@@ -1,10 +1,22 @@
 [
   {
     "step": 1,
-    "action": "AZIMUTH_RIGHT_COARSE"
+    "action": "ELEVATION_DOWN_COARSE"
   },
   {
-    "step": 1,
-    "action": "STOP"
+    "step": 2,
+    "action": "ELEVATION_DOWN_COARSE"
+  },
+  {
+    "step": 3,
+    "action": "ELEVATION_DOWN_MEDIUM"
+  },
+  {
+    "step": 4,
+    "action": "ELEVATION_DOWN_COARSE"
+  },
+  {
+    "step": 5,
+    "action": "ELEVATION_DOWN_COARSE"
   }
 ]

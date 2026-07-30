@@ -1,0 +1,40 @@
+{
+  "object_id": "foot",
+  "object_context": "human foot",
+  "dataset_directory": "reference_views_medical/foot",
+  "seeds": [
+    {
+      "node_id": "foot_001",
+      "view_label": "dorsal"
+    },
+    {
+      "node_id": "foot_002",
+      "view_label": "plantar"
+    },
+    {
+      "node_id": "foot_003",
+      "view_label": "medial"
+    },
+    {
+      "node_id": "foot_004",
+      "view_label": "lateral"
+    },
+    {
+      "node_id": "foot_005",
+      "view_label": "proximal"
+    },
+    {
+      "node_id": "foot_006",
+      "view_label": "distal"
+    }
+  ],
+  "rotations": [
+    45,
+    90,
+    135,
+    180,
+    225,
+    270,
+    315
+  ]
+}

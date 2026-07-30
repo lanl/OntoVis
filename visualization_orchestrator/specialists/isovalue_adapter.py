@@ -35,7 +35,11 @@ that's looking at an image also know what it's "supposed" to find there.
         |
         v
     Stage 2 (ONE call, TEXT-ONLY): given the goal and every candidate's stored blind
-        observation (no images), select the best match or abstain ("no_match")
+        observation (no images), first judge each candidate independently against every
+        success criterion (a candidate that's merely relatively better than the others
+        does not pass), then select among the ones that passed, or abstain ("no_match")
+        if none did -- re-checked in code, not just trusted from the model's top-level
+        "decision" field (see run_isovalue_band_selection's "absolute floor")
         |
         v
     Selected window (mapped back from its opaque id) or no_match
@@ -53,7 +57,12 @@ VIEW_ACTIONS) is kept internal, for our own debugging/logging only -- never sent
 Stage 2 never sees the images again -- it can only reason from what Stage 1 already
 observed, so it cannot introduce visual "evidence" beyond what was actually reported.
 Abstention ("no_match") is a legitimate outcome, not a failure to paper over -- if no
-candidate's blind observation supports the goal, nothing gets silently guessed.
+candidate's blind observation supports the goal, nothing gets silently guessed. This
+includes the case where every candidate is flawed but one is merely LESS flawed than the
+rest: Stage 2 must judge each candidate independently against the success criteria before
+comparing candidates against each other, so a "best of a uniformly poor set" pick is
+rejected (both by the prompt's own instructions and, redundantly, by a code-side check)
+rather than accepted just because nothing else was better.
 
 Evaluation previews are rendered in a NEUTRAL GRAYSCALE palette (build_evaluation_ramp_for_
 window), not the warm beige/tan used for the final applied result -- every window
@@ -256,8 +265,15 @@ value is an empty list.
 """
 
 # --- Stage 2: goal-aware selection from stored observations (text-only) -------------------
-GOAL_AWARE_WINDOW_SELECTION_PROMPT_TEMPLATE = """Select the candidate whose blind visual observation best satisfies the user's
-visualization goal.
+#
+# Two-step by design (see run_isovalue_band_selection's absolute-floor check): Step 1 forces
+# an ABSOLUTE, per-candidate verdict -- does THIS candidate's own observation satisfy every
+# success criterion, judged in isolation -- before Step 2 is allowed to choose among the
+# passers. This exists because a single "pick the best candidate" instruction invites purely
+# RELATIVE reasoning ("candidate_0 is better than 2-7"), which can select a candidate that
+# doesn't actually satisfy the goal at all, merely one that's least-bad among uniformly poor
+# options. The per-candidate verdict is re-checked in code, not just trusted from "decision".
+GOAL_AWARE_WINDOW_SELECTION_PROMPT_TEMPLATE = """Decide which candidate, if any, satisfies the user's visualization goal.
 
 User goal:
 {goal}
@@ -270,25 +286,52 @@ Candidate observations:
 
 The candidate observations were created without knowing the user goal.
 
+Evaluate candidates in two separate steps. Do not skip to comparison before finishing step 1.
+
+Step 1 -- independent, absolute assessment (per candidate):
+For EVERY candidate listed above, decide separately whether ITS OWN observation -- judged
+on its own merits, not by comparison to any other candidate -- actually satisfies EVERY
+listed success criterion. A candidate's verdict is "passes" only if all criteria are
+clearly met by evidence in ITS OWN observation. If even one criterion is not clearly met
+by that candidate's own evidence, its verdict is "fails" -- regardless of how it compares
+to the other candidates.
+
+Step 2 -- selection (only among candidates that passed step 1):
+- If exactly one candidate passed step 1, select it.
+- If more than one passed, select whichever has the clearest, least uncertain supporting
+  evidence.
+- If NO candidate passed step 1, the decision is "no_match" -- do not select the
+  least-bad candidate among ones that failed step 1, even if it is clearly better than
+  the rest.
+
 Rules:
-- Base the decision only on the supplied observations.
+- Base every judgment only on the supplied observations.
 - Do not introduce structures or properties absent from the observations.
 - Favor clear observations over uncertain observations.
-- Consider both evidence supporting the goal and evidence contradicting it.
 - Do not select a candidate merely because its general silhouette could be associated with
   the requested target.
 - Do not use candidate IDs or their ordering as evidence.
-- If no candidate has sufficient visible evidence, return "no_match".
+- A candidate that is merely "better than the others" but does not itself satisfy every
+  success criterion must fail step 1 and cannot be selected in step 2.
 - Do not force a selection.
 
 Respond with STRICT JSON ONLY, no prose outside the JSON:
 {{
+  "candidate_verdicts": {{
+    "<candidate_N>": {{
+      "verdict": "passes" | "fails",
+      "criteria_met": ["<criterion text(s) satisfied by this candidate's own observation>"],
+      "criteria_not_met": ["<criterion text(s) NOT satisfied by this candidate's own observation>"]
+    }}
+  }},
   "decision": "selected" | "no_match",
-  "selected_candidate": "<candidate_N from the list above, or null if no_match>",
+  "selected_candidate": "<candidate_N whose verdict is 'passes', or null if no_match>",
   "supporting_observations": ["<observation text(s) that justify the decision>"],
   "contradictory_observations": ["<observation text(s) that argue against it, if any>"],
   "explanation": "<why this candidate was selected, or why none qualified>"
 }}
+
+Include an entry in "candidate_verdicts" for every candidate listed above.
 """
 
 WINDOW_LABEL_PREFIX = "WINDOW_"
@@ -593,14 +636,27 @@ def run_isovalue_band_selection(
     (never tiled), with a fully static, goal-blind prompt. Stage 2
     (`_select_candidate_from_observations`): ONE text-only call given the goal and every
     candidate's stored observation (opaque "candidate_N" ids, no images, no real window
-    labels), which may select one or return "no_match". Real window labels are only mapped
-    back from the selected opaque id AFTER Stage 2 completes.
+    labels), which judges each candidate independently against every success criterion
+    (step 1) before choosing among the ones that passed (step 2) -- see the prompt template.
+    Real window labels are only mapped back from the selected opaque id AFTER Stage 2
+    completes.
+
+    Absolute floor (only enforced when `success_criteria` is non-empty): even if Stage 2's
+    top-level "decision" says "selected", the selected candidate's OWN step-1 verdict must be
+    "passes" -- a candidate chosen merely for being relatively less bad than the other
+    windows, without independently satisfying every criterion, is rejected and treated the
+    same as "no_match". This is re-checked in code rather than trusted from the model's
+    "decision" field, since a "pick the best candidate" framing otherwise tends to produce
+    purely relative reasoning ("candidate_0 has less noise than 2-7") that can select a
+    window which doesn't actually satisfy the goal at all.
 
     Returns {"converged": bool, "bands": [...] (the windows), "band_images": {label: path}
     (one representative view per window, for simple display), "view_images": {label:
     {view_id: path}} (every view actually shown to Stage 1, for logging/debugging),
     "view_action_map": {view_id: real camera action or None}, "band_evaluation": [{"window":
-    label, "observation": dict | None}, ...], "selected_band_label": str | None,
+    label, "observation": dict | None}, ...], "candidate_verdicts": {candidate_id: {"verdict":
+    "passes"|"fails", "criteria_met": [...], "criteria_not_met": [...]}} (Stage 2's step-1
+    output, opaque ids, for debugging), "selected_band_label": str | None,
     "final_opacity_points"/"final_color_points": the applied ramp or None,
     "final_image_path": str, "reasoning": str, "raw_response": str}.
     """
@@ -643,16 +699,38 @@ def run_isovalue_band_selection(
 
     decision = (selection_parsed or {}).get("decision")
     selected_candidate_id = (selection_parsed or {}).get("selected_candidate")
+    verdicts = (selection_parsed or {}).get("candidate_verdicts") or {}
+
+    floor_rejected = False
+    if success_criteria and decision == "selected" and selected_candidate_id in candidate_to_window:
+        # Absolute floor: don't trust "decision" alone -- require that THIS candidate's own
+        # step-1 verdict was "passes". Rejects a purely relative "best of a uniformly poor
+        # set" pick (see module docstring) even if the model's top-level decision claims a
+        # selection; a missing/malformed verdict entry is treated as a failed floor, not a
+        # free pass.
+        if (verdicts.get(selected_candidate_id) or {}).get("verdict") != "passes":
+            floor_rejected = True
+            decision = "no_match"
+            selected_candidate_id = None
 
     if not selection_parsed or decision != "selected" or selected_candidate_id not in candidate_to_window:
-        # Either an invalid/unresolvable response, or a legitimate "no_match" abstention --
-        # either way, report failure rather than guessing a window.
-        reasoning = (
-            (selection_parsed or {}).get("explanation")
-            or ("Model abstained: no candidate had sufficient visible evidence for the goal."
-                if decision == "no_match" else
-                "Model response was not valid JSON or selected an unknown candidate.")
-        )
+        # Either an invalid/unresolvable response, a legitimate "no_match" abstention, or a
+        # selection that failed the absolute floor -- either way, report failure rather than
+        # guessing a window.
+        if floor_rejected:
+            reasoning = (
+                "Rejected: the model's chosen candidate did not independently satisfy every "
+                "success criterion on its own evidence (only relative to the other "
+                f"candidates). Model's original explanation: "
+                f"{(selection_parsed or {}).get('explanation') or '(none given)'}"
+            )
+        else:
+            reasoning = (
+                (selection_parsed or {}).get("explanation")
+                or ("Model abstained: no candidate had sufficient visible evidence for the goal."
+                    if decision == "no_match" else
+                    "Model response was not valid JSON or selected an unknown candidate.")
+            )
         return {
             "converged": False,
             "bands": windows,
@@ -660,6 +738,7 @@ def run_isovalue_band_selection(
             "view_images": window_view_images,
             "view_action_map": view_action_map(multi_angle),
             "band_evaluation": band_evaluation,
+            "candidate_verdicts": verdicts,
             "selected_band_label": None,
             "final_opacity_points": session.opacity_points,
             "final_color_points": session.color_points,
@@ -684,6 +763,7 @@ def run_isovalue_band_selection(
         "view_images": window_view_images,
         "view_action_map": view_action_map(multi_angle),
         "band_evaluation": band_evaluation,
+        "candidate_verdicts": verdicts,
         "selected_band_label": selected_label,
         "final_opacity_points": opacity_points,
         "final_color_points": color_points,

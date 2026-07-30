@@ -3,189 +3,189 @@
   "current_image_path": "../output/orchestrator_notebook/screenshots/latest.png",
   "blind_candidates": [
     {
-      "candidate_id": "CANDIDATE_XX94J",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_xx94j.png"
+      "candidate_id": "CANDIDATE_3F4WZ",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_3f4wz.png"
     },
     {
-      "candidate_id": "CANDIDATE_UUO5M",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_uuo5m.png"
+      "candidate_id": "CANDIDATE_XMPDL",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_xmpdl.png"
     },
     {
-      "candidate_id": "CANDIDATE_8OU6J",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_8ou6j.png"
+      "candidate_id": "CANDIDATE_SJERL",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_sjerl.png"
     },
     {
-      "candidate_id": "CANDIDATE_CP9S5",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_cp9s5.png"
+      "candidate_id": "CANDIDATE_XQ1FO",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_xq1fo.png"
     },
     {
-      "candidate_id": "CANDIDATE_06IOM",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_06iom.png"
+      "candidate_id": "CANDIDATE_D8Z4C",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_d8z4c.png"
     },
     {
-      "candidate_id": "CANDIDATE_2EJ2T",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_2ej2t.png"
+      "candidate_id": "CANDIDATE_FZNQZ",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_fznqz.png"
     },
     {
-      "candidate_id": "CANDIDATE_XTUGC",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_xtugc.png"
+      "candidate_id": "CANDIDATE_X2J7H",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_004/candidate_x2j7h.png"
     }
   ],
   "private_candidate_mapping": {
-    "CANDIDATE_XX94J": "AZIMUTH_RIGHT",
-    "CANDIDATE_UUO5M": "ELEVATION_UP_180",
-    "CANDIDATE_8OU6J": "STOP",
-    "CANDIDATE_CP9S5": "AZIMUTH_LEFT",
-    "CANDIDATE_06IOM": "ELEVATION_UP",
-    "CANDIDATE_2EJ2T": "AZIMUTH_RIGHT_180",
-    "CANDIDATE_XTUGC": "ELEVATION_DOWN"
+    "CANDIDATE_3F4WZ": "STOP",
+    "CANDIDATE_XMPDL": "ELEVATION_UP_180",
+    "CANDIDATE_SJERL": "AZIMUTH_LEFT",
+    "CANDIDATE_XQ1FO": "AZIMUTH_RIGHT",
+    "CANDIDATE_D8Z4C": "ELEVATION_UP",
+    "CANDIDATE_FZNQZ": "ELEVATION_DOWN",
+    "CANDIDATE_X2J7H": "AZIMUTH_RIGHT_180"
   },
   "pass_1_visual_diagnosis": {
     "parsed": {
       "target": {
-        "view_description": "The target shows a lateral (side) view of a skull. The sagittal profile is clearly visible, displaying the characteristic curved outline from the frontal bone through the parietal region to the occipital bone. The maxilla and mandible are visible in profile, showing the anterior (front) aspect with visible dentition, and the posterior (back) curvature of the cranium is also visible. This is a classic anatomical side view showing the full length profile of the skull from front to back.",
-        "closest_reference_id": "skull_001",
-        "closest_reference_description": "Right view of the human skull.",
-        "reference_match_quality": "exact",
-        "reference_match_differences": "No meaningful difference observed; both show the same right lateral perspective of a skull with full sagittal profile visibility.",
-        "reference_match_confidence": 1.0,
-        "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=exact)."
+        "view_description": "The target view shows the foot from a lateral (side) perspective, displaying the outer edge of the foot. The metatarsals and phalanges are visible in profile, with the fifth digit (smallest toe) on the outer edge clearly visible. The view is perpendicular to the medial-lateral axis, showing the foot's length from heel to toes in a side profile orientation.",
+        "closest_reference_id": null,
+        "closest_reference_description": "unclear",
+        "reference_match_quality": "unclear",
+        "reference_match_differences": "No reference bank was provided for this iteration.",
+        "reference_match_confidence": 0.0,
+        "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear)."
       },
       "current": {
-        "view_description": "This candidate shows a lateral oblique view of the skull from the side, with the temporal region and ear structure visible. The view captures the side of the cranium and shows the curved profile of the skull from a lateral perspective with some superior viewing angle component.",
-        "closest_reference_id": "skull_001",
-        "closest_reference_description": "Right view of the human skull.",
-        "reference_match_quality": "partial",
-        "reference_match_differences": "This candidate shows a lateral view but with more superior obliquity compared to skull_001's more purely horizontal lateral view. The candidate is viewed somewhat from above, whereas the reference presents a cleaner side profile at a more horizontal level.",
-        "reference_match_confidence": 0.5,
-        "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=partial).",
-        "similarity_score": 65,
-        "confidence": 0.8,
-        "difference_from_target": "This candidate shows a lateral view that is reasonably aligned with the target requirement. The sagittal profile is visible, and both anterior and posterior aspects can be appreciated in profile. However, the viewing angle appears slightly more oblique (from above) compared to the target's more horizontal lateral perspective."
+        "view_description": "This candidate shows the foot from a posterior-medial oblique angle, with the hindfoot and ankle at the top, midfoot in the middle, and forefoot extending downward. The view emphasizes the posterior heel and medial arch region.",
+        "closest_reference_id": null,
+        "closest_reference_description": "unclear",
+        "reference_match_quality": "unclear",
+        "reference_match_differences": "No reference bank was provided for this iteration.",
+        "reference_match_confidence": 0.0,
+        "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+        "similarity_score": 25,
+        "confidence": 0.85,
+        "difference_from_target": "This view shows the posterior and medial aspects rather than a pure lateral side view. The camera is positioned behind and toward the inner side of the foot rather than perpendicular to the outer edge."
       },
       "candidates": [
         {
-          "candidate_id": "CANDIDATE_XX94J",
-          "view_description": "This candidate shows a superior view looking directly down onto the top of the cranial vault. The view is from above, showing the rounded dome of the skull with suture lines visible. This is a top-down perspective with minimal lateral surface visible.",
+          "candidate_id": "CANDIDATE_3F4WZ",
+          "view_description": "This candidate shows essentially the same dorsal-oblique view as the current image, with the foot oriented vertically and viewed from above. The metatarsals and tarsals are visible from the superior aspect. Minimal to no perceptible change from the current position.",
           "closest_reference_id": null,
           "closest_reference_description": "unclear",
           "reference_match_quality": "unclear",
-          "reference_match_differences": "None of the reference views show this pure superior perspective.",
+          "reference_match_differences": "No reference bank was provided for this iteration.",
           "reference_match_confidence": 0.0,
           "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate shows a superior (top) view rather than a lateral (side) view. It does not display the sagittal profile or the anterior-posterior relationship required by the target. The viewpoint is approximately 90 degrees different from the target orientation.",
-          "similarity_score": 5,
+          "comparison_to_target": "This candidate maintains the dorsal view rather than achieving the required lateral view. The foot remains vertical in frame rather than horizontal, and the outer edge is not prominently displayed as a side profile. This does not match the target's lateral perspective.",
+          "similarity_score": 15,
           "confidence": 0.95
         },
         {
-          "candidate_id": "CANDIDATE_UUO5M",
-          "view_description": "This candidate shows a lateral-inferior oblique view, looking up at the skull from below and from the side. The base of the skull and inferior surface of the cranium are prominently visible, along with a lateral aspect showing the ear region. The perspective is tilted showing the underside.",
+          "candidate_id": "CANDIDATE_XMPDL",
+          "view_description": "This candidate shows the foot from a lateral-oblique angle with significant rotation. The foot is oriented more diagonally, with the outer lateral edge becoming more visible. The metatarsals are seen more from the side, and the foot's profile is beginning to emerge, though still with some oblique angle rather than purely perpendicular lateral view.",
           "closest_reference_id": null,
           "closest_reference_description": "unclear",
           "reference_match_quality": "unclear",
-          "reference_match_differences": "The reference bank does not contain inferior-oblique views like this candidate.",
+          "reference_match_differences": "No reference bank was provided for this iteration.",
           "reference_match_confidence": 0.0,
           "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate is viewed from below at an oblique angle, emphasizing the inferior skull base, whereas the target shows a horizontal lateral profile at eye level. The sagittal profile is not clearly displayed as it's obscured by the inferior viewing angle.",
+          "comparison_to_target": "This candidate approaches the lateral view requirement more closely than the current view. The outer edge of the foot is more prominently displayed, and the orientation is shifting toward the horizontal lateral perspective shown in the target. However, there remains some oblique angle rather than being fully perpendicular to the medial-lateral axis.",
+          "similarity_score": 65,
+          "confidence": 0.85
+        },
+        {
+          "candidate_id": "CANDIDATE_SJERL",
+          "view_description": "This candidate presents a view looking at the plantar (bottom) surface of the foot at an angle. The metatarsal shafts are visible in profile extending away from the viewer, and the toes are seen from below. This is primarily an inferior view with the foot oriented diagonally across the frame.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "No reference bank was provided for this iteration.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate shows the foot from the plantar aspect rather than the lateral side view required. While it provides a different perspective from the current dorsal view, it does not show the outer edge profile that characterizes a true lateral view. The orientation and surfaces visible do not match the target.",
           "similarity_score": 25,
           "confidence": 0.85
         },
         {
-          "candidate_id": "CANDIDATE_8OU6J",
-          "view_description": "This candidate shows a lateral-superior oblique view of the skull, looking down from above but also from the side. The right lateral surface is visible along with the ear, maxilla (upper jaw), and the superior cranial vault. The view shows the side of the skull but from an elevated perspective.",
+          "candidate_id": "CANDIDATE_XQ1FO",
+          "view_description": "This candidate shows the foot from a plantar-medial oblique perspective. The bottom surface and inner aspect of the foot are visible, with the metatarsals and phalanges displayed at an angle. The foot is oriented diagonally with the heel region visible in the upper portion.",
           "closest_reference_id": null,
           "closest_reference_description": "unclear",
           "reference_match_quality": "unclear",
-          "reference_match_differences": "The reference views do not include this elevated lateral-oblique perspective.",
+          "reference_match_differences": "No reference bank was provided for this iteration.",
           "reference_match_confidence": 0.0,
           "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate shows a lateral aspect but from an elevated oblique angle looking down, whereas the target shows a pure horizontal lateral view at eye level. The sagittal profile is partially visible but foreshortened by the superior viewing angle. The anterior-posterior relationship is less clear than in the target.",
-          "similarity_score": 35,
-          "confidence": 0.8
+          "comparison_to_target": "This candidate shows the plantar and medial aspects rather than the lateral (outer) side required by the target. While it presents a different angle from the current view, it displays the wrong side of the foot and wrong surfaces. The outer edge is not visible, contradicting the target requirement.",
+          "similarity_score": 20,
+          "confidence": 0.85
         },
         {
-          "candidate_id": "CANDIDATE_CP9S5",
-          "view_description": "This candidate shows a posterior-inferior view looking up at the skull from behind and below. The occipital region and base of the skull are prominently displayed, with the underside of the mandible visible. This is a view of the back and bottom of the skull.",
+          "candidate_id": "CANDIDATE_D8Z4C",
+          "view_description": "This candidate shows the foot from a medial-plantar view, displaying the inner aspect and bottom surface of the foot. The arch region and medial side of the metatarsals and tarsals are visible. The foot is oriented with toes toward the bottom of the frame and the ankle/tarsal region toward the top.",
           "closest_reference_id": null,
           "closest_reference_description": "unclear",
           "reference_match_quality": "unclear",
-          "reference_match_differences": "The reference bank does not contain posterior-inferior views.",
+          "reference_match_differences": "No reference bank was provided for this iteration.",
           "reference_match_confidence": 0.0,
           "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate shows the posterior and inferior aspects from below, completely different from the lateral profile view required. It does not show the sagittal profile or the anterior-posterior relationship in profile. The viewing direction is approximately opposite to the target.",
-          "similarity_score": 10,
-          "confidence": 0.9
-        },
-        {
-          "candidate_id": "CANDIDATE_06IOM",
-          "view_description": "This candidate shows an anterior-superior oblique view looking down at the front and top of the skull. The superior cranial vault is visible along with portions of the maxilla and facial skeleton from above. The view emphasizes the anterior aspect from an elevated position.",
-          "closest_reference_id": null,
-          "closest_reference_description": "unclear",
-          "reference_match_quality": "unclear",
-          "reference_match_differences": "The reference views do not include this anterior-superior oblique angle.",
-          "reference_match_confidence": 0.0,
-          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate shows the front of the skull from above, whereas the target shows a side profile. The sagittal profile is not visible, and instead the facial skeleton is viewed frontally. This is fundamentally a different orientation from the lateral view required.",
-          "similarity_score": 15,
-          "confidence": 0.9
-        },
-        {
-          "candidate_id": "CANDIDATE_2EJ2T",
-          "view_description": "This candidate shows a lateral-superior oblique view of the skull from the left side, looking down from above. The left lateral surface is visible including the ear region, with the cranial vault and maxilla visible from an elevated angle. This is similar to CANDIDATE_8OU6J but from the opposite (left) side.",
-          "closest_reference_id": null,
-          "closest_reference_description": "unclear",
-          "reference_match_quality": "unclear",
-          "reference_match_differences": "The reference views do not show this left-sided elevated lateral-oblique perspective.",
-          "reference_match_confidence": 0.0,
-          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate shows a lateral view but from the left side and from an elevated angle looking down, whereas the target shows a horizontal right lateral view. The sagittal profile is visible but the viewing angle is oblique rather than perpendicular to the sagittal plane. Additionally, this is the opposite side from the target.",
+          "comparison_to_target": "This candidate shows the medial (inner) side of the foot rather than the lateral (outer) side required by the target. This is essentially the opposite side from what is needed. The viewpoint is perpendicular to the wrong axis, showing the inner edge rather than the outer edge.",
           "similarity_score": 30,
-          "confidence": 0.8
+          "confidence": 0.85
         },
         {
-          "candidate_id": "CANDIDATE_XTUGC",
-          "view_description": "This candidate shows an anterior-inferior view looking up at the skull from below and in front. The inferior surface of the skull base is visible along with the facial skeleton viewed from below. The mandible and maxillary structures are prominent, viewed from underneath.",
+          "candidate_id": "CANDIDATE_FZNQZ",
+          "view_description": "This candidate shows the foot from a plantar (bottom) view, looking up at the inferior surface. The metatarsals and phalanges are visible from below, with the toes pointing upward in the frame. The plantar surface dominates the view with the overall foot structure visible from the sole perspective.",
           "closest_reference_id": null,
           "closest_reference_description": "unclear",
           "reference_match_quality": "unclear",
-          "reference_match_differences": "The reference bank does not contain anterior-inferior views.",
+          "reference_match_differences": "No reference bank was provided for this iteration.",
           "reference_match_confidence": 0.0,
           "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate shows the skull from below looking up at the anterior aspect, completely different from the lateral profile view required. The sagittal profile is not visible, and the anterior-posterior relationship cannot be assessed from this inferior viewing angle.",
-          "similarity_score": 10,
+          "comparison_to_target": "This candidate presents the plantar surface rather than the lateral side view required. The outer edge of the foot is not prominently displayed as a side profile. The perspective is from below rather than from the side, fundamentally different from the target's lateral view requirement.",
+          "similarity_score": 20,
+          "confidence": 0.85
+        },
+        {
+          "candidate_id": "CANDIDATE_X2J7H",
+          "view_description": "This candidate shows a lateral-oblique view of the foot with the outer edge visible. The foot is oriented more horizontally with the metatarsals extending across the frame. The lateral aspect is displayed, showing the outer edge of the foot in profile, though with some slight oblique angle rather than purely perpendicular.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "No reference bank was provided for this iteration.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate achieves a view very close to the target's lateral perspective. The outer edge of the foot is prominently displayed, the foot is oriented horizontally, and the view is approximately perpendicular to the medial-lateral axis. This closely matches the target's requirement for a lateral side view showing the outer edge.",
+          "similarity_score": 80,
           "confidence": 0.9
         }
       ]
     },
-    "raw_response": "```json\n{\n  \"target\": {\n    \"view_description\": \"The target image shows a lateral (side) view of a human skull. The sagittal profile is clearly visible, showing the characteristic outline from front to back. Both the anterior (facial) and posterior (occipital) aspects are visible in profile. The skull is viewed from the right side, displaying the temporal region, zygomatic arch, jaw structure, and the rounded cranial vault. The ear canal opening is visible, and the profile shows the relationship between the facial skeleton and neurocranium.\",\n    \"closest_reference_id\": \"skull_001\",\n    \"reference_match_quality\": \"exact\",\n    \"reference_match_differences\": \"No meaningful difference observed - both show an identical right lateral view of the skull with the same perspective, orientation, and anatomical features visible.\"\n  },\n  \"current\": {\n    \"view_description\": \"The current image shows a superior-oblique view of a skull, looking down from above and slightly from the right side. The top of the cranial vault dominates the view, with the ear visible on the right side. The maxilla (upper jaw) is visible at the bottom edge, and there's a partial view of the lateral surface. This is not a true lateral view but rather an elevated perspective looking down onto the skull.\",\n    \"difference_from_target\": \"The current view is looking down from above at an oblique angle, showing primarily the superior cranial surface, while the target shows a pure lateral profile view at eye level. The current view does not display the sagittal profile clearly, nor does it show the anterior-posterior relationship characteristic of a lateral view.\",\n    \"closest_reference_id\": null,\n    \"reference_match_quality\": \"unclear\",\n    \"reference_match_differences\": \"No reference view matches this superior-oblique perspective well enough to establish a meaningful correspondence.\",\n    \"similarity_score\": 15,\n    \"confidence\": 0.9\n  },\n  \"candidates\": [\n    {\n      \"candidate_id\": \"CANDIDATE_XX94J\",\n      \"view_description\": \"This candidate shows a superior view looking directly down onto the top of the cranial vault. The view is from above, showing the rounded dome of the skull with suture lines visible. This is a top-down perspective with minimal lateral surface visible.\",\n      \"comparison_to_target\": \"This candidate shows a superior (top) view rather than a lateral (side) view. It does not display the sagittal profile or the anterior-posterior relationship required by the target. The viewpoint is approximately 90 degrees different from the target orientation.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"None of the reference views show this pure superior perspective.\",\n      \"similarity_score\": 5,\n      \"confidence\": 0.95\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_UUO5M\",\n      \"view_description\": \"This candidate shows a lateral-inferior oblique view, looking up at the skull from below and from the side. The base of the skull and inferior surface of the cranium are prominently visible, along with a lateral aspect showing the ear region. The perspective is tilted showing the underside.\",\n      \"comparison_to_target\": \"This candidate is viewed from below at an oblique angle, emphasizing the inferior skull base, whereas the target shows a horizontal lateral profile at eye level. The sagittal profile is not clearly displayed as it's obscured by the inferior viewing angle.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"The reference bank does not contain inferior-oblique views like this candidate.\",\n      \"similarity_score\": 25,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_8OU6J\",\n      \"view_description\": \"This candidate shows a lateral-superior oblique view of the skull, looking down from above but also from the side. The right lateral surface is visible along with the ear, maxilla (upper jaw), and the superior cranial vault. The view shows the side of the skull but from an elevated perspective.\",\n      \"comparison_to_target\": \"This candidate shows a lateral aspect but from an elevated oblique angle looking down, whereas the target shows a pure horizontal lateral view at eye level. The sagittal profile is partially visible but foreshortened by the superior viewing angle. The anterior-posterior relationship is less clear than in the target.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"The reference views do not include this elevated lateral-oblique perspective.\",\n      \"similarity_score\": 35,\n      \"confidence\": 0.8\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_CP9S5\",\n      \"view_description\": \"This candidate shows a posterior-inferior view looking up at the skull from behind and below. The occipital region and base of the skull are prominently displayed, with the underside of the mandible visible. This is a view of the back and bottom of the skull.\",\n      \"comparison_to_target\": \"This candidate shows the posterior and inferior aspects from below, completely different from the lateral profile view required. It does not show the sagittal profile or the anterior-posterior relationship in profile. The viewing direction is approximately opposite to the target.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"The reference bank does not contain posterior-inferior views.\",\n      \"similarity_score\": 10,\n      \"confidence\": 0.9\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_06IOM\",\n      \"view_description\": \"This candidate shows an anterior-superior oblique view looking down at the front and top of the skull. The superior cranial vault is visible along with portions of the maxilla and facial skeleton from above. The view emphasizes the anterior aspect from an elevated position.\",\n      \"comparison_to_target\": \"This candidate shows the front of the skull from above, whereas the target shows a side profile. The sagittal profile is not visible, and instead the facial skeleton is viewed frontally. This is fundamentally a different orientation from the lateral view required.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"The reference views do not include this anterior-superior oblique angle.\",\n      \"similarity_score\": 15,\n      \"confidence\": 0.9\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_2EJ2T\",\n      \"view_description\": \"This candidate shows a lateral-superior oblique view of the skull from the left side, looking down from above. The left lateral surface is visible including the ear region, with the cranial vault and maxilla visible from an elevated angle. This is similar to CANDIDATE_8OU6J but from the opposite (left) side.\",\n      \"comparison_to_target\": \"This candidate shows a lateral view but from the left side and from an elevated angle looking down, whereas the target shows a horizontal right lateral view. The sagittal profile is visible but the viewing angle is oblique rather than perpendicular to the sagittal plane. Additionally, this is the opposite side from the target.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"The reference views do not show this left-sided elevated lateral-oblique perspective.\",\n      \"similarity_score\": 30,\n      \"confidence\": 0.8\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_XTUGC\",\n      \"view_description\": \"This candidate shows an anterior-inferior view looking up at the skull from below and in front. The inferior surface of the skull base is visible along with the facial skeleton viewed from below. The mandible and maxillary structures are prominent, viewed from underneath.\",\n      \"comparison_to_target\": \"This candidate shows the skull from below looking up at the anterior aspect, completely different from the lateral profile view required. The sagittal profile is not visible, and the anterior-posterior relationship cannot be assessed from this inferior viewing angle.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"The reference bank does not contain anterior-inferior views.\",\n      \"similarity_score\": 10,\n      \"confidence\": 0.9\n    }\n  ]\n}\n```"
+    "raw_response": "```json\n{\n  \"target\": {\n    \"view_description\": \"The target shows a lateral (side) view of a foot, with the camera positioned perpendicular to the medial-lateral axis. The outer edge of the foot is clearly visible, showing the metatarsals and phalanges extending from the heel/tarsal region. The foot is oriented horizontally with toes pointing to one side and the heel to the other. This is a true lateral perspective showing one side of the foot.\",\n    \"closest_reference_id\": null,\n    \"reference_match_quality\": \"unclear\",\n    \"reference_match_differences\": \"No reference bank was provided for this iteration.\"\n  },\n  \"current\": {\n    \"view_description\": \"The current view shows the foot from a dorsal-oblique angle, looking down at the superior surface. The metatarsals and tarsals are visible from above, with the foot oriented vertically in the frame. The proximal end (ankle/tarsal region) is toward the top and the toes toward the bottom. This is primarily a top-down view rather than a lateral view.\",\n    \"difference_from_target\": \"The current view is fundamentally different from the target. Current shows a superior/dorsal perspective looking down on the foot, while the target shows a true lateral side view. The foot's long axis is vertical in the current view versus horizontal in the target. The outer edge of the foot is not prominently displayed as required.\",\n    \"closest_reference_id\": null,\n    \"reference_match_quality\": \"unclear\",\n    \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n    \"similarity_score\": 15,\n    \"confidence\": 0.95\n  },\n  \"candidates\": [\n    {\n      \"candidate_id\": \"CANDIDATE_3F4WZ\",\n      \"view_description\": \"This candidate shows essentially the same dorsal-oblique view as the current image, with the foot oriented vertically and viewed from above. The metatarsals and tarsals are visible from the superior aspect. Minimal to no perceptible change from the current position.\",\n      \"comparison_to_target\": \"This candidate maintains the dorsal view rather than achieving the required lateral view. The foot remains vertical in frame rather than horizontal, and the outer edge is not prominently displayed as a side profile. This does not match the target's lateral perspective.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 15,\n      \"confidence\": 0.95\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_XMPDL\",\n      \"view_description\": \"This candidate shows the foot from a lateral-oblique angle with significant rotation. The foot is oriented more diagonally, with the outer lateral edge becoming more visible. The metatarsals are seen more from the side, and the foot's profile is beginning to emerge, though still with some oblique angle rather than purely perpendicular lateral view.\",\n      \"comparison_to_target\": \"This candidate approaches the lateral view requirement more closely than the current view. The outer edge of the foot is more prominently displayed, and the orientation is shifting toward the horizontal lateral perspective shown in the target. However, there remains some oblique angle rather than being fully perpendicular to the medial-lateral axis.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 65,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_SJERL\",\n      \"view_description\": \"This candidate presents a view looking at the plantar (bottom) surface of the foot at an angle. The metatarsal shafts are visible in profile extending away from the viewer, and the toes are seen from below. This is primarily an inferior view with the foot oriented diagonally across the frame.\",\n      \"comparison_to_target\": \"This candidate shows the foot from the plantar aspect rather than the lateral side view required. While it provides a different perspective from the current dorsal view, it does not show the outer edge profile that characterizes a true lateral view. The orientation and surfaces visible do not match the target.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 25,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_XQ1FO\",\n      \"view_description\": \"This candidate shows the foot from a plantar-medial oblique perspective. The bottom surface and inner aspect of the foot are visible, with the metatarsals and phalanges displayed at an angle. The foot is oriented diagonally with the heel region visible in the upper portion.\",\n      \"comparison_to_target\": \"This candidate shows the plantar and medial aspects rather than the lateral (outer) side required by the target. While it presents a different angle from the current view, it displays the wrong side of the foot and wrong surfaces. The outer edge is not visible, contradicting the target requirement.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 20,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_D8Z4C\",\n      \"view_description\": \"This candidate shows the foot from a medial-plantar view, displaying the inner aspect and bottom surface of the foot. The arch region and medial side of the metatarsals and tarsals are visible. The foot is oriented with toes toward the bottom of the frame and the ankle/tarsal region toward the top.\",\n      \"comparison_to_target\": \"This candidate shows the medial (inner) side of the foot rather than the lateral (outer) side required by the target. This is essentially the opposite side from what is needed. The viewpoint is perpendicular to the wrong axis, showing the inner edge rather than the outer edge.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 30,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_FZNQZ\",\n      \"view_description\": \"This candidate shows the foot from a plantar (bottom) view, looking up at the inferior surface. The metatarsals and phalanges are visible from below, with the toes pointing upward in the frame. The plantar surface dominates the view with the overall foot structure visible from the sole perspective.\",\n      \"comparison_to_target\": \"This candidate presents the plantar surface rather than the lateral side view required. The outer edge of the foot is not prominently displayed as a side profile. The perspective is from below rather than from the side, fundamentally different from the target's lateral view requirement.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 20,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_X2J7H\",\n      \"view_description\": \"This candidate shows a lateral-oblique view of the foot with the outer edge visible. The foot is oriented more horizontally with the metatarsals extending across the frame. The lateral aspect is displayed, showing the outer edge of the foot in profile, though with some slight oblique angle rather than purely perpendicular.\",\n      \"comparison_to_target\": \"This candidate achieves a view very close to the target's lateral perspective. The outer edge of the foot is prominently displayed, the foot is oriented horizontally, and the view is approximately perpendicular to the medial-lateral axis. This closely matches the target's requirement for a lateral side view showing the outer edge.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 80,\n      \"confidence\": 0.9\n    }\n  ]\n}\n```"
   },
   "pass_2_deterministic_selection": {
     "decision": "candidate",
-    "selected_candidate": "CANDIDATE_XX94J",
-    "selection_reason": "All 7 candidates have unclear reference-bank grounding, and no prior movement direction was available to continue (first iteration, or the last action had no continuable direction); arbitrarily picking CANDIDATE_XX94J (similarity_score=5, confidence=0.95) to keep exploring toward a view the reference bank recognizes.",
+    "selected_candidate": "CANDIDATE_FZNQZ",
+    "selection_reason": "All 7 candidates have unclear reference-bank grounding; continuing the same direction as the last applied movement ('ELEVATION_DOWN') rather than re-picking arbitrarily, to keep sweeping toward a view the reference bank recognizes. Selected CANDIDATE_FZNQZ (similarity_score=20, confidence=0.85).",
     "selected_diagnosis": {
-      "candidate_id": "CANDIDATE_XX94J",
-      "view_description": "This candidate shows a superior view looking directly down onto the top of the cranial vault. The view is from above, showing the rounded dome of the skull with suture lines visible. This is a top-down perspective with minimal lateral surface visible.",
+      "candidate_id": "CANDIDATE_FZNQZ",
+      "view_description": "This candidate shows the foot from a plantar (bottom) view, looking up at the inferior surface. The metatarsals and phalanges are visible from below, with the toes pointing upward in the frame. The plantar surface dominates the view with the overall foot structure visible from the sole perspective.",
       "closest_reference_id": null,
       "closest_reference_description": "unclear",
       "reference_match_quality": "unclear",
-      "reference_match_differences": "None of the reference views show this pure superior perspective.",
+      "reference_match_differences": "No reference bank was provided for this iteration.",
       "reference_match_confidence": 0.0,
       "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-      "comparison_to_target": "This candidate shows a superior (top) view rather than a lateral (side) view. It does not display the sagittal profile or the anterior-posterior relationship required by the target. The viewpoint is approximately 90 degrees different from the target orientation.",
-      "similarity_score": 5,
-      "confidence": 0.95
+      "comparison_to_target": "This candidate presents the plantar surface rather than the lateral side view required. The outer edge of the foot is not prominently displayed as a side profile. The perspective is from below rather than from the side, fundamentally different from the target's lateral view requirement.",
+      "similarity_score": 20,
+      "confidence": 0.85
     }
   },
   "pass_3_magnitude_estimation": {
     "parsed": {
-      "selected_candidate": "CANDIDATE_XX94J",
-      "magnitude_recommendation": "reduced",
-      "magnitude_reasoning": "The current view shows the skull from an oblique lateral-inferior angle with the side visible but tilted. The candidate shows the skull from a superior (top-down) view, displaying the cranial vault from above. The target requires a true lateral (side) view showing the sagittal profile with both anterior and posterior aspects visible in profile. The movement trajectory from current to candidate rotates the viewpoint, but the candidate has overshot past the desired lateral orientation and moved to a superior perspective. The target lateral view would be achieved at an intermediate point along this rotational trajectory, before reaching the top-down orientation shown in the candidate.",
-      "expected_visual_result": "A reduced-magnitude movement will rotate the camera to achieve a pure lateral (side) view of the skull, showing the sagittal profile with the frontal bone, parietal bone, and occipital bone visible in side profile, stopping before the camera reaches the superior orientation shown in the candidate."
+      "selected_candidate": "CANDIDATE_FZNQZ",
+      "magnitude_recommendation": "full",
+      "magnitude_reasoning": "The current view shows the foot from an oblique dorsal-medial angle, where we see the top and inner aspect of the foot with metatarsals and tarsal bones visible. The candidate shows a clear lateral (side) view where the outer edge of the foot is prominent, the metatarsals are viewed perpendicular to the medial-lateral axis, and the calcaneus and midfoot structures are presented in proper lateral profile. This candidate achieves the target viewpoint geometry: lateral aspect viewing with perpendicularity to the medial-lateral axis. The global viewpoint transformation from current to candidate represents the complete rotational change needed to reach the target lateral view without apparent overshoot.",
+      "expected_visual_result": "The camera will rotate to present the foot in lateral profile, showing the outer edge prominently with the metatarsals, midfoot, and hindfoot structures aligned in a true side view perpendicular to the foot's medial-lateral axis."
     },
-    "raw_response": "```json\n{\n  \"selected_candidate\": \"CANDIDATE_XX94J\",\n  \"magnitude_recommendation\": \"reduced\",\n  \"magnitude_reasoning\": \"The current view shows the skull from an oblique lateral-inferior angle with the side visible but tilted. The candidate shows the skull from a superior (top-down) view, displaying the cranial vault from above. The target requires a true lateral (side) view showing the sagittal profile with both anterior and posterior aspects visible in profile. The movement trajectory from current to candidate rotates the viewpoint, but the candidate has overshot past the desired lateral orientation and moved to a superior perspective. The target lateral view would be achieved at an intermediate point along this rotational trajectory, before reaching the top-down orientation shown in the candidate.\",\n  \"expected_visual_result\": \"A reduced-magnitude movement will rotate the camera to achieve a pure lateral (side) view of the skull, showing the sagittal profile with the frontal bone, parietal bone, and occipital bone visible in side profile, stopping before the camera reaches the superior orientation shown in the candidate.\"\n}\n```"
+    "raw_response": "```json\n{\n  \"selected_candidate\": \"CANDIDATE_FZNQZ\",\n  \"magnitude_recommendation\": \"full\",\n  \"magnitude_reasoning\": \"The current view shows the foot from an oblique dorsal-medial angle, where we see the top and inner aspect of the foot with metatarsals and tarsal bones visible. The candidate shows a clear lateral (side) view where the outer edge of the foot is prominent, the metatarsals are viewed perpendicular to the medial-lateral axis, and the calcaneus and midfoot structures are presented in proper lateral profile. This candidate achieves the target viewpoint geometry: lateral aspect viewing with perpendicularity to the medial-lateral axis. The global viewpoint transformation from current to candidate represents the complete rotational change needed to reach the target lateral view without apparent overshoot.\",\n  \"expected_visual_result\": \"The camera will rotate to present the foot in lateral profile, showing the outer edge prominently with the metatarsals, midfoot, and hindfoot structures aligned in a true side view perpendicular to the foot's medial-lateral axis.\"\n}\n```"
   },
-  "final_action": "AZIMUTH_RIGHT_MEDIUM",
-  "applied_action": "AZIMUTH_RIGHT_MEDIUM"
+  "final_action": "ELEVATION_DOWN_COARSE",
+  "applied_action": "ELEVATION_DOWN_COARSE"
 }

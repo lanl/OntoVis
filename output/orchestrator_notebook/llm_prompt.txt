@@ -39,21 +39,25 @@ Before answering, work through these stages:
      groups and actions have been evaluated.
 
 Target view:
-Position camera to show a lateral (side) view of the skull Success criteria: The skull is viewed from the side (left or right lateral aspect); The sagittal profile of the skull is clearly visible; The view shows a true lateral perspective
+Position the camera to show the lateral (side) view of the foot Success criteria: The foot is viewed from the side (lateral aspect); The camera shows the outer edge of the foot; The view is perpendicular to the medial-lateral axis of the foot
 
 Current render screenshot:
 ../output/orchestrator_notebook/screenshots/latest.png
 
 Current camera:
-  position:       [879.942, 129.180, 129.254]
-  focal_point:    [100.199, 129.180, 129.254]
-  view_up:        [0.000, 1.000, 0.000]
+  position:       [135.485, -451.166, 695.500]
+  focal_point:    [135.485, 119.833, 124.500]
+  view_up:        [0.000, 0.707, 0.707]
   view_angle:     30.00
-  clipping_range: [572.587, 1042.419]
-  distance:       779.743
+  clipping_range: [443.886, 1274.660]
+  distance:       807.516
 
 Action history (detect repetition, reversal, and oscillation):
-  1. AZIMUTH_RIGHT_COARSE
+  1. ELEVATION_DOWN_COARSE
+  2. ELEVATION_DOWN_COARSE
+  3. ELEVATION_DOWN_MEDIUM
+  4. ELEVATION_DOWN_COARSE
+  5. ELEVATION_DOWN_COARSE
 
 Allowed actions:
   - AZIMUTH_LEFT_COARSE: orbit camera 90 degrees left

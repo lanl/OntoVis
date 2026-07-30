@@ -67,14 +67,21 @@ def _blind_observation(clear=None, uncertain=None):
     }
 
 
-def _stage2_response(decision, selected_candidate=None, explanation=""):
+def _stage2_response(decision, selected_candidate=None, explanation="", candidate_verdicts=None):
     return json.dumps({
+        "candidate_verdicts": candidate_verdicts or {},
         "decision": decision,
         "selected_candidate": selected_candidate,
         "supporting_observations": [],
         "contradictory_observations": [],
         "explanation": explanation,
     })
+
+
+def _passing_verdict(criteria):
+    """A step-1 verdict where every listed criterion is independently satisfied -- clears
+    the absolute floor in run_isovalue_band_selection for a "selected" decision."""
+    return {"verdict": "passes", "criteria_met": list(criteria), "criteria_not_met": []}
 
 
 def _is_stage1_call(extra_images):
@@ -282,6 +289,76 @@ def test_no_match_is_propagated_without_falling_back_to_a_guess(session):
     assert Path(result["final_image_path"]).is_file()  # still renders SOMETHING (current state), never guesses
 
 
+def test_relative_best_of_a_bad_lot_is_rejected_even_if_model_says_selected(session):
+    # Regression for the "WINDOW_0_32" case: Stage 2 can be tempted to pick whichever
+    # candidate is LEAST bad relative to the others ("candidate_0 has less fragmentation
+    # than 2-7") without that candidate actually satisfying the success criteria on its own
+    # merits. The model's top-level "decision": "selected" must not be trusted blindly --
+    # if the chosen candidate's own step-1 verdict is "fails", the whole selection is
+    # rejected (treated the same as an explicit "no_match"), not silently accepted.
+    target_candidate_id = f"{CANDIDATE_ID_PREFIX}0"
+    success_criteria = ["bone structure is clearly visible", "minimal noise or fragmentation"]
+
+    def fake_ask(prompt, extra_images=None, model=None, **kwargs):
+        if _is_stage1_call(extra_images):
+            return json.dumps(_blind_observation())
+        return _stage2_response(
+            "selected", target_candidate_id,
+            "candidate_0 is relatively the best of the available candidates",
+            candidate_verdicts={
+                target_candidate_id: {
+                    "verdict": "fails",
+                    "criteria_met": ["bone structure is clearly visible"],
+                    "criteria_not_met": ["minimal noise or fragmentation"],
+                },
+            },
+        )
+
+    with patch("visualization_orchestrator.specialists.isovalue_adapter.ask_chatgpt", side_effect=fake_ask):
+        result = run_isovalue_band_selection(session, goal="show the bone", success_criteria=success_criteria)
+
+    assert result["converged"] is False
+    assert result["selected_band_label"] is None
+    assert "did not independently satisfy" in result["reasoning"]
+
+
+def test_missing_verdict_entry_is_treated_as_failed_floor_not_a_free_pass(session):
+    # If the model's response omits candidate_verdicts entirely (or omits the selected
+    # candidate's entry) while still claiming "selected", that must not bypass the floor.
+    target_candidate_id = f"{CANDIDATE_ID_PREFIX}0"
+
+    def fake_ask(prompt, extra_images=None, model=None, **kwargs):
+        if _is_stage1_call(extra_images):
+            return json.dumps(_blind_observation())
+        return _stage2_response("selected", target_candidate_id, "best match")  # no verdicts
+
+    with patch("visualization_orchestrator.specialists.isovalue_adapter.ask_chatgpt", side_effect=fake_ask):
+        result = run_isovalue_band_selection(session, goal="show bone", success_criteria=["bone is visible"])
+
+    assert result["converged"] is False
+    assert result["selected_band_label"] is None
+
+
+def test_absolute_floor_is_skipped_when_no_success_criteria_given(session):
+    # With no success criteria to independently check, there's nothing for the floor to
+    # enforce -- a "selected" decision is accepted the same as before this feature existed.
+    windows = compute_fixed_windows()
+    target_index = 4
+    target_label = f"{WINDOW_LABEL_PREFIX}{windows[target_index]['low']}_{windows[target_index]['high']}"
+    target_candidate_id = f"{CANDIDATE_ID_PREFIX}{target_index}"
+
+    def fake_ask(prompt, extra_images=None, model=None, **kwargs):
+        if _is_stage1_call(extra_images):
+            return json.dumps(_blind_observation())
+        return _stage2_response("selected", target_candidate_id, "best match")  # no verdicts
+
+    with patch("visualization_orchestrator.specialists.isovalue_adapter.ask_chatgpt", side_effect=fake_ask):
+        result = run_isovalue_band_selection(session, goal="show something", success_criteria=[])
+
+    assert result["converged"] is True
+    assert result["selected_band_label"] == target_label
+
+
 def test_invalid_stage2_response_also_reports_failure_not_a_guess(session):
     def fake_ask(prompt, extra_images=None, model=None, **kwargs):
         if _is_stage1_call(extra_images):
@@ -337,14 +414,19 @@ def test_run_isovalue_band_selection_end_to_end(session):
 
     blind_call_count = {"n": 0}
 
+    success_criteria = ["bone is visible"]
+
     def fake_ask(prompt, extra_images=None, model=None, **kwargs):
         if _is_stage1_call(extra_images):
             blind_call_count["n"] += 1
             return json.dumps(_blind_observation())
-        return _stage2_response("selected", target_candidate_id, "best match")
+        return _stage2_response(
+            "selected", target_candidate_id, "best match",
+            candidate_verdicts={target_candidate_id: _passing_verdict(success_criteria)},
+        )
 
     with patch("visualization_orchestrator.specialists.isovalue_adapter.ask_chatgpt", side_effect=fake_ask):
-        result = run_isovalue_band_selection(session, goal="show bone", success_criteria=["bone is visible"])
+        result = run_isovalue_band_selection(session, goal="show bone", success_criteria=success_criteria)
 
     assert blind_call_count["n"] == len(windows)  # Stage 1: one call per window
     assert result["converged"] is True
@@ -366,16 +448,20 @@ def test_run_isovalue_band_selection_end_to_end(session):
 
 def test_run_isovalue_band_selection_respects_num_windows(session):
     blind_call_count = {"n": 0}
+    success_criteria = ["bone is visible"]
 
     def fake_ask(prompt, extra_images=None, model=None, **kwargs):
         if _is_stage1_call(extra_images):
             blind_call_count["n"] += 1
             return json.dumps(_blind_observation())
-        return _stage2_response("selected", f"{CANDIDATE_ID_PREFIX}0", "ok")
+        return _stage2_response(
+            "selected", f"{CANDIDATE_ID_PREFIX}0", "ok",
+            candidate_verdicts={f"{CANDIDATE_ID_PREFIX}0": _passing_verdict(success_criteria)},
+        )
 
     with patch("visualization_orchestrator.specialists.isovalue_adapter.ask_chatgpt", side_effect=fake_ask):
         result = run_isovalue_band_selection(
-            session, goal="show bone", success_criteria=["bone is visible"], num_windows=4,
+            session, goal="show bone", success_criteria=success_criteria, num_windows=4,
         )
 
     assert len(result["bands"]) == 4
@@ -389,11 +475,15 @@ def test_isovalue_specialist_run_until_complete_success(session):
     target_index = 3
     target_label = f"{WINDOW_LABEL_PREFIX}{windows[target_index]['low']}_{windows[target_index]['high']}"
     target_candidate_id = f"{CANDIDATE_ID_PREFIX}{target_index}"
+    success_criteria = ["bone is visible"]
 
     def fake_ask(prompt, extra_images=None, model=None, **kwargs):
         if _is_stage1_call(extra_images):
             return json.dumps(_blind_observation())
-        return _stage2_response("selected", target_candidate_id, "best match")
+        return _stage2_response(
+            "selected", target_candidate_id, "best match",
+            candidate_verdicts={target_candidate_id: _passing_verdict(success_criteria)},
+        )
 
     iterations_seen = []
     specialist = IsovalueSpecialist(session, on_iteration=iterations_seen.append)
@@ -408,7 +498,7 @@ def test_isovalue_specialist_run_until_complete_success(session):
 
     with patch("visualization_orchestrator.specialists.isovalue_adapter.ask_chatgpt", side_effect=fake_ask):
         exec_result = specialist.run_until_complete(
-            goal="show bone", state=state, constraints={}, success_criteria=["bone is visible"],
+            goal="show bone", state=state, constraints={}, success_criteria=success_criteria,
         )
 
     assert exec_result.status == "success"
