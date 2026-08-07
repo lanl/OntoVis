@@ -1,3 +1,12 @@
+# =============================================================================
+# TRANSFER FUNCTION AGENT — QUALITY REFINEMENT V2
+# NEW IMPLEMENTATION: FIXED-WINDOW COARSE SEARCH + RANGE/OPACITY REFINEMENT
+# VERSION CONSTANT: TF_REFINEMENT_IMPLEMENTATION_VERSION = "quality-refinement-v2"
+#
+# IMPORTANT: If this banner is missing, you are looking at the OLD implementation.
+# This version must continue past coarse windowing and test discrete refinement actions.
+# =============================================================================
+
 """Isovalue specialist: splits the volume's full intensity range into a FIXED set of
 equal-width WINDOWS (no dependence on the volume's own histogram shape), then selects one
 via a TWO-STAGE, GOAL-BLIND pipeline, then DETERMINISTICALLY derives an opacity/color
@@ -110,6 +119,22 @@ DEFAULT_VALUE_RANGE = (0.0, 256.0)
 DEFAULT_NUM_WINDOWS = 8  # how many equal-width windows to split the full intensity range into
 DEFAULT_PEAK_OPACITY = 0.55
 DEFAULT_SUSTAIN_OPACITY = 0.70
+TF_REFINEMENT_IMPLEMENTATION_VERSION = "quality-refinement-v2"
+
+# Local discrete refinement defaults. These are intentionally module-level defaults so the
+# existing constructor and callers do not need to change. Advanced callers may optionally
+# override them through the existing `constraints` dictionary in run_until_complete.
+DEFAULT_MAX_RANGE_ITERATIONS = 4
+DEFAULT_MAX_OPACITY_ITERATIONS = 3
+DEFAULT_OPACITY_STEP = 0.10
+DEFAULT_RAMP_SHAPE_STEP = 0.50
+MIN_RANGE_STEP = 1.0
+MIN_WIDTH_STEP = 1.0
+MIN_OPACITY_STEP = 0.025
+MIN_RAMP_SHAPE_STEP = 0.25
+
+CRITERION_STATUS_RANK = {"not_met": 0, "unknown": 1, "met": 2}
+ARTIFACT_SEVERITY_RANK = {"none": 0, "low": 1, "moderate": 2, "high": 3}
 
 # Neutral grayscale shades (dim, bright) used for EVERY window's evaluation preview -- same
 # hue and relative brightness curve regardless of a window's actual [low, high] (see
@@ -144,8 +169,9 @@ ISOVALUE_AGENT_SPEC = AgentSpec(
         "Splits the volume's full intensity range into fixed equal-width windows, "
         "describes each window's preview BLIND to the goal (Stage 1), then makes one "
         "text-only, goal-aware selection from those stored observations (Stage 2, may "
-        "abstain), then deterministically derives an opacity ramp from the selected "
-        "window's own range and renders it via direct volume rendering."
+        "abstain), uses that window as a coarse baseline, then locally refines range and "
+        "opacity with discrete actions accepted only when they preserve every goal "
+        "criterion and safely improve criteria or artifact quality."
     ),
     capabilities=[
         AgentCapability(
@@ -334,6 +360,56 @@ Respond with STRICT JSON ONLY, no prose outside the JSON:
 Include an entry in "candidate_verdicts" for every candidate listed above.
 """
 
+
+# Goal-aware evaluation used by both the coarse fixed-window stage and the local refinement
+# stages. The model is not allowed to rank candidates or choose an action. It only assigns a
+# categorical status to each explicit success criterion from the already goal-blind visual
+# observations. State transitions are then decided deterministically in Python.
+CRITERION_EVALUATION_PROMPT_TEMPLATE = """Evaluate each candidate independently against each success criterion.
+
+User goal:
+{goal}
+
+Criteria (use these opaque ids exactly):
+{criteria_block}
+
+Candidate observations:
+{candidate_observations}
+
+The observations were produced by a separate vision stage that did not know the goal.
+Do not rank candidates, do not choose a candidate, and do not infer any visual evidence that
+is absent from the supplied observations.
+
+For every candidate and criterion, assign exactly one status:
+- "met": the observation contains clear evidence that the criterion is satisfied.
+- "not_met": the observation contains clear evidence that the criterion is violated or the
+  required feature is visibly absent.
+- "unknown": the supplied observation is insufficient or ambiguous.
+
+Rules:
+- Judge every candidate on its own evidence, never relative to another candidate.
+- "unknown" is not the same as "met".
+- Use only criterion ids and candidate ids supplied below.
+- Evidence must quote or closely paraphrase the supplied observation, not the image itself.
+- Do not provide an overall score, preference, decision, or selected candidate.
+
+Respond with STRICT JSON ONLY:
+{{
+  "candidate_assessments": {{
+    "<candidate_N>": {{
+      "criteria": {{
+        "<criterion_N>": {{
+          "status": "met" | "not_met" | "unknown",
+          "evidence": ["<supporting or contradictory observation text>"]
+        }}
+      }}
+    }}
+  }}
+}}
+
+Include every supplied candidate and every supplied criterion exactly once.
+"""
+
 WINDOW_LABEL_PREFIX = "WINDOW_"
 CANDIDATE_ID_PREFIX = "candidate_"
 
@@ -380,6 +456,63 @@ def _strictly_increasing(points: List[tuple]) -> List[tuple]:
     return kept
 
 
+def _clamp(value: float, low: float, high: float) -> float:
+    return max(low, min(high, value))
+
+
+def _normalized_tf_state(
+    state: dict,
+    value_range: Tuple[float, float] = DEFAULT_VALUE_RANGE,
+) -> dict:
+    """Return a valid, canonical transfer-function search state.
+
+    Existing fixed-window dictionaries remain valid because every refinement parameter has a
+    default. Values are kept numeric and rounded only for stable cache keys/logging.
+    """
+    min_value, max_value = value_range
+    low = _clamp(float(state["low"]), min_value, max_value)
+    high = _clamp(float(state["high"]), min_value, max_value)
+    if high <= low:
+        high = min(max_value, low + 1.0)
+        if high <= low:
+            low = max(min_value, high - 1.0)
+
+    peak = (low + high) / 2.0
+    peak_opacity = _clamp(
+        float(state.get("peak_opacity", DEFAULT_PEAK_OPACITY)), 0.01, 0.95
+    )
+    sustain_opacity = _clamp(
+        float(state.get("sustain_opacity", DEFAULT_SUSTAIN_OPACITY)), 0.01, 0.98
+    )
+    sustain_opacity = max(peak_opacity, sustain_opacity)
+    ramp_shape = _clamp(float(state.get("ramp_shape", 0.0)), -1.0, 1.0)
+    transition_fraction = _clamp(
+        float(state.get("transition_fraction", 0.5)), 0.0, 2.0
+    )
+
+    return {
+        "low": round(low, 4),
+        "high": round(high, 4),
+        "peak": round(peak, 4),
+        "peak_opacity": round(peak_opacity, 4),
+        "sustain_opacity": round(sustain_opacity, 4),
+        "ramp_shape": round(ramp_shape, 4),
+        "transition_fraction": round(transition_fraction, 4),
+    }
+
+
+def _tf_state_key(state: dict) -> Tuple[float, ...]:
+    canonical = _normalized_tf_state(state, (float("-inf"), float("inf")))
+    return (
+        canonical["low"],
+        canonical["high"],
+        canonical["peak_opacity"],
+        canonical["sustain_opacity"],
+        canonical["ramp_shape"],
+        canonical["transition_fraction"],
+    )
+
+
 def build_opacity_ramp_for_band(
     band: dict,
     min_value: float = DEFAULT_VALUE_RANGE[0],
@@ -387,33 +520,39 @@ def build_opacity_ramp_for_band(
     peak_opacity: float = DEFAULT_PEAK_OPACITY,
     sustain_opacity: float = DEFAULT_SUSTAIN_OPACITY,
 ) -> Tuple[List[Tuple[float, float]], List[Tuple[float, float, float, float]]]:
-    """Deterministically derive an opacity/color transfer function from ONE window's own
-    [low, high] range and peak -- instead of hand-tuned constants. (Named `band`/
-    `build_opacity_ramp_for_band` rather than `window` for historical reasons -- the
-    fixed-window dict shape is identical to the earlier histogram-band dict shape, {"low",
-    "high", "peak"}, so this function works unchanged for either.) Used for the FINAL
-    applied result -- see build_evaluation_ramp_for_window for the neutral-color variant
-    used during evaluation.
+    """Build a deterministic ramp from a fixed window or a refined TF state.
 
-    Shape: opacity stays 0 below the window, ramps up GRADUALLY starting at `low` (never a
-    hard step) to `peak_opacity` by the window's own peak (its midpoint), then a slightly
-    higher `sustain_opacity` from `high` onward. Gradual ramps let THICK, continuous
-    material (the real target, many voxels deep along the viewing ray) accumulate to full
-    opacity via depth, while THIN/isolated structures at the same intensity (noise) stay
-    comparatively faint since they have little depth to accumulate over -- see the isovalue
-    specialist's module docstring.
-
-    Color: near-black below the window (invisible anyway), transitioning to a neutral warm
-    tone by the peak and held through to max_value (mostly occluded by then regardless).
+    Backward compatibility is preserved: callers may still pass only ``low/high/peak``.
+    Local refinement adds optional ``peak_opacity``, ``sustain_opacity``, ``ramp_shape``, and
+    ``transition_fraction`` fields. ``ramp_shape`` is represented using one extra linear
+    knee between low and peak: positive values rise earlier/sharper, negative values rise
+    later/softer.
     """
-    low, high, peak = band["low"], band["high"], band["peak"]
-    transition = max(1, (peak - low) // 2)
+    state = _normalized_tf_state(
+        {
+            **band,
+            "peak_opacity": band.get("peak_opacity", peak_opacity),
+            "sustain_opacity": band.get("sustain_opacity", sustain_opacity),
+        },
+        (min_value, max_value),
+    )
+    low, high, peak = state["low"], state["high"], state["peak"]
+    peak_opacity = state["peak_opacity"]
+    sustain_opacity = state["sustain_opacity"]
+    ramp_shape = state["ramp_shape"]
+
+    transition = max(1.0, (peak - low) * state["transition_fraction"])
     ramp_start = max(min_value, low - transition)
+    low_opacity = min(0.05, peak_opacity)
+    knee = low + 0.5 * (peak - low)
+    knee_fraction = _clamp(0.5 + 0.35 * ramp_shape, 0.10, 0.90)
+    knee_opacity = low_opacity + (peak_opacity - low_opacity) * knee_fraction
 
     opacity_points = _strictly_increasing([
         (min_value, 0.0),
         (ramp_start, 0.0),
-        (low, 0.05),
+        (low, low_opacity),
+        (knee, knee_opacity),
         (peak, peak_opacity),
         (high, sustain_opacity),
         (max_value, sustain_opacity),
@@ -425,7 +564,6 @@ def build_opacity_ramp_for_band(
         (max_value, 0.85, 0.75, 0.65),
     ])
     return opacity_points, color_points
-
 
 def build_evaluation_ramp_for_window(
     band: dict,
@@ -456,8 +594,9 @@ def build_evaluation_ramp_for_window(
         band, min_value=min_value, max_value=max_value,
         peak_opacity=peak_opacity, sustain_opacity=sustain_opacity,
     )
-    low, high, peak = band["low"], band["high"], band["peak"]
-    transition = max(1, (peak - low) // 2)
+    state = _normalized_tf_state(band, (min_value, max_value))
+    low, high, peak = state["low"], state["high"], state["peak"]
+    transition = max(1.0, (peak - low) * state["transition_fraction"])
     ramp_start = max(min_value, low - transition)
     dim_shade, bright_shade = EVALUATION_GRAY_SHADES
 
@@ -478,6 +617,66 @@ def view_action_map(multi_angle: bool = True) -> Dict[str, Optional[str]]:
     "view_action_map"); never sent to the LLM."""
     actions = VIEW_ACTIONS if multi_angle else VIEW_ACTIONS[:1]
     return {f"view_{i}": action for i, action in enumerate(actions)}
+
+
+def _safe_file_component(value: str) -> str:
+    return "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in value)
+
+
+def _render_tf_candidate_previews(
+    session: CameraReasoningSession,
+    candidates: List[dict],
+    output_dir: str,
+    value_range: Tuple[float, float] = DEFAULT_VALUE_RANGE,
+    multi_angle: bool = True,
+) -> Dict[str, Dict[str, str]]:
+    """Render arbitrary refined TF states with the same goal-blind grayscale treatment.
+
+    ``candidates`` entries contain ``candidate_id`` and ``state``. The session's previous
+    rendering mode, transfer function, and camera state are restored even on failure.
+    """
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    original_use_volume_rendering = session.use_volume_rendering
+    original_isovalue = session.isovalue
+    original_opacity_points = session.opacity_points
+    original_color_points = session.color_points
+    camera = session._renderer.GetActiveCamera()
+    original_camera_state = get_camera_state(camera)
+    actions_to_render = VIEW_ACTIONS if multi_angle else VIEW_ACTIONS[:1]
+
+    rendered: Dict[str, Dict[str, str]] = {}
+    try:
+        for entry in candidates:
+            candidate_id = entry["candidate_id"]
+            state = entry["state"]
+            opacity_points, color_points = build_evaluation_ramp_for_window(
+                state, min_value=value_range[0], max_value=value_range[1]
+            )
+            session.set_transfer_function(opacity_points, color_points)
+            view_images: Dict[str, str] = {}
+            file_prefix = _safe_file_component(entry.get("file_label") or candidate_id)
+            for view_index, action in enumerate(actions_to_render):
+                view_id = f"view_{view_index}"
+                set_camera_state(camera, original_camera_state)
+                if action is not None:
+                    apply_action(action, camera, session._renderer)
+                else:
+                    session._renderer.ResetCameraClippingRange()
+                image_path = str(out_dir / f"{file_prefix}_{view_id}.png")
+                save_screenshot(session._render_window, image_path)
+                view_images[view_id] = image_path
+            rendered[candidate_id] = view_images
+    finally:
+        if original_use_volume_rendering:
+            session.set_transfer_function(original_opacity_points, original_color_points)
+        else:
+            session.set_isovalue(original_isovalue)
+        set_camera_state(camera, original_camera_state)
+        session._renderer.ResetCameraClippingRange()
+
+    return rendered
 
 
 def render_window_previews(
@@ -600,6 +799,714 @@ def _select_candidate_from_observations(
     return parsed, response_text
 
 
+def _evaluate_candidate_criteria(
+    goal: str,
+    success_criteria: List[str],
+    candidate_observations: List[dict],
+    model: Optional[str],
+) -> Tuple[Optional[dict], str]:
+    """Text-only categorical criterion assessment; never asks the LLM to choose."""
+    criteria_block = "\n".join(
+        f"criterion_{i}: {criterion}" for i, criterion in enumerate(success_criteria)
+    )
+    observation_blocks = []
+    for entry in candidate_observations:
+        observation = entry.get("observation")
+        if observation is None:
+            observation = {"error": "no observation available"}
+        observation_blocks.append(
+            f"[{entry['candidate_id']}]\n{json.dumps(observation, indent=2)}"
+        )
+
+    prompt = CRITERION_EVALUATION_PROMPT_TEMPLATE.format(
+        goal=goal,
+        criteria_block=criteria_block,
+        candidate_observations="\n\n".join(observation_blocks),
+    )
+    response_text = ask_chatgpt(prompt=prompt, model=model)
+    return extract_json_object(response_text), response_text
+
+
+def _normalize_assessments(
+    parsed: Optional[dict],
+    candidate_ids: List[str],
+    success_criteria: List[str],
+) -> Dict[str, dict]:
+    """Normalize malformed/missing model fields to conservative ``unknown`` statuses."""
+    raw_assessments = (parsed or {}).get("candidate_assessments") or {}
+    normalized: Dict[str, dict] = {}
+    for candidate_id in candidate_ids:
+        raw_candidate = raw_assessments.get(candidate_id) or {}
+        raw_criteria = raw_candidate.get("criteria") or {}
+        criteria: Dict[str, dict] = {}
+        for index, criterion_text in enumerate(success_criteria):
+            criterion_id = f"criterion_{index}"
+            raw_item = raw_criteria.get(criterion_id) or {}
+            status = raw_item.get("status")
+            if status not in CRITERION_STATUS_RANK:
+                status = "unknown"
+            evidence = raw_item.get("evidence")
+            if not isinstance(evidence, list):
+                evidence = []
+            criteria[criterion_id] = {
+                "criterion": criterion_text,
+                "status": status,
+                "evidence": [str(item) for item in evidence if item is not None],
+            }
+        normalized[candidate_id] = {"criteria": criteria}
+    return normalized
+
+
+def _criterion_status_map(assessment: dict) -> Dict[str, str]:
+    return {
+        criterion_id: item.get("status", "unknown")
+        for criterion_id, item in (assessment.get("criteria") or {}).items()
+    }
+
+
+def _all_criteria_met(assessment: dict) -> bool:
+    statuses = list(_criterion_status_map(assessment).values())
+    return bool(statuses) and all(status == "met" for status in statuses)
+
+
+def _candidate_verdicts_from_assessments(
+    assessments: Dict[str, dict],
+) -> Dict[str, dict]:
+    """Maintain the old public ``candidate_verdicts`` return field."""
+    verdicts: Dict[str, dict] = {}
+    for candidate_id, assessment in assessments.items():
+        criteria = assessment.get("criteria") or {}
+        met = [item["criterion"] for item in criteria.values() if item["status"] == "met"]
+        not_met = [
+            item["criterion"] for item in criteria.values() if item["status"] != "met"
+        ]
+        verdicts[candidate_id] = {
+            "verdict": "passes" if criteria and not not_met else "fails",
+            "criteria_met": met,
+            "criteria_not_met": not_met,
+            "criterion_statuses": {
+                item["criterion"]: item["status"] for item in criteria.values()
+            },
+        }
+    return verdicts
+
+
+ARTIFACT_FIELDS = ("isolated_fragments", "surface_noise", "occlusion")
+
+
+def _artifact_severity_map(observation: Optional[dict]) -> Dict[str, int]:
+    """Return comparable artifact severities; lower is better.
+
+    Missing or malformed fields are treated conservatively as ``moderate``. A completely
+    missing observation is handled separately by candidate selection and is never accepted
+    as a refinement.
+    """
+    artifacts = (observation or {}).get("noise_and_artifacts") or {}
+    severities: Dict[str, int] = {}
+    for field in ARTIFACT_FIELDS:
+        value = str(artifacts.get(field, "moderate")).strip().lower()
+        severities[field] = ARTIFACT_SEVERITY_RANK.get(
+            value, ARTIFACT_SEVERITY_RANK["moderate"]
+        )
+    return severities
+
+
+def _artifact_penalty(observation: Optional[dict]) -> int:
+    return sum(_artifact_severity_map(observation).values())
+
+
+def _assessment_quality_tuple(
+    assessment: dict,
+    observation: Optional[dict],
+    candidate_index: int,
+) -> tuple:
+    statuses = list(_criterion_status_map(assessment).values())
+    score = sum(CRITERION_STATUS_RANK.get(status, 1) for status in statuses)
+    met_count = sum(status == "met" for status in statuses)
+    not_met_count = sum(status == "not_met" for status in statuses)
+    return (score, met_count, -not_met_count, -_artifact_penalty(observation), -candidate_index)
+
+
+def _select_coarse_baseline(
+    candidate_ids: List[str],
+    assessments: Dict[str, dict],
+    observations_by_id: Dict[str, Optional[dict]],
+) -> Optional[str]:
+    """Choose a deterministic coarse starting point without asking the LLM to rank.
+
+    At least one criterion must be ``met`` or ``unknown``. If every candidate is explicitly
+    ``not_met`` on every criterion, the fixed sweep provides no defensible local-search
+    anchor and the agent abstains.
+    """
+    viable = []
+    for index, candidate_id in enumerate(candidate_ids):
+        statuses = list(_criterion_status_map(assessments[candidate_id]).values())
+        if observations_by_id.get(candidate_id) is None:
+            continue
+        if statuses and all(status == "not_met" for status in statuses):
+            continue
+        viable.append(
+            (
+                _assessment_quality_tuple(
+                    assessments[candidate_id], observations_by_id[candidate_id], index
+                ),
+                candidate_id,
+            )
+        )
+    return max(viable)[1] if viable else None
+
+
+def _refinement_improvement(
+    candidate_assessment: dict,
+    current_assessment: dict,
+    candidate_observation: Optional[dict],
+    current_observation: Optional[dict],
+) -> Optional[Tuple[int, int, int]]:
+    """Measure a safe local refinement, or return ``None`` when it is not acceptable.
+
+    Success criteria are hard constraints: a refinement may never lower any criterion's
+    categorical rank. Artifact dimensions are also compared independently, so a candidate
+    cannot hide worse occlusion behind lower surface noise. At least one criterion or
+    artifact dimension must improve strictly.
+
+    Returns ``(total_gain, criterion_gain, artifact_gain)`` for deterministic ranking.
+    """
+    if candidate_observation is None:
+        return None
+
+    candidate_statuses = _criterion_status_map(candidate_assessment)
+    current_statuses = _criterion_status_map(current_assessment)
+    if candidate_statuses.keys() != current_statuses.keys():
+        return None
+
+    criterion_gain = 0
+    for criterion_id, current_status in current_statuses.items():
+        candidate_rank = CRITERION_STATUS_RANK[candidate_statuses[criterion_id]]
+        current_rank = CRITERION_STATUS_RANK[current_status]
+        if candidate_rank < current_rank:
+            return None
+        criterion_gain += candidate_rank - current_rank
+
+    candidate_artifacts = _artifact_severity_map(candidate_observation)
+    current_artifacts = _artifact_severity_map(current_observation)
+    artifact_gain = 0
+    for field in ARTIFACT_FIELDS:
+        candidate_severity = candidate_artifacts[field]
+        current_severity = current_artifacts[field]
+        if candidate_severity > current_severity:
+            return None
+        artifact_gain += current_severity - candidate_severity
+
+    total_gain = criterion_gain + artifact_gain
+    if total_gain <= 0:
+        return None
+    return total_gain, criterion_gain, artifact_gain
+
+
+def _parameter_distance(a: dict, b: dict) -> float:
+    keys = ("low", "high", "peak_opacity", "sustain_opacity", "ramp_shape")
+    return sum(abs(float(a[key]) - float(b[key])) for key in keys)
+
+
+def _choose_dominating_candidate(
+    candidates: List[dict],
+    assessments_by_key: Dict[Tuple[float, ...], dict],
+    observations_by_key: Dict[Tuple[float, ...], Optional[dict]],
+    current_state: dict,
+) -> Optional[dict]:
+    current_key = _tf_state_key(current_state)
+    current_assessment = assessments_by_key[current_key]
+    current_observation = observations_by_key.get(current_key)
+    ranked = []
+    for index, candidate in enumerate(candidates):
+        key = _tf_state_key(candidate["state"])
+        if key == current_key:
+            continue
+        assessment = assessments_by_key[key]
+        improvement = _refinement_improvement(
+            assessment,
+            current_assessment,
+            observations_by_key.get(key),
+            current_observation,
+        )
+        if improvement is None:
+            continue
+        total_gain, criterion_gain, artifact_gain = improvement
+        quality = _assessment_quality_tuple(
+            assessment, observations_by_key.get(key), index
+        )
+        ranking_key = (
+            total_gain,
+            criterion_gain,
+            artifact_gain,
+            quality,
+            -_parameter_distance(candidate["state"], current_state),
+            -index,
+        )
+        ranked.append((ranking_key, candidate))
+    return max(ranked, key=lambda item: item[0])[1] if ranked else None
+
+
+def _replace_range(state: dict, low: float, high: float, value_range: Tuple[float, float]) -> dict:
+    return _normalized_tf_state({**state, "low": low, "high": high}, value_range)
+
+
+def _generate_range_candidates(
+    current_state: dict,
+    shift_step: float,
+    width_step: float,
+    value_range: Tuple[float, float],
+) -> List[dict]:
+    current = _normalized_tf_state(current_state, value_range)
+    low, high = current["low"], current["high"]
+    min_value, max_value = value_range
+    width = high - low
+
+    proposals = [
+        ("CURRENT", current),
+        ("SHIFT_LOWER", _replace_range(current, max(min_value, low - shift_step), max(min_value, low - shift_step) + width, value_range)),
+        ("SHIFT_HIGHER", _replace_range(current, min(max_value - width, low + shift_step), min(max_value - width, low + shift_step) + width, value_range)),
+        ("EXPAND_RANGE", _replace_range(current, max(min_value, low - width_step), min(max_value, high + width_step), value_range)),
+    ]
+    if high - low > 2.0 * width_step + 1.0:
+        proposals.append(
+            ("NARROW_RANGE", _replace_range(current, low + width_step, high - width_step, value_range))
+        )
+
+    deduplicated = []
+    seen = set()
+    for action, state in proposals:
+        key = _tf_state_key(state)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduplicated.append({"action": action, "state": state})
+    return deduplicated
+
+
+def _generate_opacity_candidates(
+    current_state: dict,
+    opacity_step: float,
+    ramp_shape_step: float,
+    value_range: Tuple[float, float],
+) -> List[dict]:
+    current = _normalized_tf_state(current_state, value_range)
+    proposals = [
+        ("CURRENT", current),
+        (
+            "INCREASE_OPACITY",
+            _normalized_tf_state(
+                {
+                    **current,
+                    "peak_opacity": current["peak_opacity"] + opacity_step,
+                    "sustain_opacity": current["sustain_opacity"] + opacity_step,
+                },
+                value_range,
+            ),
+        ),
+        (
+            "DECREASE_OPACITY",
+            _normalized_tf_state(
+                {
+                    **current,
+                    "peak_opacity": current["peak_opacity"] - opacity_step,
+                    "sustain_opacity": current["sustain_opacity"] - opacity_step,
+                },
+                value_range,
+            ),
+        ),
+        (
+            "SHARPEN_RAMP",
+            _normalized_tf_state(
+                {**current, "ramp_shape": current["ramp_shape"] + ramp_shape_step},
+                value_range,
+            ),
+        ),
+        (
+            "SOFTEN_RAMP",
+            _normalized_tf_state(
+                {**current, "ramp_shape": current["ramp_shape"] - ramp_shape_step},
+                value_range,
+            ),
+        ),
+    ]
+
+    deduplicated = []
+    seen = set()
+    for action, state in proposals:
+        key = _tf_state_key(state)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduplicated.append({"action": action, "state": state})
+    return deduplicated
+
+
+def _evaluate_refinement_states(
+    session: CameraReasoningSession,
+    candidates: List[dict],
+    goal: str,
+    success_criteria: List[str],
+    model: Optional[str],
+    output_dir: str,
+    value_range: Tuple[float, float],
+    multi_angle: bool,
+    observation_cache: Dict[Tuple[float, ...], Optional[dict]],
+    assessment_cache: Dict[Tuple[float, ...], dict],
+    render_cache: Dict[Tuple[float, ...], Dict[str, str]],
+    raw_responses: List[str],
+    phase: str,
+    iteration: int,
+) -> int:
+    """Populate render/observation/assessment caches and return the LLM-call count.
+
+    Render paths are cached independently from observations. This lets the notebook callback
+    display every range/opacity candidate even when a state's blind observation was reused
+    from an earlier iteration.
+    """
+    llm_calls = 0
+    local_id_to_key: Dict[str, Tuple[float, ...]] = {}
+    missing_renders: List[dict] = []
+
+    for index, candidate in enumerate(candidates):
+        key = _tf_state_key(candidate["state"])
+        candidate_id = f"candidate_{index}"
+        candidate["candidate_id"] = candidate_id
+        candidate["file_label"] = f"{phase}_{iteration}_{candidate['action']}_{index}"
+        local_id_to_key[candidate_id] = key
+        if key not in render_cache:
+            missing_renders.append(candidate)
+
+    if missing_renders:
+        rendered = _render_tf_candidate_previews(
+            session,
+            missing_renders,
+            output_dir,
+            value_range=value_range,
+            multi_angle=multi_angle,
+        )
+        for candidate in missing_renders:
+            key = _tf_state_key(candidate["state"])
+            render_cache[key] = rendered[candidate["candidate_id"]]
+
+    for candidate in candidates:
+        key = _tf_state_key(candidate["state"])
+        if key in observation_cache:
+            continue
+        parsed, response_text = _observe_window_blind(render_cache[key], model)
+        observation_cache[key] = parsed
+        raw_responses.append(
+            f"=== {phase} iteration {iteration} {candidate['action']} blind observation ===\n"
+            f"{response_text}"
+        )
+        llm_calls += 1
+
+    missing_assessments = []
+    for candidate in candidates:
+        key = _tf_state_key(candidate["state"])
+        if key not in assessment_cache:
+            missing_assessments.append(
+                {
+                    "candidate_id": candidate["candidate_id"],
+                    "observation": observation_cache.get(key),
+                }
+            )
+
+    if missing_assessments:
+        parsed, response_text = _evaluate_candidate_criteria(
+            goal, success_criteria, missing_assessments, model
+        )
+        normalized = _normalize_assessments(
+            parsed,
+            [entry["candidate_id"] for entry in missing_assessments],
+            success_criteria,
+        )
+        for entry in missing_assessments:
+            candidate_id = entry["candidate_id"]
+            assessment_cache[local_id_to_key[candidate_id]] = normalized[candidate_id]
+        raw_responses.append(
+            f"=== {phase} iteration {iteration} criterion evaluation ===\n{response_text}"
+        )
+        llm_calls += 1
+
+    return llm_calls
+
+
+def _refinement_candidate_snapshot(
+    candidates: List[dict],
+    selected_state: dict,
+    observation_cache: Dict[Tuple[float, ...], Optional[dict]],
+    assessment_cache: Dict[Tuple[float, ...], dict],
+    render_cache: Dict[Tuple[float, ...], Dict[str, str]],
+) -> List[dict]:
+    """Build the existing notebook callback shape for one refinement iteration."""
+    selected_key = _tf_state_key(selected_state)
+    snapshots: List[dict] = []
+    for candidate in candidates:
+        state = candidate["state"]
+        key = _tf_state_key(state)
+        observation = observation_cache.get(key)
+        assessment = assessment_cache[key]
+        views = render_cache.get(key, {})
+        artifacts = _artifact_severity_map(observation)
+        snapshots.append(
+            {
+                "label": candidate["action"],
+                "image_path": next(iter(views.values()), None),
+                "selected": key == selected_key,
+                "real_action": candidate["action"],
+                "observation": _summarize_observation(observation),
+                "satisfies_goal": _all_criteria_met(assessment),
+                "range": (
+                    f"{state['low']:g}-{state['high']:g}; "
+                    f"peak_opacity={state['peak_opacity']:.3f}; "
+                    f"sustain_opacity={state['sustain_opacity']:.3f}; "
+                    f"ramp_shape={state['ramp_shape']:.3f}"
+                ),
+                "view_images": views,
+                "criterion_statuses": _criterion_status_map(assessment),
+                "artifact_severities": artifacts,
+                "tf_state": state,
+            }
+        )
+    return snapshots
+
+
+def _representative_refinement_image(
+    state: dict,
+    render_cache: Dict[Tuple[float, ...], Dict[str, str]],
+) -> Optional[str]:
+    views = render_cache.get(_tf_state_key(state), {})
+    return next(iter(views.values()), None)
+
+
+def _run_local_refinement(
+    session: CameraReasoningSession,
+    initial_state: dict,
+    initial_observation: Optional[dict],
+    initial_assessment: dict,
+    goal: str,
+    success_criteria: List[str],
+    model: Optional[str],
+    output_dir: str,
+    value_range: Tuple[float, float],
+    multi_angle: bool,
+    max_range_iterations: int,
+    max_opacity_iterations: int,
+) -> dict:
+    """Run range then opacity search using criterion-and-artifact Pareto dominance.
+
+    Meeting every success criterion marks the current visualization as valid, but does not
+    terminate refinement. Range and opacity phases still test local actions for lower noise,
+    fewer isolated fragments, or lower occlusion without sacrificing any goal criterion.
+    """
+    current_state = _normalized_tf_state(initial_state, value_range)
+    initial_key = _tf_state_key(current_state)
+    observation_cache: Dict[Tuple[float, ...], Optional[dict]] = {
+        initial_key: initial_observation
+    }
+    assessment_cache: Dict[Tuple[float, ...], dict] = {initial_key: initial_assessment}
+    render_cache: Dict[Tuple[float, ...], Dict[str, str]] = {}
+    raw_responses: List[str] = []
+    history: List[dict] = []
+    llm_calls = 0
+
+    initial_width = max(1.0, current_state["high"] - current_state["low"])
+    shift_step = max(MIN_RANGE_STEP, initial_width / 4.0)
+    width_step = max(MIN_WIDTH_STEP, initial_width / 4.0)
+
+    for iteration in range(max(0, max_range_iterations)):
+        candidates = _generate_range_candidates(
+            current_state, shift_step, width_step, value_range
+        )
+        llm_calls += _evaluate_refinement_states(
+            session,
+            candidates,
+            goal,
+            success_criteria,
+            model,
+            str(Path(output_dir) / "range"),
+            value_range,
+            multi_angle,
+            observation_cache,
+            assessment_cache,
+            render_cache,
+            raw_responses,
+            "range",
+            iteration,
+        )
+        selected = _choose_dominating_candidate(
+            candidates, assessment_cache, observation_cache, current_state
+        )
+        if selected is not None:
+            previous = current_state
+            current_state = selected["state"]
+            assessment = assessment_cache[_tf_state_key(current_state)]
+            history.append(
+                {
+                    "phase": "range",
+                    "iteration": iteration,
+                    "action": selected["action"],
+                    "accepted": True,
+                    "before": previous,
+                    "after": current_state,
+                    "criterion_statuses": _criterion_status_map(assessment),
+                    "artifact_severities": _artifact_severity_map(
+                        observation_cache.get(_tf_state_key(current_state))
+                    ),
+                    "current_image_path": _representative_refinement_image(
+                        current_state, render_cache
+                    ),
+                    "candidates": _refinement_candidate_snapshot(
+                        candidates,
+                        current_state,
+                        observation_cache,
+                        assessment_cache,
+                        render_cache,
+                    ),
+                }
+            )
+            continue
+
+        next_shift = max(MIN_RANGE_STEP, shift_step / 2.0)
+        next_width = max(MIN_WIDTH_STEP, width_step / 2.0)
+        history.append(
+            {
+                "phase": "range",
+                "iteration": iteration,
+                "action": "REDUCE_STEP" if (next_shift, next_width) != (shift_step, width_step) else "STOP_PHASE",
+                "accepted": False,
+                "before": current_state,
+                "after": current_state,
+                "shift_step": shift_step,
+                "width_step": width_step,
+                "criterion_statuses": _criterion_status_map(
+                    assessment_cache[_tf_state_key(current_state)]
+                ),
+                "artifact_severities": _artifact_severity_map(
+                    observation_cache.get(_tf_state_key(current_state))
+                ),
+                "current_image_path": _representative_refinement_image(
+                    current_state, render_cache
+                ),
+                "candidates": _refinement_candidate_snapshot(
+                    candidates,
+                    current_state,
+                    observation_cache,
+                    assessment_cache,
+                    render_cache,
+                ),
+            }
+        )
+        if (next_shift, next_width) == (shift_step, width_step):
+            break
+        shift_step, width_step = next_shift, next_width
+
+    opacity_step = DEFAULT_OPACITY_STEP
+    ramp_shape_step = DEFAULT_RAMP_SHAPE_STEP
+    for iteration in range(max(0, max_opacity_iterations)):
+        candidates = _generate_opacity_candidates(
+            current_state, opacity_step, ramp_shape_step, value_range
+        )
+        llm_calls += _evaluate_refinement_states(
+            session,
+            candidates,
+            goal,
+            success_criteria,
+            model,
+            str(Path(output_dir) / "opacity"),
+            value_range,
+            multi_angle,
+            observation_cache,
+            assessment_cache,
+            render_cache,
+            raw_responses,
+            "opacity",
+            iteration,
+        )
+        selected = _choose_dominating_candidate(
+            candidates, assessment_cache, observation_cache, current_state
+        )
+        if selected is not None:
+            previous = current_state
+            current_state = selected["state"]
+            assessment = assessment_cache[_tf_state_key(current_state)]
+            history.append(
+                {
+                    "phase": "opacity",
+                    "iteration": iteration,
+                    "action": selected["action"],
+                    "accepted": True,
+                    "before": previous,
+                    "after": current_state,
+                    "criterion_statuses": _criterion_status_map(assessment),
+                    "artifact_severities": _artifact_severity_map(
+                        observation_cache.get(_tf_state_key(current_state))
+                    ),
+                    "current_image_path": _representative_refinement_image(
+                        current_state, render_cache
+                    ),
+                    "candidates": _refinement_candidate_snapshot(
+                        candidates,
+                        current_state,
+                        observation_cache,
+                        assessment_cache,
+                        render_cache,
+                    ),
+                }
+            )
+            continue
+
+        next_opacity = max(MIN_OPACITY_STEP, opacity_step / 2.0)
+        next_ramp = max(MIN_RAMP_SHAPE_STEP, ramp_shape_step / 2.0)
+        history.append(
+            {
+                "phase": "opacity",
+                "iteration": iteration,
+                "action": "REDUCE_STEP" if (next_opacity, next_ramp) != (opacity_step, ramp_shape_step) else "STOP_PHASE",
+                "accepted": False,
+                "before": current_state,
+                "after": current_state,
+                "opacity_step": opacity_step,
+                "ramp_shape_step": ramp_shape_step,
+                "criterion_statuses": _criterion_status_map(
+                    assessment_cache[_tf_state_key(current_state)]
+                ),
+                "artifact_severities": _artifact_severity_map(
+                    observation_cache.get(_tf_state_key(current_state))
+                ),
+                "current_image_path": _representative_refinement_image(
+                    current_state, render_cache
+                ),
+                "candidates": _refinement_candidate_snapshot(
+                    candidates,
+                    current_state,
+                    observation_cache,
+                    assessment_cache,
+                    render_cache,
+                ),
+            }
+        )
+        if (next_opacity, next_ramp) == (opacity_step, ramp_shape_step):
+            break
+        opacity_step, ramp_shape_step = next_opacity, next_ramp
+
+    final_assessment = assessment_cache[_tf_state_key(current_state)]
+    return {
+        "state": current_state,
+        "assessment": final_assessment,
+        "converged": _all_criteria_met(final_assessment),
+        "history": history,
+        "raw_responses": raw_responses,
+        "llm_calls": llm_calls,
+        "stop_reason": (
+            "Local range and opacity refinement finished; final success criteria are met."
+            if _all_criteria_met(final_assessment)
+            else "Local range and opacity refinement finished, but some success criteria remain unmet."
+        ),
+    }
+
+
 def _summarize_observation(observation: Optional[dict]) -> str:
     """Turn a Stage-1 structured observation into one readable line -- for on_iteration
     display and human-facing reasoning text, not used in any prompt."""
@@ -623,45 +1530,19 @@ def run_isovalue_band_selection(
     value_range: Tuple[float, float] = DEFAULT_VALUE_RANGE,
     output_dir: Optional[str] = None,
     multi_angle: bool = True,
+    max_range_iterations: int = DEFAULT_MAX_RANGE_ITERATIONS,
+    max_opacity_iterations: int = DEFAULT_MAX_OPACITY_ITERATIONS,
 ) -> dict:
-    """Split the full intensity range into `num_windows` fixed windows, render one
-    (neutral-grayscale) evaluation preview per window, run the two-stage blind-observation
-    pipeline (see module docstring) to pick one, then deterministically derive and apply an
-    opacity ramp from the selected window's own range using the normal warm palette.
-    (Function name kept as `run_isovalue_band_selection` for backward compatibility with
-    existing callers -- "band" here means "fixed window".)
+    """Coarse fixed-window initialization followed by in-file discrete TF refinement.
 
-    Stage 1 (`_observe_window_blind`): `num_windows` calls, one per window -- each call
-    shows ALL of that window's rendered views TOGETHER as separate full-resolution images
-    (never tiled), with a fully static, goal-blind prompt. Stage 2
-    (`_select_candidate_from_observations`): ONE text-only call given the goal and every
-    candidate's stored observation (opaque "candidate_N" ids, no images, no real window
-    labels), which judges each candidate independently against every success criterion
-    (step 1) before choosing among the ones that passed (step 2) -- see the prompt template.
-    Real window labels are only mapped back from the selected opaque id AFTER Stage 2
-    completes.
-
-    Absolute floor (only enforced when `success_criteria` is non-empty): even if Stage 2's
-    top-level "decision" says "selected", the selected candidate's OWN step-1 verdict must be
-    "passes" -- a candidate chosen merely for being relatively less bad than the other
-    windows, without independently satisfying every criterion, is rejected and treated the
-    same as "no_match". This is re-checked in code rather than trusted from the model's
-    "decision" field, since a "pick the best candidate" framing otherwise tends to produce
-    purely relative reasoning ("candidate_0 has less noise than 2-7") that can select a
-    window which doesn't actually satisfy the goal at all.
-
-    Returns {"converged": bool, "bands": [...] (the windows), "band_images": {label: path}
-    (one representative view per window, for simple display), "view_images": {label:
-    {view_id: path}} (every view actually shown to Stage 1, for logging/debugging),
-    "view_action_map": {view_id: real camera action or None}, "band_evaluation": [{"window":
-    label, "observation": dict | None}, ...], "candidate_verdicts": {candidate_id: {"verdict":
-    "passes"|"fails", "criteria_met": [...], "criteria_not_met": [...]}} (Stage 2's step-1
-    output, opaque ids, for debugging), "selected_band_label": str | None,
-    "final_opacity_points"/"final_color_points": the applied ramp or None,
-    "final_image_path": str, "reasoning": str, "raw_response": str}.
+    The public name and original arguments are retained. Existing callers therefore need no
+    changes. With non-empty success criteria, the LLM only performs (1) goal-blind visual
+    observation and (2) categorical per-criterion assessment. Python selects the coarse
+    baseline, accepts only criterion-and-artifact Pareto improvements, reduces step sizes
+    when no action improves safely, and runs both range and opacity phases to their step or
+    iteration limits even when the coarse baseline already satisfies every success criterion.
     """
     windows = compute_fixed_windows(num_windows=num_windows, value_range=value_range)
-
     render_dir = output_dir or str(Path(session.output_dir) / "screenshots" / "isovalue_windows")
     rendered = render_window_previews(
         session, windows, render_dir, value_range=value_range, multi_angle=multi_angle
@@ -674,63 +1555,97 @@ def run_isovalue_band_selection(
     candidate_to_window = dict(zip(candidate_ids, windows))
     candidate_to_label = dict(zip(candidate_ids, window_labels))
 
-    # --- Stage 1: blind, per-candidate, all views for that candidate in ONE call --------
-    raw_responses = []
-    candidate_observations = []
+    raw_responses: List[str] = []
+    candidate_observations: List[dict] = []
+    llm_calls = 0
     for candidate_id, label in zip(candidate_ids, window_labels):
         parsed, response_text = _observe_window_blind(window_view_images[label], model)
         candidate_observations.append({"candidate_id": candidate_id, "observation": parsed})
         raw_responses.append(
-            f"=== {candidate_id} (blind observation, views={list(window_view_images[label])}) ===\n"
+            f"=== {candidate_id} coarse blind observation, views={list(window_view_images[label])} ===\n"
             f"{response_text}"
         )
+        llm_calls += 1
 
+    observations_by_id = {
+        entry["candidate_id"]: entry["observation"] for entry in candidate_observations
+    }
     band_evaluation = [
-        {"window": candidate_to_label[c["candidate_id"]], "observation": c["observation"]}
-        for c in candidate_observations
+        {"window": candidate_to_label[candidate_id], "observation": observations_by_id[candidate_id]}
+        for candidate_id in candidate_ids
     ]
 
-    # --- Stage 2: goal-aware, text-only, from stored observations only -------------------
-    selection_parsed, selection_raw = _select_candidate_from_observations(
+    # Preserve legacy behavior when no explicit criteria are available: use the original
+    # strict selector and skip local refinement because deterministic dominance is undefined.
+    if not success_criteria:
+        selection_parsed, selection_raw = _select_candidate_from_observations(
+            goal, success_criteria, candidate_observations, model
+        )
+        raw_responses.append(f"=== legacy coarse selection ===\n{selection_raw}")
+        llm_calls += 1
+        selected_candidate_id = (selection_parsed or {}).get("selected_candidate")
+        decision = (selection_parsed or {}).get("decision")
+        verdicts = (selection_parsed or {}).get("candidate_verdicts") or {}
+        if decision != "selected" or selected_candidate_id not in candidate_to_window:
+            final_image_path = session.render_and_save()
+            return {
+                "converged": False,
+                "bands": windows,
+                "band_images": window_images,
+                "view_images": window_view_images,
+                "view_action_map": view_action_map(multi_angle),
+                "band_evaluation": band_evaluation,
+                "candidate_verdicts": verdicts,
+                "selected_band_label": None,
+                "selected_tf_state": None,
+                "refinement_history": [],
+                "final_opacity_points": session.opacity_points,
+                "final_color_points": session.color_points,
+                "final_image_path": final_image_path,
+                "reasoning": (selection_parsed or {}).get("explanation") or "No candidate selected.",
+                "raw_response": "\n\n".join(raw_responses),
+                "llm_calls": llm_calls,
+            }
+        initial_state = _normalized_tf_state(candidate_to_window[selected_candidate_id], value_range)
+        opacity_points, color_points = build_opacity_ramp_for_band(
+            initial_state, min_value=value_range[0], max_value=value_range[1]
+        )
+        session.set_transfer_function(opacity_points, color_points)
+        final_image_path = session.render_and_save()
+        return {
+            "converged": True,
+            "bands": windows,
+            "band_images": window_images,
+            "view_images": window_view_images,
+            "view_action_map": view_action_map(multi_angle),
+            "band_evaluation": band_evaluation,
+            "candidate_verdicts": verdicts,
+            "selected_band_label": candidate_to_label[selected_candidate_id],
+            "selected_tf_state": initial_state,
+            "refinement_history": [],
+            "final_opacity_points": opacity_points,
+            "final_color_points": color_points,
+            "final_image_path": final_image_path,
+            "reasoning": (selection_parsed or {}).get("explanation", ""),
+            "raw_response": "\n\n".join(raw_responses),
+            "llm_calls": llm_calls,
+        }
+
+    evaluation_parsed, evaluation_raw = _evaluate_candidate_criteria(
         goal, success_criteria, candidate_observations, model
     )
-    raw_responses.append(f"=== stage 2 selection ===\n{selection_raw}")
-    raw_response = "\n\n".join(raw_responses)
+    raw_responses.append(f"=== coarse criterion evaluation ===\n{evaluation_raw}")
+    llm_calls += 1
+    assessments = _normalize_assessments(
+        evaluation_parsed, candidate_ids, success_criteria
+    )
+    verdicts = _candidate_verdicts_from_assessments(assessments)
+    selected_candidate_id = _select_coarse_baseline(
+        candidate_ids, assessments, observations_by_id
+    )
 
-    decision = (selection_parsed or {}).get("decision")
-    selected_candidate_id = (selection_parsed or {}).get("selected_candidate")
-    verdicts = (selection_parsed or {}).get("candidate_verdicts") or {}
-
-    floor_rejected = False
-    if success_criteria and decision == "selected" and selected_candidate_id in candidate_to_window:
-        # Absolute floor: don't trust "decision" alone -- require that THIS candidate's own
-        # step-1 verdict was "passes". Rejects a purely relative "best of a uniformly poor
-        # set" pick (see module docstring) even if the model's top-level decision claims a
-        # selection; a missing/malformed verdict entry is treated as a failed floor, not a
-        # free pass.
-        if (verdicts.get(selected_candidate_id) or {}).get("verdict") != "passes":
-            floor_rejected = True
-            decision = "no_match"
-            selected_candidate_id = None
-
-    if not selection_parsed or decision != "selected" or selected_candidate_id not in candidate_to_window:
-        # Either an invalid/unresolvable response, a legitimate "no_match" abstention, or a
-        # selection that failed the absolute floor -- either way, report failure rather than
-        # guessing a window.
-        if floor_rejected:
-            reasoning = (
-                "Rejected: the model's chosen candidate did not independently satisfy every "
-                "success criterion on its own evidence (only relative to the other "
-                f"candidates). Model's original explanation: "
-                f"{(selection_parsed or {}).get('explanation') or '(none given)'}"
-            )
-        else:
-            reasoning = (
-                (selection_parsed or {}).get("explanation")
-                or ("Model abstained: no candidate had sufficient visible evidence for the goal."
-                    if decision == "no_match" else
-                    "Model response was not valid JSON or selected an unknown candidate.")
-            )
+    if selected_candidate_id is None:
+        final_image_path = session.render_and_save()
         return {
             "converged": False,
             "bands": windows,
@@ -740,24 +1655,59 @@ def run_isovalue_band_selection(
             "band_evaluation": band_evaluation,
             "candidate_verdicts": verdicts,
             "selected_band_label": None,
+            "selected_tf_state": None,
+            "refinement_history": [],
             "final_opacity_points": session.opacity_points,
             "final_color_points": session.color_points,
-            "final_image_path": session.render_and_save(),
-            "reasoning": reasoning,
-            "raw_response": raw_response,
+            "final_image_path": final_image_path,
+            "reasoning": (
+                "Every coarse window was explicitly not_met for every success criterion; "
+                "no defensible local-search anchor was available."
+            ),
+            "raw_response": "\n\n".join(raw_responses),
+            "llm_calls": llm_calls,
         }
 
-    selected_window = candidate_to_window[selected_candidate_id]
     selected_label = candidate_to_label[selected_candidate_id]
+    initial_state = _normalized_tf_state(candidate_to_window[selected_candidate_id], value_range)
+    initial_assessment = assessments[selected_candidate_id]
+    initial_observation = observations_by_id[selected_candidate_id]
 
+    refinement = _run_local_refinement(
+        session=session,
+        initial_state=initial_state,
+        initial_observation=initial_observation,
+        initial_assessment=initial_assessment,
+        goal=goal,
+        success_criteria=success_criteria,
+        model=model,
+        output_dir=str(Path(render_dir) / "refinement"),
+        value_range=value_range,
+        multi_angle=multi_angle,
+        max_range_iterations=max_range_iterations,
+        max_opacity_iterations=max_opacity_iterations,
+    )
+    llm_calls += refinement["llm_calls"]
+    raw_responses.extend(refinement["raw_responses"])
+
+    final_state = refinement["state"]
     opacity_points, color_points = build_opacity_ramp_for_band(
-        selected_window, min_value=value_range[0], max_value=value_range[1]
+        final_state, min_value=value_range[0], max_value=value_range[1]
     )
     session.set_transfer_function(opacity_points, color_points)
     final_image_path = session.render_and_save()
 
+    accepted_actions = [
+        step["action"] for step in refinement["history"] if step.get("accepted")
+    ]
+    action_text = ", ".join(accepted_actions) if accepted_actions else "no local action accepted"
+    reasoning = (
+        f"Coarse baseline {selected_label}; {action_text}. "
+        f"{refinement['stop_reason']}"
+    )
+
     return {
-        "converged": True,
+        "converged": refinement["converged"],
         "bands": windows,
         "band_images": window_images,
         "view_images": window_view_images,
@@ -765,11 +1715,15 @@ def run_isovalue_band_selection(
         "band_evaluation": band_evaluation,
         "candidate_verdicts": verdicts,
         "selected_band_label": selected_label,
+        "selected_tf_state": final_state,
+        "final_criterion_statuses": _criterion_status_map(refinement["assessment"]),
+        "refinement_history": refinement["history"],
         "final_opacity_points": opacity_points,
         "final_color_points": color_points,
         "final_image_path": final_image_path,
-        "reasoning": selection_parsed.get("explanation", ""),
-        "raw_response": raw_response,
+        "reasoning": reasoning,
+        "raw_response": "\n\n".join(raw_responses),
+        "llm_calls": llm_calls,
     }
 
 
@@ -816,6 +1770,12 @@ class IsovalueSpecialist(VisualizationSpecialist):
             num_windows=self.num_windows,
             value_range=self.value_range,
             multi_angle=self.multi_angle,
+            max_range_iterations=int(
+                constraints.get("tf_max_range_iterations", DEFAULT_MAX_RANGE_ITERATIONS)
+            ),
+            max_opacity_iterations=int(
+                constraints.get("tf_max_opacity_iterations", DEFAULT_MAX_OPACITY_ITERATIONS)
+            ),
         )
 
         if self.on_iteration:
@@ -826,7 +1786,7 @@ class IsovalueSpecialist(VisualizationSpecialist):
             "rendered_image_path": band_result["final_image_path"],
         }
         num_windows = len(band_result["bands"])
-        iterations_used = num_windows + 1  # Stage 1: one call per window, Stage 2: one call
+        iterations_used = int(band_result.get("llm_calls", num_windows + 1))
 
         if band_result["converged"] and band_result["selected_band_label"]:
             return AgentExecutionResult(
@@ -835,8 +1795,10 @@ class IsovalueSpecialist(VisualizationSpecialist):
                 goal_satisfied=True,
                 state_patch=state_patch,
                 confidence=0.75,
-                reason=f"Selected {band_result['selected_band_label']} from {num_windows} intensity "
-                       f"window(s): {band_result['reasoning']}",
+                reason=(
+                    f"Initialized from {band_result['selected_band_label']} and refined the "
+                    f"transfer function: {band_result['reasoning']}"
+                ),
                 satisfied_criteria=list(success_criteria),
                 unsatisfied_criteria=[],
                 suggested_capabilities=[],
@@ -850,7 +1812,10 @@ class IsovalueSpecialist(VisualizationSpecialist):
             goal_satisfied=False,
             state_patch=state_patch,
             confidence=0.3,
-            reason=f"Could not confidently match an intensity window to the goal: {band_result['reasoning']}",
+            reason=(
+                "Transfer-function search produced the best non-worsening state but did not "
+                f"satisfy every criterion: {band_result['reasoning']}"
+            ),
             satisfied_criteria=[],
             unsatisfied_criteria=list(success_criteria),
             suggested_capabilities=[
@@ -864,42 +1829,96 @@ class IsovalueSpecialist(VisualizationSpecialist):
         )
 
     def _handle_band_result(self, band_result: dict) -> None:
-        """Normalize one window selection into the shared on_iteration shape (see
-        CameraSpecialist._handle_camera_iteration for the camera-side version of this same
-        normalized dict). Reported as a single "iteration" (index 0) -- the two-stage
-        pipeline underneath is still one logical selection, not a multi-round loop."""
+        """Emit coarse-window and local-refinement iterations through the existing callback.
+
+        No notebook changes are required: refinement candidates use the same candidate dict
+        shape already handled by the demo callback (`label`, `range`, `observation`,
+        `view_images`, and `selected`).
+        """
         observation_by_label = {
             e["window"]: e["observation"]
             for e in band_result.get("band_evaluation", [])
             if isinstance(e, dict) and isinstance(e.get("window"), str)
         }
-
         view_images_by_label = band_result.get("view_images", {})
 
-        candidates = []
+        coarse_candidates = []
         for window in band_result["bands"]:
             label = f"{WINDOW_LABEL_PREFIX}{window['low']}_{window['high']}"
             observation = observation_by_label.get(label)
-            candidates.append({
-                "label": label,
-                "image_path": band_result["band_images"].get(label),
-                "selected": label == band_result["selected_band_label"],
-                "real_action": None,
-                "observation": _summarize_observation(observation),
-                "satisfies_goal": None,  # no per-candidate goal judgment in this pipeline -- see module docstring
-                "range": f"{window['low']}-{window['high']} (peak {window['peak']})",
-                "view_images": view_images_by_label.get(label, {}),  # {view_id: path}, for debugging/logging
-            })
+            coarse_candidates.append(
+                {
+                    "label": label,
+                    "image_path": band_result["band_images"].get(label),
+                    "selected": label == band_result["selected_band_label"],
+                    "real_action": None,
+                    "observation": _summarize_observation(observation),
+                    "satisfies_goal": None,
+                    "range": f"{window['low']}-{window['high']} (peak {window['peak']})",
+                    "view_images": view_images_by_label.get(label, {}),
+                }
+            )
 
-        self.on_iteration({
-            "agent_id": self.agent_id,
-            "iteration": 0,
-            "current_image_path": band_result["final_image_path"],
-            "candidates": candidates,
-            "selected_label": band_result["selected_band_label"],
-            "reasoning": band_result.get("reasoning") or "",
-            "extra": {
-                "selected_window": band_result["selected_band_label"],
-                "converged": band_result["converged"],
-            },
-        })
+        selected_label = band_result.get("selected_band_label")
+        coarse_image = band_result.get("band_images", {}).get(selected_label)
+        self.on_iteration(
+            {
+                "agent_id": self.agent_id,
+                "iteration": 0,
+                "current_image_path": coarse_image or band_result["final_image_path"],
+                "candidates": coarse_candidates,
+                "selected_label": selected_label,
+                "reasoning": (
+                    f"Selected {selected_label} as the coarse transfer-function baseline."
+                    if selected_label
+                    else band_result.get("reasoning") or "No coarse baseline selected."
+                ),
+                "extra": {
+                    "stage": "coarse_window_selection",
+                    "selected_window": selected_label,
+                },
+            }
+        )
+
+        history = band_result.get("refinement_history", [])
+        for display_iteration, step in enumerate(history, start=1):
+            accepted = bool(step.get("accepted"))
+            action = step.get("action") or "CURRENT"
+            selected_action = action if accepted else "CURRENT"
+            if accepted:
+                step_reasoning = (
+                    f"Accepted {action}: it preserved every success criterion and "
+                    "strictly improved criterion or artifact quality."
+                )
+            elif action == "REDUCE_STEP":
+                step_reasoning = (
+                    "No safe improving candidate was found at this resolution; reduced the "
+                    "local-search step and kept CURRENT."
+                )
+            else:
+                step_reasoning = (
+                    "No safe improving candidate remained at the minimum step; kept CURRENT."
+                )
+
+            self.on_iteration(
+                {
+                    "agent_id": self.agent_id,
+                    "iteration": display_iteration,
+                    "current_image_path": (
+                        step.get("current_image_path") or band_result["final_image_path"]
+                    ),
+                    "candidates": step.get("candidates", []),
+                    "selected_label": selected_action,
+                    "reasoning": step_reasoning,
+                    "extra": {
+                        "stage": f"{step.get('phase', 'refinement')}_refinement",
+                        "phase_iteration": step.get("iteration"),
+                        "action": action,
+                        "accepted": accepted,
+                        "before": step.get("before"),
+                        "after": step.get("after"),
+                        "criterion_statuses": step.get("criterion_statuses", {}),
+                        "artifact_severities": step.get("artifact_severities", {}),
+                    },
+                }
+            )

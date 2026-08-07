@@ -3,47 +3,47 @@
   "current_image_path": "../output/orchestrator_notebook/screenshots/latest.png",
   "blind_candidates": [
     {
-      "candidate_id": "CANDIDATE_7XWI8",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_7xwi8.png"
+      "candidate_id": "CANDIDATE_NCHRF",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_nchrf.png"
     },
     {
-      "candidate_id": "CANDIDATE_YDBX5",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_ydbx5.png"
+      "candidate_id": "CANDIDATE_6MTRE",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_6mtre.png"
     },
     {
-      "candidate_id": "CANDIDATE_S3ZJK",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_s3zjk.png"
+      "candidate_id": "CANDIDATE_DDB66",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_ddb66.png"
     },
     {
-      "candidate_id": "CANDIDATE_WM9BL",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_wm9bl.png"
+      "candidate_id": "CANDIDATE_39B85",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_39b85.png"
     },
     {
-      "candidate_id": "CANDIDATE_ZOS4Q",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_zos4q.png"
+      "candidate_id": "CANDIDATE_WUPI9",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_wupi9.png"
     },
     {
-      "candidate_id": "CANDIDATE_RID0M",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_rid0m.png"
+      "candidate_id": "CANDIDATE_TRYQG",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_tryqg.png"
     },
     {
-      "candidate_id": "CANDIDATE_S2EQD",
-      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_s2eqd.png"
+      "candidate_id": "CANDIDATE_DG2JJ",
+      "image_path": "../output/orchestrator_notebook/screenshots/blind_candidates/step_000/candidate_dg2jj.png"
     }
   ],
   "private_candidate_mapping": {
-    "CANDIDATE_7XWI8": "AZIMUTH_RIGHT_180",
-    "CANDIDATE_YDBX5": "ELEVATION_UP_180",
-    "CANDIDATE_S3ZJK": "ELEVATION_DOWN",
-    "CANDIDATE_WM9BL": "AZIMUTH_RIGHT",
-    "CANDIDATE_ZOS4Q": "AZIMUTH_LEFT",
-    "CANDIDATE_RID0M": "ELEVATION_UP",
-    "CANDIDATE_S2EQD": "STOP"
+    "CANDIDATE_NCHRF": "AZIMUTH_LEFT",
+    "CANDIDATE_6MTRE": "ELEVATION_DOWN",
+    "CANDIDATE_DDB66": "ELEVATION_UP_180",
+    "CANDIDATE_39B85": "ELEVATION_UP",
+    "CANDIDATE_WUPI9": "STOP",
+    "CANDIDATE_TRYQG": "AZIMUTH_RIGHT_180",
+    "CANDIDATE_DG2JJ": "AZIMUTH_RIGHT"
   },
   "pass_1_visual_diagnosis": {
     "parsed": {
       "target": {
-        "view_description": "The target view shows the foot from a lateral (side) perspective, displaying the outer edge of the foot. The metatarsals and phalanges are visible in profile, with the fifth digit (smallest toe) on the outer edge clearly visible. The view is perpendicular to the medial-lateral axis, showing the foot's length from heel to toes in a side profile orientation.",
+        "view_description": "No target image was provided in this iteration. The textual description requests a lateral (side) view of the foot where the outer edge faces the camera and the medial-lateral axis is perpendicular to the viewing direction.",
         "closest_reference_id": null,
         "closest_reference_description": "unclear",
         "reference_match_quality": "unclear",
@@ -52,140 +52,140 @@
         "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear)."
       },
       "current": {
-        "view_description": "The current view shows the foot from an oblique anterolateral angle, looking down at the dorsal (top) surface with the toes pointing upward and toward the upper left. The metatarsals are visible from above, showing the shafts running diagonally across the frame. This is not a true lateral view as both the dorsal surface and some lateral aspect are visible simultaneously.",
+        "view_description": "The current view shows the foot from an oblique angle, approximately three-quarters perspective. The metatarsals and phalanges are visible running diagonally from lower right to upper left. The dorsal (top) surface is partially visible, and the foot appears tilted with the toes pointing upward and to the left. This is not a true lateral view; both medial and lateral aspects are partially visible.",
         "closest_reference_id": null,
         "closest_reference_description": "unclear",
         "reference_match_quality": "unclear",
         "reference_match_differences": "No reference bank was provided for this iteration.",
         "reference_match_confidence": 0.0,
         "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-        "difference_from_target": "The current view exposes the dorsal surface of the foot looking down from above at an angle, while the target shows a true perpendicular lateral view of the outer edge. The current view shows metatarsals from a superior-lateral angle rather than the pure side profile required.",
-        "similarity_score": 25,
-        "confidence": 0.85
+        "difference_from_target": "The current view is oblique rather than a pure lateral view. A lateral view should show the outer edge of the foot directly facing the camera with minimal visibility of the dorsal or plantar surfaces, and the medial-lateral axis should be perpendicular to the viewing direction. The current view shows too much of the dorsal surface and presents the foot at an angle rather than from a true side perspective.",
+        "similarity_score": 30,
+        "confidence": 0.8
       },
       "candidates": [
         {
-          "candidate_id": "CANDIDATE_7XWI8",
-          "view_description": "This candidate shows the foot from an oblique posterolateral angle, looking upward at the plantar (bottom) surface. The metatarsal shafts are visible from below, with the calcaneus (heel) region visible in the upper portion. The toes point toward the upper right, and both plantar and lateral surfaces are partially visible.",
+          "candidate_id": "CANDIDATE_NCHRF",
+          "view_description": "This candidate shows a dorsal (top-down) view of the foot. All five metatarsals and their associated phalanges are visible, arranged in a fan-like pattern. The camera is positioned above the foot looking down, showing the broad surface of the metatarsal heads and the articulations between bones. This is a planar view perpendicular to the dorsal surface.",
           "closest_reference_id": null,
           "closest_reference_description": "unclear",
           "reference_match_quality": "unclear",
           "reference_match_differences": "No reference bank was provided for this iteration.",
           "reference_match_confidence": 0.0,
           "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate shows the plantar surface from below at an angle, whereas the target requires a perpendicular lateral view of the outer edge. The viewing angle is significantly different, showing the underside rather than the side profile.",
-          "similarity_score": 20,
-          "confidence": 0.8
+          "comparison_to_target": "This dorsal view is perpendicular to the requested lateral view. The target requires viewing from the side with the outer edge facing forward, but this candidate shows the top surface. The medial-lateral axis runs horizontally across this view rather than being perpendicular to the viewing direction as required.",
+          "similarity_score": 15,
+          "confidence": 0.9
         },
         {
-          "candidate_id": "CANDIDATE_YDBX5",
-          "view_description": "This candidate displays the foot from a medial-anterior oblique perspective, showing the inner (medial) arch side of the foot. The calcaneus and ankle region are visible at the top, with metatarsals extending downward. The great toe (first digit) is prominent on the medial side, and the dorsal surface is partially visible.",
+          "candidate_id": "CANDIDATE_6MTRE",
+          "view_description": "This candidate presents a plantar (bottom) view of the foot. The bases of the metatarsals are visible at the top, with the phalanges extending downward. The camera looks up at the plantar surface, showing the underside of the foot bones in a relatively planar view with some perspective foreshortening.",
           "closest_reference_id": null,
           "closest_reference_description": "unclear",
           "reference_match_quality": "unclear",
           "reference_match_differences": "No reference bank was provided for this iteration.",
           "reference_match_confidence": 0.0,
           "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate shows the medial (inner) side of the foot rather than the lateral (outer) side required by the target. While it is a side view, it is from the opposite (wrong) side of the foot.",
-          "similarity_score": 35,
-          "confidence": 0.75
-        },
-        {
-          "candidate_id": "CANDIDATE_S3ZJK",
-          "view_description": "This candidate presents a superior (top-down) view of the foot, looking directly down at the dorsal surface. The metatarsals and phalanges are arranged vertically in the frame, showing all five digits from above. The calcaneus is visible at the bottom, and the skeletal structure is viewed axially along the superior-inferior axis.",
-          "closest_reference_id": null,
-          "closest_reference_description": "unclear",
-          "reference_match_quality": "unclear",
-          "reference_match_differences": "No reference bank was provided for this iteration.",
-          "reference_match_confidence": 0.0,
-          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate is a top-down view showing the dorsal surface, completely different from the lateral side view required. The viewing axis is perpendicular to what the target requires.",
-          "similarity_score": 5,
-          "confidence": 0.95
-        },
-        {
-          "candidate_id": "CANDIDATE_WM9BL",
-          "view_description": "This candidate shows a dorsal (top) view of the foot with the camera positioned slightly anteriorly. All five metatarsals and digits are visible in a relatively flat, frontal projection. The first (great toe) metatarsal is on the right side, fifth on the left, with phalanges extending upward. The view shows the breadth of the foot from above.",
-          "closest_reference_id": null,
-          "closest_reference_description": "unclear",
-          "reference_match_quality": "unclear",
-          "reference_match_differences": "No reference bank was provided for this iteration.",
-          "reference_match_confidence": 0.0,
-          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate provides a dorsal/anterior view showing the top and front of the foot, while the target requires a perpendicular lateral view of the outer edge. The orientation is fundamentally different.",
+          "comparison_to_target": "This plantar view is orthogonal to the requested lateral view. The target needs a side view showing the outer edge, but this candidate shows the bottom surface. The orientation is incorrect for achieving a lateral perspective where the medial-lateral axis would be perpendicular to the viewing direction.",
           "similarity_score": 10,
           "confidence": 0.9
         },
         {
-          "candidate_id": "CANDIDATE_ZOS4Q",
-          "view_description": "This candidate presents a dorsal-medial oblique view, showing the top and inner side of the foot. The first (great toe) metatarsal is prominently visible on the left, with digits extending upward. The medial arch and the breadth of the metatarsal heads are visible, with the view angled to emphasize the medial aspect.",
+          "candidate_id": "CANDIDATE_DDB66",
+          "view_description": "This candidate shows the foot from a medial perspective (inner side view). The tibial/fibular ends are visible at the top, with the metatarsals and phalanges extending downward and to the right. The foot is viewed from its inner edge, showing the medial longitudinal arch profile and the medial surfaces of the bones.",
           "closest_reference_id": null,
           "closest_reference_description": "unclear",
           "reference_match_quality": "unclear",
           "reference_match_differences": "No reference bank was provided for this iteration.",
           "reference_match_confidence": 0.0,
           "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate shows the dorsal-medial aspect rather than the lateral side. It emphasizes the inner edge and top of the foot, opposite to the outer lateral edge required by the target.",
-          "similarity_score": 15,
+          "comparison_to_target": "This is a medial (inner side) view, whereas the target specifically requests a lateral (outer side) view. While this is a side view with the medial-lateral axis approximately perpendicular to the viewing direction, it shows the opposite side of the foot from what is required. The target asks for the outer edge to face the camera, but this shows the inner edge.",
+          "similarity_score": 45,
           "confidence": 0.85
         },
         {
-          "candidate_id": "CANDIDATE_RID0M",
-          "view_description": "This candidate displays an inferior (bottom-up) view of the foot, looking upward at the plantar surface. The phalanges and metatarsal heads are arranged vertically, with the forefoot and midfoot visible. The calcaneus appears at the top of the frame. The view shows the underside of the foot's skeletal structure.",
+          "candidate_id": "CANDIDATE_39B85",
+          "view_description": "This candidate presents an oblique view showing portions of the foot from above and from the side. The tarsal bones are visible at the top of the frame, with metatarsals and some phalanges below. The view combines elements of both dorsal and lateral perspectives, with significant foreshortening. Multiple surfaces are visible simultaneously.",
           "closest_reference_id": null,
           "closest_reference_description": "unclear",
           "reference_match_quality": "unclear",
           "reference_match_differences": "No reference bank was provided for this iteration.",
           "reference_match_confidence": 0.0,
           "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate shows the plantar (bottom) surface from below, while the target requires a lateral side view. The viewing perspective is from underneath rather than from the side.",
-          "similarity_score": 8,
+          "comparison_to_target": "This oblique view shows too many surfaces simultaneously. The target requires a clean lateral view where only the outer edge faces the camera. This candidate shows dorsal, lateral, and possibly plantar aspects all visible at once, with the bones not aligned to present a true side profile.",
+          "similarity_score": 25,
+          "confidence": 0.8
+        },
+        {
+          "candidate_id": "CANDIDATE_WUPI9",
+          "view_description": "This candidate is nearly identical to the current view, showing the foot from an oblique angle with metatarsals and phalanges running diagonally. The dorsal surface is partially visible, and the foot appears tilted with toes pointing upward and to the left. The perspective is three-quarters rather than purely lateral.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "No reference bank was provided for this iteration.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "Like the current view, this oblique perspective does not satisfy the lateral view requirement. The target needs the outer edge facing directly toward the camera with the medial-lateral axis perpendicular to viewing direction, but this shows multiple surfaces at once with the foot angled rather than presenting a true side profile.",
+          "similarity_score": 30,
+          "confidence": 0.85
+        },
+        {
+          "candidate_id": "CANDIDATE_TRYQG",
+          "view_description": "This candidate shows a lateral view of the foot from the outer (lateral) side. The foot is positioned vertically with the ankle/leg portion at the bottom and toes pointing upward. The lateral edge of the foot faces the camera directly, showing the profile of the fifth metatarsal and lateral phalanges. The medial-lateral axis appears approximately perpendicular to the viewing direction.",
+          "closest_reference_id": null,
+          "closest_reference_description": "unclear",
+          "reference_match_quality": "unclear",
+          "reference_match_differences": "No reference bank was provided for this iteration.",
+          "reference_match_confidence": 0.0,
+          "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
+          "comparison_to_target": "This candidate closely matches the target requirement for a lateral view showing the outer edge of the foot. The lateral side faces the camera, and the medial-lateral axis is approximately perpendicular to the viewing direction as specified. The foot profile is clearly visible from the side perspective, though the vertical orientation (toes up) may differ from some conventional anatomical presentations.",
+          "similarity_score": 85,
           "confidence": 0.9
         },
         {
-          "candidate_id": "CANDIDATE_S2EQD",
-          "view_description": "This candidate is identical to the current view, showing the foot from an oblique anterolateral angle with the dorsal surface visible from above. The metatarsals run diagonally across the frame with toes pointing toward the upper left. Both superior and lateral aspects are partially visible.",
+          "candidate_id": "CANDIDATE_DG2JJ",
+          "view_description": "This candidate shows a dorsal-oblique view of the foot with the camera positioned above and slightly to one side. All five metatarsals are visible arranged side by side, with phalanges extending upward. The first metatarsal (associated with the big toe) is prominently visible on the right side. This is primarily a top-down view with slight angular offset.",
           "closest_reference_id": null,
           "closest_reference_description": "unclear",
           "reference_match_quality": "unclear",
           "reference_match_differences": "No reference bank was provided for this iteration.",
           "reference_match_confidence": 0.0,
           "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-          "comparison_to_target": "This candidate matches the current view and shows an oblique superior-lateral perspective rather than the perpendicular lateral view required. The dorsal surface is exposed from above instead of showing a true side profile of the outer edge.",
-          "similarity_score": 25,
+          "comparison_to_target": "This dorsal-oblique view does not match the lateral view requirement. The target asks for a side view with the outer edge facing the camera, but this candidate shows the top surface of the foot with bones arranged in a spread pattern. The medial-lateral axis runs across the view rather than being perpendicular to it.",
+          "similarity_score": 20,
           "confidence": 0.85
         }
       ]
     },
-    "raw_response": "```json\n{\n  \"target\": {\n    \"view_description\": \"The target view shows the foot from a lateral (side) perspective, displaying the outer edge of the foot. The metatarsals and phalanges are visible in profile, with the fifth digit (smallest toe) on the outer edge clearly visible. The view is perpendicular to the medial-lateral axis, showing the foot's length from heel to toes in a side profile orientation.\",\n    \"closest_reference_id\": null,\n    \"reference_match_quality\": \"unclear\",\n    \"reference_match_differences\": \"No reference bank was provided for this iteration.\"\n  },\n  \"current\": {\n    \"view_description\": \"The current view shows the foot from an oblique anterolateral angle, looking down at the dorsal (top) surface with the toes pointing upward and toward the upper left. The metatarsals are visible from above, showing the shafts running diagonally across the frame. This is not a true lateral view as both the dorsal surface and some lateral aspect are visible simultaneously.\",\n    \"difference_from_target\": \"The current view exposes the dorsal surface of the foot looking down from above at an angle, while the target shows a true perpendicular lateral view of the outer edge. The current view shows metatarsals from a superior-lateral angle rather than the pure side profile required.\",\n    \"closest_reference_id\": null,\n    \"reference_match_quality\": \"unclear\",\n    \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n    \"similarity_score\": 25,\n    \"confidence\": 0.85\n  },\n  \"candidates\": [\n    {\n      \"candidate_id\": \"CANDIDATE_7XWI8\",\n      \"view_description\": \"This candidate shows the foot from an oblique posterolateral angle, looking upward at the plantar (bottom) surface. The metatarsal shafts are visible from below, with the calcaneus (heel) region visible in the upper portion. The toes point toward the upper right, and both plantar and lateral surfaces are partially visible.\",\n      \"comparison_to_target\": \"This candidate shows the plantar surface from below at an angle, whereas the target requires a perpendicular lateral view of the outer edge. The viewing angle is significantly different, showing the underside rather than the side profile.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 20,\n      \"confidence\": 0.8\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_YDBX5\",\n      \"view_description\": \"This candidate displays the foot from a medial-anterior oblique perspective, showing the inner (medial) arch side of the foot. The calcaneus and ankle region are visible at the top, with metatarsals extending downward. The great toe (first digit) is prominent on the medial side, and the dorsal surface is partially visible.\",\n      \"comparison_to_target\": \"This candidate shows the medial (inner) side of the foot rather than the lateral (outer) side required by the target. While it is a side view, it is from the opposite (wrong) side of the foot.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 35,\n      \"confidence\": 0.75\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_S3ZJK\",\n      \"view_description\": \"This candidate presents a superior (top-down) view of the foot, looking directly down at the dorsal surface. The metatarsals and phalanges are arranged vertically in the frame, showing all five digits from above. The calcaneus is visible at the bottom, and the skeletal structure is viewed axially along the superior-inferior axis.\",\n      \"comparison_to_target\": \"This candidate is a top-down view showing the dorsal surface, completely different from the lateral side view required. The viewing axis is perpendicular to what the target requires.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 5,\n      \"confidence\": 0.95\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_WM9BL\",\n      \"view_description\": \"This candidate shows a dorsal (top) view of the foot with the camera positioned slightly anteriorly. All five metatarsals and digits are visible in a relatively flat, frontal projection. The first (great toe) metatarsal is on the right side, fifth on the left, with phalanges extending upward. The view shows the breadth of the foot from above.\",\n      \"comparison_to_target\": \"This candidate provides a dorsal/anterior view showing the top and front of the foot, while the target requires a perpendicular lateral view of the outer edge. The orientation is fundamentally different.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 10,\n      \"confidence\": 0.9\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_ZOS4Q\",\n      \"view_description\": \"This candidate presents a dorsal-medial oblique view, showing the top and inner side of the foot. The first (great toe) metatarsal is prominently visible on the left, with digits extending upward. The medial arch and the breadth of the metatarsal heads are visible, with the view angled to emphasize the medial aspect.\",\n      \"comparison_to_target\": \"This candidate shows the dorsal-medial aspect rather than the lateral side. It emphasizes the inner edge and top of the foot, opposite to the outer lateral edge required by the target.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 15,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_RID0M\",\n      \"view_description\": \"This candidate displays an inferior (bottom-up) view of the foot, looking upward at the plantar surface. The phalanges and metatarsal heads are arranged vertically, with the forefoot and midfoot visible. The calcaneus appears at the top of the frame. The view shows the underside of the foot's skeletal structure.\",\n      \"comparison_to_target\": \"This candidate shows the plantar (bottom) surface from below, while the target requires a lateral side view. The viewing perspective is from underneath rather than from the side.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 8,\n      \"confidence\": 0.9\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_S2EQD\",\n      \"view_description\": \"This candidate is identical to the current view, showing the foot from an oblique anterolateral angle with the dorsal surface visible from above. The metatarsals run diagonally across the frame with toes pointing toward the upper left. Both superior and lateral aspects are partially visible.\",\n      \"comparison_to_target\": \"This candidate matches the current view and shows an oblique superior-lateral perspective rather than the perpendicular lateral view required. The dorsal surface is exposed from above instead of showing a true side profile of the outer edge.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 25,\n      \"confidence\": 0.85\n    }\n  ]\n}\n```"
+    "raw_response": "```json\n{\n  \"target\": {\n    \"view_description\": \"No target image was provided in this iteration. The textual description requests a lateral (side) view of the foot where the outer edge faces the camera and the medial-lateral axis is perpendicular to the viewing direction.\",\n    \"closest_reference_id\": null,\n    \"reference_match_quality\": \"unclear\",\n    \"reference_match_differences\": \"No reference bank was provided for this iteration.\"\n  },\n  \"current\": {\n    \"view_description\": \"The current view shows the foot from an oblique angle, approximately three-quarters perspective. The metatarsals and phalanges are visible running diagonally from lower right to upper left. The dorsal (top) surface is partially visible, and the foot appears tilted with the toes pointing upward and to the left. This is not a true lateral view; both medial and lateral aspects are partially visible.\",\n    \"difference_from_target\": \"The current view is oblique rather than a pure lateral view. A lateral view should show the outer edge of the foot directly facing the camera with minimal visibility of the dorsal or plantar surfaces, and the medial-lateral axis should be perpendicular to the viewing direction. The current view shows too much of the dorsal surface and presents the foot at an angle rather than from a true side perspective.\",\n    \"closest_reference_id\": null,\n    \"reference_match_quality\": \"unclear\",\n    \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n    \"similarity_score\": 30,\n    \"confidence\": 0.8\n  },\n  \"candidates\": [\n    {\n      \"candidate_id\": \"CANDIDATE_NCHRF\",\n      \"view_description\": \"This candidate shows a dorsal (top-down) view of the foot. All five metatarsals and their associated phalanges are visible, arranged in a fan-like pattern. The camera is positioned above the foot looking down, showing the broad surface of the metatarsal heads and the articulations between bones. This is a planar view perpendicular to the dorsal surface.\",\n      \"comparison_to_target\": \"This dorsal view is perpendicular to the requested lateral view. The target requires viewing from the side with the outer edge facing forward, but this candidate shows the top surface. The medial-lateral axis runs horizontally across this view rather than being perpendicular to the viewing direction as required.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 15,\n      \"confidence\": 0.9\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_6MTRE\",\n      \"view_description\": \"This candidate presents a plantar (bottom) view of the foot. The bases of the metatarsals are visible at the top, with the phalanges extending downward. The camera looks up at the plantar surface, showing the underside of the foot bones in a relatively planar view with some perspective foreshortening.\",\n      \"comparison_to_target\": \"This plantar view is orthogonal to the requested lateral view. The target needs a side view showing the outer edge, but this candidate shows the bottom surface. The orientation is incorrect for achieving a lateral perspective where the medial-lateral axis would be perpendicular to the viewing direction.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 10,\n      \"confidence\": 0.9\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_DDB66\",\n      \"view_description\": \"This candidate shows the foot from a medial perspective (inner side view). The tibial/fibular ends are visible at the top, with the metatarsals and phalanges extending downward and to the right. The foot is viewed from its inner edge, showing the medial longitudinal arch profile and the medial surfaces of the bones.\",\n      \"comparison_to_target\": \"This is a medial (inner side) view, whereas the target specifically requests a lateral (outer side) view. While this is a side view with the medial-lateral axis approximately perpendicular to the viewing direction, it shows the opposite side of the foot from what is required. The target asks for the outer edge to face the camera, but this shows the inner edge.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 45,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_39B85\",\n      \"view_description\": \"This candidate presents an oblique view showing portions of the foot from above and from the side. The tarsal bones are visible at the top of the frame, with metatarsals and some phalanges below. The view combines elements of both dorsal and lateral perspectives, with significant foreshortening. Multiple surfaces are visible simultaneously.\",\n      \"comparison_to_target\": \"This oblique view shows too many surfaces simultaneously. The target requires a clean lateral view where only the outer edge faces the camera. This candidate shows dorsal, lateral, and possibly plantar aspects all visible at once, with the bones not aligned to present a true side profile.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 25,\n      \"confidence\": 0.8\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_WUPI9\",\n      \"view_description\": \"This candidate is nearly identical to the current view, showing the foot from an oblique angle with metatarsals and phalanges running diagonally. The dorsal surface is partially visible, and the foot appears tilted with toes pointing upward and to the left. The perspective is three-quarters rather than purely lateral.\",\n      \"comparison_to_target\": \"Like the current view, this oblique perspective does not satisfy the lateral view requirement. The target needs the outer edge facing directly toward the camera with the medial-lateral axis perpendicular to viewing direction, but this shows multiple surfaces at once with the foot angled rather than presenting a true side profile.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 30,\n      \"confidence\": 0.85\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_TRYQG\",\n      \"view_description\": \"This candidate shows a lateral view of the foot from the outer (lateral) side. The foot is positioned vertically with the ankle/leg portion at the bottom and toes pointing upward. The lateral edge of the foot faces the camera directly, showing the profile of the fifth metatarsal and lateral phalanges. The medial-lateral axis appears approximately perpendicular to the viewing direction.\",\n      \"comparison_to_target\": \"This candidate closely matches the target requirement for a lateral view showing the outer edge of the foot. The lateral side faces the camera, and the medial-lateral axis is approximately perpendicular to the viewing direction as specified. The foot profile is clearly visible from the side perspective, though the vertical orientation (toes up) may differ from some conventional anatomical presentations.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 85,\n      \"confidence\": 0.9\n    },\n    {\n      \"candidate_id\": \"CANDIDATE_DG2JJ\",\n      \"view_description\": \"This candidate shows a dorsal-oblique view of the foot with the camera positioned above and slightly to one side. All five metatarsals are visible arranged side by side, with phalanges extending upward. The first metatarsal (associated with the big toe) is prominently visible on the right side. This is primarily a top-down view with slight angular offset.\",\n      \"comparison_to_target\": \"This dorsal-oblique view does not match the lateral view requirement. The target asks for a side view with the outer edge facing the camera, but this candidate shows the top surface of the foot with bones arranged in a spread pattern. The medial-lateral axis runs across the view rather than being perpendicular to it.\",\n      \"closest_reference_id\": null,\n      \"reference_match_quality\": \"unclear\",\n      \"reference_match_differences\": \"No reference bank was provided for this iteration.\",\n      \"similarity_score\": 20,\n      \"confidence\": 0.85\n    }\n  ]\n}\n```"
   },
   "pass_2_deterministic_selection": {
     "decision": "candidate",
-    "selected_candidate": "CANDIDATE_S3ZJK",
-    "selection_reason": "All 7 candidates have unclear reference-bank grounding, and no prior movement direction was available to continue (first iteration, or the last action had no continuable direction); arbitrarily picking CANDIDATE_S3ZJK (similarity_score=5, confidence=0.95) to keep exploring toward a view the reference bank recognizes.",
+    "selected_candidate": "CANDIDATE_NCHRF",
+    "selection_reason": "All 7 candidates have unclear reference-bank grounding, and no prior movement direction was available to continue (first iteration, or the last action had no continuable direction); arbitrarily picking CANDIDATE_NCHRF (similarity_score=15, confidence=0.9) to keep exploring toward a view the reference bank recognizes.",
     "selected_diagnosis": {
-      "candidate_id": "CANDIDATE_S3ZJK",
-      "view_description": "This candidate presents a superior (top-down) view of the foot, looking directly down at the dorsal surface. The metatarsals and phalanges are arranged vertically in the frame, showing all five digits from above. The calcaneus is visible at the bottom, and the skeletal structure is viewed axially along the superior-inferior axis.",
+      "candidate_id": "CANDIDATE_NCHRF",
+      "view_description": "This candidate shows a dorsal (top-down) view of the foot. All five metatarsals and their associated phalanges are visible, arranged in a fan-like pattern. The camera is positioned above the foot looking down, showing the broad surface of the metatarsal heads and the articulations between bones. This is a planar view perpendicular to the dorsal surface.",
       "closest_reference_id": null,
       "closest_reference_description": "unclear",
       "reference_match_quality": "unclear",
       "reference_match_differences": "No reference bank was provided for this iteration.",
       "reference_match_confidence": 0.0,
       "reference_match_evidence": "LLM visual comparison against the attached reference bank (quality=unclear).",
-      "comparison_to_target": "This candidate is a top-down view showing the dorsal surface, completely different from the lateral side view required. The viewing axis is perpendicular to what the target requires.",
-      "similarity_score": 5,
-      "confidence": 0.95
+      "comparison_to_target": "This dorsal view is perpendicular to the requested lateral view. The target requires viewing from the side with the outer edge facing forward, but this candidate shows the top surface. The medial-lateral axis runs horizontally across this view rather than being perpendicular to the viewing direction as required.",
+      "similarity_score": 15,
+      "confidence": 0.9
     }
   },
   "pass_3_magnitude_estimation": {
     "parsed": {
-      "selected_candidate": "CANDIDATE_S3ZJK",
+      "selected_candidate": "CANDIDATE_NCHRF",
       "magnitude_recommendation": "full",
-      "magnitude_reasoning": "The current view shows the foot from an oblique superior-anterior angle, displaying the dorsal (top) surface with metatarsals and toes visible but not showing the lateral (outer) edge. The candidate image shows a clear lateral view with the foot bones arranged horizontally, displaying the outer edge profile perpendicular to the medial-lateral axis. This represents the complete viewpoint transformation needed to achieve the target lateral view. The candidate endpoint closely matches the target requirement of showing the foot from the side with the outer edge visible and perpendicular viewing angle to the medial-lateral axis. There is no evidence of overshoot beyond the target specification.",
-      "expected_visual_result": "The camera will rotate approximately 90 degrees around the foot to display a true lateral (side) profile view, with the foot's longitudinal axis oriented horizontally across the frame, showing the outer edge of the foot bones including the lateral aspect of the calcaneus, cuboid, and fifth metatarsal in profile."
+      "magnitude_reasoning": "The current image shows an oblique superior-anterior view of the foot with metatarsals visible but not from a true lateral perspective. The candidate image demonstrates a clear lateral (side) view with the outer edge of the foot facing the camera, showing the metatarsals arranged in profile from medial to lateral as expected in a proper lateral view. The medial-lateral axis is approximately perpendicular to the viewing direction in the candidate. The full trajectory from current to candidate achieves the target viewpoint without apparent overshoot\u2014the candidate closely matches the success criteria for a lateral foot view.",
+      "expected_visual_result": "The camera will rotate to present a true lateral perspective of the foot, with all metatarsals and phalanges visible in side profile, the outer (lateral) edge facing the viewer, and the bones arranged in a clear medial-to-lateral sequence across the image plane."
     },
-    "raw_response": "```json\n{\n  \"selected_candidate\": \"CANDIDATE_S3ZJK\",\n  \"magnitude_recommendation\": \"full\",\n  \"magnitude_reasoning\": \"The current view shows the foot from an oblique superior-anterior angle, displaying the dorsal (top) surface with metatarsals and toes visible but not showing the lateral (outer) edge. The candidate image shows a clear lateral view with the foot bones arranged horizontally, displaying the outer edge profile perpendicular to the medial-lateral axis. This represents the complete viewpoint transformation needed to achieve the target lateral view. The candidate endpoint closely matches the target requirement of showing the foot from the side with the outer edge visible and perpendicular viewing angle to the medial-lateral axis. There is no evidence of overshoot beyond the target specification.\",\n  \"expected_visual_result\": \"The camera will rotate approximately 90 degrees around the foot to display a true lateral (side) profile view, with the foot's longitudinal axis oriented horizontally across the frame, showing the outer edge of the foot bones including the lateral aspect of the calcaneus, cuboid, and fifth metatarsal in profile.\"\n}\n```"
+    "raw_response": "```json\n{\n  \"selected_candidate\": \"CANDIDATE_NCHRF\",\n  \"magnitude_recommendation\": \"full\",\n  \"magnitude_reasoning\": \"The current image shows an oblique superior-anterior view of the foot with metatarsals visible but not from a true lateral perspective. The candidate image demonstrates a clear lateral (side) view with the outer edge of the foot facing the camera, showing the metatarsals arranged in profile from medial to lateral as expected in a proper lateral view. The medial-lateral axis is approximately perpendicular to the viewing direction in the candidate. The full trajectory from current to candidate achieves the target viewpoint without apparent overshoot\u2014the candidate closely matches the success criteria for a lateral foot view.\",\n  \"expected_visual_result\": \"The camera will rotate to present a true lateral perspective of the foot, with all metatarsals and phalanges visible in side profile, the outer (lateral) edge facing the viewer, and the bones arranged in a clear medial-to-lateral sequence across the image plane.\"\n}\n```"
   },
-  "final_action": "ELEVATION_DOWN_COARSE",
-  "applied_action": "ELEVATION_DOWN_COARSE"
+  "final_action": "AZIMUTH_LEFT_COARSE",
+  "applied_action": "AZIMUTH_LEFT_COARSE"
 }
