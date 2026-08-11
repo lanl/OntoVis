@@ -1,34 +1,10 @@
 [
   {
     "step": 1,
-    "action": "AZIMUTH_LEFT_COARSE"
+    "action": "AZIMUTH_RIGHT_COARSE"
   },
   {
-    "step": 2,
-    "action": "AZIMUTH_LEFT_COARSE"
-  },
-  {
-    "step": 3,
-    "action": "AZIMUTH_LEFT_COARSE"
-  },
-  {
-    "step": 4,
-    "action": "AZIMUTH_LEFT_FINE"
-  },
-  {
-    "step": 5,
-    "action": "AZIMUTH_LEFT_COARSE"
-  },
-  {
-    "step": 6,
-    "action": "AZIMUTH_LEFT_COARSE"
-  },
-  {
-    "step": 7,
-    "action": "AZIMUTH_LEFT_FINE"
-  },
-  {
-    "step": 8,
-    "action": "AZIMUTH_LEFT_COARSE"
+    "step": 1,
+    "action": "STOP"
   }
 ]

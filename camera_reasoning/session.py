@@ -333,6 +333,26 @@ class CameraReasoningSession:
         self.opacity_points = opacity_points
         self.color_points = color_points
 
+    def apply_camera_delta(self, azimuth: float = 0.0, elevation: float = 0.0, roll: float = 0.0, zoom: float = 1.0):
+        """Nudge the camera via raw vtkCamera calls -- no named action vocabulary
+        (camera_actions.VALID_ACTIONS), no blind staging, no candidate renders. For
+        baselines where the LLM proposes continuous camera deltas directly, in the same
+        call as everything else, instead of picking from the agent pipeline's discrete
+        action set.
+        """
+        self._require_initialized()
+        camera = self._renderer.GetActiveCamera()
+        if azimuth:
+            camera.Azimuth(azimuth)
+        if elevation:
+            camera.Elevation(elevation)
+        if roll:
+            camera.Roll(roll)
+        if zoom and zoom != 1.0:
+            camera.Dolly(zoom)
+        camera.OrthogonalizeViewUp()
+        self._renderer.ResetCameraClippingRange()
+
     def reset_camera(self):
         """Hard-reset camera to fit the scene (destroys manual alignment)."""
         self._require_initialized()

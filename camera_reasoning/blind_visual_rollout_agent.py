@@ -1110,6 +1110,9 @@ def select_candidate_from_diagnosis(
     minimum_confidence: float = 0.5,
     candidate_movement_families: Optional[Dict[str, str]] = None,
     last_movement_family: Optional[str] = None,
+    unclear_signal_min_similarity: int = 55,
+    unclear_signal_min_confidence: float = 0.6,
+    unclear_signal_margin: int = 15,
 ) -> dict:
     """Deterministically select a candidate (or STOP) from a validated Pass 1
     diagnosis. Never calls an LLM.
@@ -1132,24 +1135,38 @@ def select_candidate_from_diagnosis(
     reference_match_quality is "unclear" (the reference bank has nothing to
     say about any of this iteration's candidates — e.g. a narrow bank like
     reference_views_medical/skull, which only covers 3 base viewpoints), the
-    normal similarity_score ranking above is skipped in favor of a sweep
+    normal similarity_score ranking above is skipped -- EXCEPT for one escape
+    hatch first: if one candidate's similarity_score clearly stands out (>=
+    unclear_signal_min_similarity, confidence >= unclear_signal_min_confidence,
+    and ahead of every other candidate in this pool by >= unclear_signal_margin),
+    it is trusted and selected directly, since a self-reported score that
+    confident and that isolated is meaningfully different from noise. This
+    matters because a candidate can score well against the TARGET
+    (similarity_score) while still failing to match anything in a narrow
+    REFERENCE BANK (reference_match_quality) -- e.g. the model may describe a
+    candidate as "approximates a lateral view" yet still tag it "unclear" for
+    lack of a close-enough reference photo; without this escape hatch that
+    candidate would be silently discarded below even when it was clearly the
+    best one available.
+
+    Only when no candidate clears that bar does this fall back to a sweep
     strategy: continue the same movement direction as the last applied action
     (`last_movement_family`, matched against `candidate_movement_families`,
     both optional) if a candidate for it exists among this iteration's
     scalable-family candidates, else arbitrarily pick a scalable-family
-    candidate. This repeats every iteration the bank stays uninformative,
-    since each iteration's own last-applied action becomes the next
-    iteration's continuation direction — sweeping through view-space with a
-    consistent direction, rather than the LLM's own uncalibrated
-    similarity_score guesses or randomly changing direction, until some
-    candidate's viewpoint finally lands close enough to a known reference for
-    the LLM to report a real match again. Only fixed one-shot actions
-    (STOP/UNDO_LAST/FIXED_BLIND_ACTIONS) are excluded from consideration as a
-    continuation direction, since repeating them can't sweep anywhere new.
-    Requires both `candidate_movement_families` and `last_movement_family`;
-    either being unavailable (e.g. the caller didn't supply them, or the first
-    iteration has no history yet) just means arbitrary selection is used
-    instead of continuation.
+    candidate. This repeats every iteration the bank stays uninformative AND
+    no candidate's own score is trustworthy, since each iteration's own
+    last-applied action becomes the next iteration's continuation direction —
+    sweeping through view-space with a consistent direction, rather than
+    randomly changing direction, until some candidate's viewpoint finally
+    lands close enough to a known reference for the LLM to report a real match
+    again (or clears the similarity_score escape hatch above). Only fixed
+    one-shot actions (STOP/UNDO_LAST/FIXED_BLIND_ACTIONS) are excluded from
+    consideration as a continuation direction, since repeating them can't
+    sweep anywhere new. Requires both `candidate_movement_families` and
+    `last_movement_family`; either being unavailable (e.g. the caller didn't
+    supply them, or the first iteration has no history yet) just means
+    arbitrary selection is used instead of continuation.
 
     Since every candidate is always eligible and diagnosis["candidates"] is
     never empty, this always returns a decision — it no longer raises
@@ -1204,6 +1221,40 @@ def select_candidate_from_diagnosis(
             if candidate_movement_families.get(c["candidate_id"]) in SCALABLE_MOVEMENT_FAMILIES
         ]
         pool = scalable_pool or candidates
+
+        # Escape hatch: trust a candidate's own similarity_score (vs the TARGET) over
+        # blind directional continuation, but only when it's clearly not noise -- high
+        # enough in absolute terms, confident enough, AND meaningfully ahead of every
+        # other candidate in this same pool. A candidate can be a poor REFERENCE-BANK
+        # match (hence "unclear" here) while still being the best available match to the
+        # actual target -- see this function's docstring.
+        ranked_pool = sorted(
+            pool, key=lambda c: (c["similarity_score"], c["confidence"]), reverse=True
+        )
+        standout = ranked_pool[0]
+        runner_up_score = ranked_pool[1]["similarity_score"] if len(ranked_pool) > 1 else -1
+        if not (
+            standout["similarity_score"] >= unclear_signal_min_similarity
+            and standout["confidence"] >= unclear_signal_min_confidence
+            and (standout["similarity_score"] - runner_up_score) >= unclear_signal_margin
+        ):
+            standout = None
+
+        if standout is not None:
+            reason = (
+                f"All {len(candidates)} candidates have unclear reference-bank grounding, but "
+                f"{standout['candidate_id']} reported a standout similarity_score="
+                f"{standout['similarity_score']} (confidence={standout['confidence']}), at least "
+                f"{unclear_signal_margin} ahead of every other candidate in this pool -- trusting "
+                f"it over blind directional continuation. comparison_to_target: "
+                f"{standout['comparison_to_target']}"
+            )
+            return {
+                "decision": "candidate",
+                "selected_candidate": standout["candidate_id"],
+                "selection_reason": reason,
+                "selected_diagnosis": standout,
+            }
 
         continuation = None
         if last_movement_family in SCALABLE_MOVEMENT_FAMILIES:

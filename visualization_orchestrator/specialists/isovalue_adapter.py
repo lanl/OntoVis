@@ -124,8 +124,8 @@ TF_REFINEMENT_IMPLEMENTATION_VERSION = "quality-refinement-v2"
 # Local discrete refinement defaults. These are intentionally module-level defaults so the
 # existing constructor and callers do not need to change. Advanced callers may optionally
 # override them through the existing `constraints` dictionary in run_until_complete.
-DEFAULT_MAX_RANGE_ITERATIONS = 4
-DEFAULT_MAX_OPACITY_ITERATIONS = 3
+DEFAULT_MAX_RANGE_ITERATIONS = 0
+DEFAULT_MAX_OPACITY_ITERATIONS = 0
 DEFAULT_OPACITY_STEP = 0.10
 DEFAULT_RAMP_SHAPE_STEP = 0.50
 MIN_RANGE_STEP = 1.0
