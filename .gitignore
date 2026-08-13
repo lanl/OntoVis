@@ -11,37 +11,15 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
-# Output (generated at runtime)
-output/screenshots/
-output/camera_states/
-output/replay_screenshots/
-output/traces/
-output/rollout_traces/
-output/blind_rollout_traces/
-output/action_history.json
-output/llm_prompt.txt
+# Output (generated at runtime by the notebooks -- everything under here is
+# reproducible by re-running them, nothing here should be committed)
+/output/
 
 # Data (large binary files)
 data/*.raw
 data/*.nrrd
 data/*.mhd
 data/*.mha
-
-# Reference-view images + embedding caches (regeneratable — see
-# camera_reasoning/reference_views.py, image_view_matcher.py, text_view_matcher.py)
-reference_views/*.png
-reference_views/*.jpg
-reference_views/*.jpeg
-/reference_embeddings.pkl
-/reference_text_embeddings.pkl
-
-# Camera-relative spatial graph — images, graph JSON, and embedding cache are all
-# regeneratable (see camera_reasoning/camera_relative_views.py, camera_spatial_graph.py)
-reference_views_relative/*.png
-reference_views_relative/camera_nodes.json
-reference_views_relative/camera_graph.json
-reference_views_relative/graph_embeddings.pkl
-/output/graph_current_image_matches.png
 
 # Generated debug/demo images
 /match_results.png
