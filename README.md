@@ -1,6 +1,8 @@
 # Camera Reasoning App
 
-A notebook-first, manual LLM-guided VTK camera alignment system.
+A VTK visualization system driven by an LLM-orchestrated capability pipeline (camera
+alignment, isovalue/transfer-function selection, orientation correction) behind a single
+entry point, `VisualizationOrchestrator`.
 
 ## Quick Start
 
@@ -8,66 +10,71 @@ A notebook-first, manual LLM-guided VTK camera alignment system.
 pip install -r requirements.txt
 ```
 
-Place your raw volume at `data/foot_256x256x256_uint8.raw`, then open the notebook:
+Set `OPENAI_API_KEY` (see `.env.example`) -- the planner, every specialist, and the final
+verifier all make real LLM calls.
+
+Open one of the two demo notebooks and run its cells top to bottom:
 
 ```bash
-jupyter notebook notebooks/manual_chatgpt_loop.ipynb
-```
-
-Or run the script equivalent:
-
-```bash
-python examples/manual_chatgpt_loop_example.py
+jupyter notebook notebooks/visualization_orchestrator_demo_skull.ipynb   # data/skull_256x256x256_uint8.raw
+jupyter notebook notebooks/visualization_orchestrator_demo_foot.ipynb    # data/foot_256x256x256_uint8.raw
 ```
 
 ## Workflow
 
-1. Run the **Initialize** cell (or script). This loads the volume, renders it, saves a screenshot to `output/screenshots/latest.png`, and writes the LLM prompt to `output/llm_prompt.txt`.
-2. Copy the prompt text and the screenshot and send them to ChatGPT.
-3. Paste ChatGPT's full response into the **Process Response** cell and run it. The notebook will:
-   - Extract the chosen action.
-   - Apply it to the VTK camera.
-   - Save a new screenshot (e.g. `step_001_ELEVATION_UP_MEDIUM.png`).
-   - Save the camera state JSON.
-   - Update `action_history.json`.
-   - Write the next LLM prompt.
-4. Repeat until ChatGPT returns `STOP`.
+1. `orchestrator = VisualizationOrchestrator(dataset_path=..., ...)` loads and renders the
+   volume once.
+2. `orchestrator.run("Show the skull in a lateral view, with the superior aspect at the top.")`
+   -- any free-form instruction. The planner turns it into a small task graph, runs whichever
+   specialist(s) it requires (camera, isovalue, orientation -- never a fixed pipeline), and
+   verifies the result against the instruction.
+3. Call `.run(...)` again with the next instruction, in any order, as many times as you like
+   -- state carries forward between calls like a multi-turn conversation
+   (`orchestrator.history` holds every past `ExecutionResult`).
+
+See "Visualization Orchestrator" below for how planning, specialist dispatch, state
+ownership, and replanning actually work.
 
 ## Project Structure
 
 ```
-camera_reasoning_app/
-  requirements.txt
-  camera_reasoning/
-    __init__.py
-    session.py          # CameraReasoningSession — main API
-    camera_actions.py   # Action definitions and apply_action()
-    camera_state.py     # get/set/save/load camera state helpers
-    volume_scene.py     # VTK scene construction and screenshot saving
-    prompt_writer.py    # LLM prompt generation
-    action_parser.py    # ChatGPT response parsing
-  notebooks/
-    manual_chatgpt_loop.ipynb
-  examples/
-    manual_chatgpt_loop_example.py
-  output/
-    screenshots/
-    camera_states/
-    action_history.json
-    llm_prompt.txt
-  data/
-    foot_256x256x256_uint8.raw   # place your volume here
+camera_reasoning/
+  __init__.py
+  session.py                      # CameraReasoningSession -- VTK scene + LLM prompt/response plumbing
+  camera_actions.py               # Action definitions and apply_action()
+  camera_state.py                 # get/set/save/load camera state helpers
+  volume_scene.py                 # VTK scene construction and screenshot saving
+  prompt_writer.py                # LLM prompt generation
+  action_parser.py                # ChatGPT response parsing
+  chatgpt_client.py               # LLM call wrapper
+  spatial_knowledge.py            # spatial-context helpers
+  view_description_generator.py   # JSON-extraction helper reused by visual_rollout_agent
+  visual_rollout_agent.py         # candidate-rollout camera alignment loop
+  blind_visual_rollout_agent.py   # label-blind, three-pass candidate selection (used by CameraSpecialist)
+  medical_reference_views.py      # reference-view generation engine for reference_views_medical/
+  simple_reference_labels.py      # writes the flat {node_id: label} reference_views_simple.json
+visualization_orchestrator/
+  __init__.py
+  orchestrator.py                 # VisualizationOrchestrator -- the single entry point
+  planner.py / replanner.py       # LLM task-graph planning
+  executor.py                     # deterministic scheduling/retries/state patches
+  registry.py / capabilities.py   # capability -> specialist resolution
+  state.py / models.py            # VisualizationState, VisualizationPlan
+  specialists/                    # camera_adapter.py, isovalue_adapter.py, orientation_adapter.py
+notebooks/
+  visualization_orchestrator_demo_skull.ipynb
+  visualization_orchestrator_demo_foot.ipynb
+examples/
+  generate_medical_reference_views.py   # full landmark/relations schema (reference_views.json)
+  generate_simple_reference_labels.py   # flat {node_id: label} schema (reference_views_simple.json)
+reference_views_medical/
+  skull/, foot/                   # seed photographs + generated rotations/landmark JSON
+output/                           # generated at runtime, gitignored
+data/
+  skull_256x256x256_uint8.raw
+  foot_256x256x256_uint8.raw
+  vis_male_128x256x256_uint8.raw
 ```
-
-## Extending Later
-
-| Goal | What to add |
-|---|---|
-| GUI | Wrap `CameraReasoningSession` in a Qt/Tk window; wire buttons to `process_chatgpt_response` |
-| File watcher | Watch `output/chatgpt_response.txt` for changes and auto-call `process_chatgpt_response` |
-| Full autonomous agent | Replace the manual paste step with an API call in `session.py` |
-| Mesh support | Add `build_mesh_pipeline(path)` to `volume_scene.py` |
-| Volume rendering | Replace `build_isosurface_pipeline` with `vtkSmartVolumeMapper` pipeline |
 
 ## Visualization Orchestrator
 
@@ -138,20 +145,35 @@ against; without one, Pass 1 reports everything as "unclear" and Pass 2 falls ba
 directional sweep. `CameraSpecialist(session, reference_image_paths=..., node_descriptions=...)`
 and `VisualizationOrchestrator(..., camera_reference_image_paths=..., camera_node_descriptions=...)`
 accept one, but nothing loads a bank automatically -- the caller loads and passes one
-explicitly. Two bank formats/loaders are supported (see
-`specialists/camera_adapter.py`):
+explicitly. The supported path (see `specialists/camera_adapter.py`) is
+`load_simple_reference_bank(descriptions_path)` -- the flat `{node_id: description}` format
+under `reference_views_medical/<object>/reference_views_simple.json` (see
+"Reference-view generation" below), with each node's image conventionally at
+`<node_id>.png` next to it. This doesn't need to be a render of the exact same
+dataset/isovalue -- Pass 1 judges viewpoint resemblance by eye, not exact pixel/rendering
+match, so real reference photographs work fine (see
+`notebooks/visualization_orchestrator_demo_skull.ipynb`, which uses
+`reference_views_medical/skull/` against the skull VTK dataset).
 
-- `load_simple_reference_bank(descriptions_path)` -- the flat `{node_id: description}`
-  format under `reference_views_medical/<object>/reference_views_simple.json`, with each
-  node's image conventionally at `<node_id>.png` next to it. This doesn't need to be a
-  render of the exact same dataset/isovalue -- Pass 1 judges viewpoint resemblance by eye,
-  not exact pixel/rendering match, so real reference photographs work fine (see
-  `demo.py`/`notebooks/visualization_orchestrator_demo.ipynb`, which use
-  `reference_views_medical/skull/` against the skull VTK dataset).
-- `load_reference_bank(nodes_path, descriptions_path)` -- the graph-based
-  `camera_nodes.json` + `view_descriptions.json` pair produced by
-  `examples/generate_camera_relative_views.py`, for a bank rendered from the exact
-  dataset/isovalue in use.
+`camera_adapter.py` also still has `load_reference_bank(nodes_path, descriptions_path)`, for
+a graph-based `camera_nodes.json` + `view_descriptions.json` bank rendered from the exact
+dataset/isovalue in use -- but the pipeline that used to produce that format
+(`camera_relative_views.py`, `camera_spatial_graph.py`,
+`examples/generate_camera_relative_views.py`) was removed as unused, so nothing in this repo
+currently generates that format; only `load_simple_reference_bank` has a working generator.
+
+### Reference-view generation
+
+`reference_views_medical/<object>/` (currently `skull/` and `foot/`) holds real reference
+photographs, not renders -- see `camera_reasoning/medical_reference_views.py`.
+
+- `examples/generate_medical_reference_views.py --config reference_views_medical/<object>/config.json`
+  -- generates the rotated images from each seed photo (per `config.json`'s `rotations`) and
+  the full landmark/relations schema, `reference_views.json`.
+- `examples/generate_simple_reference_labels.py --config reference_views_medical/<object>/config.json`
+  -- writes the flat `{node_id: label}` mapping, `reference_views_simple.json`, that
+  `load_simple_reference_bank` actually consumes. Requires the images from the script above
+  to already exist; doesn't call the LLM.
 
 By default (`CameraSpecialist(..., sequential_diagnosis=True)` /
 `VisualizationOrchestrator(..., camera_sequential_diagnosis=True)`), Pass 1 diagnoses
@@ -369,14 +391,15 @@ retries or replans indefinitely.
 ### Running the demo
 
 ```bash
-.venv/bin/python -m visualization_orchestrator.demo
+jupyter notebook notebooks/visualization_orchestrator_demo_skull.ipynb
+jupyter notebook notebooks/visualization_orchestrator_demo_foot.ipynb
 ```
 
-Requires a working `OPENAI_API_KEY` (planner, both specialists, and the verifier all make
-real LLM calls) and a VTK install. It runs several example instructions (camera-only,
-isovalue-only, and compound) against `data/skull_256x256x256_uint8.raw` and prints the
+Requires a working `OPENAI_API_KEY` (planner, every specialist, and the verifier all make
+real LLM calls) and a VTK install. Each notebook runs several example instructions
+(camera-only, isovalue-only, and compound) against its dataset and displays, per call, the
 interpreted goal, generated task graph, selected agent per task, task results, final state
-summary, and final verification result for each one.
+summary, and final verification result.
 
 ### Tests
 
