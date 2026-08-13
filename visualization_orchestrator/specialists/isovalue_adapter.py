@@ -38,9 +38,9 @@ that's looking at an image also know what it's "supposed" to find there.
         |
         v
     Stage 1 (per window, BLIND): ONE call showing all of that window's views TOGETHER as
-        separate images -- describes only visible geometry -- no goal, no window
-        name/intensity, no other candidates, opaque "candidate_N" ids only, opaque
-        "view_N" ids only (never front/back/left/right/top/bottom)
+        separate images -- identifies what the candidate looks like plus a short image-quality
+        rating -- no goal, no window name/intensity, no other candidates, opaque "candidate_N"
+        ids only, opaque "view_N" ids only (never front/back/left/right/top/bottom)
         |
         v
     Stage 2 (ONE call, TEXT-ONLY): given the goal and every candidate's stored blind
@@ -89,9 +89,24 @@ selection is a categorical decision ("selected" or "no_match") grounded in those
 observations, not a number.
 
 This module deliberately avoids any goal-, dataset-, or anatomy-specific vocabulary in its
-own code and prompts -- window/candidate descriptions are generic geometric properties
-(shape, continuity, cavities, fragments, symmetry, etc.) that apply to arbitrary scientific
-volumes, not just medical scans.
+own code and prompts -- it never hardcodes what a candidate "should" look like for a given
+dataset, so the same pipeline applies to arbitrary scientific volumes, not just medical scans.
+
+Stage 1's OUTPUT, by contrast, is expected to name what the candidate looks like: an
+"identification" field (label/supporting_evidence/confidence, see
+BLIND_WINDOW_OBSERVATION_PROMPT_TEMPLATE) asks directly for a specific identity, not a
+geometric-only description -- an earlier revision asked for detailed shape/cavity/fragment
+prose plus only an optional, hedged permission to name an identity, and in practice the model
+just never used it, staying purely geometric ("compact and ovoid", "paired openings", ...)
+even when the identity was visually obvious. A dedicated, explicitly-requested field gets
+filled far more reliably than hoping a label shows up unprompted inside free text. What's
+preserved from the original anti-hallucination design is the EVIDENCE requirement, not the
+geometric-only phrasing: "label" must be paired with "supporting_evidence" grounded in actual
+visible shape/structure (never color, familiarity, or dataset/goal assumptions), and must be
+left null rather than guessed when the images are genuinely ambiguous -- so this still can't
+reopen the failure mode above (a confident label invented from a "plausible silhouette and
+color" instead of real evidence), it just no longer forces verbose geometry as the price of
+avoiding it.
 
 Operates on an existing, already-`.initialize()`d CameraReasoningSession, via
 CameraReasoningSession.set_transfer_function() -- used both for per-window previews
@@ -202,92 +217,48 @@ ISOVALUE_AGENT_SPEC = AgentSpec(
 
 # --- Stage 1: blind visual observation ----------------------------------------------------
 #
-# Deliberately STATIC -- no goal, window name, intensity range, or other candidate's
-# information is ever interpolated into this prompt. See module docstring for why.
+# STATIC except for one optional substitution: __DATASET_CONTEXT_BLOCK__ below is replaced
+# (via str.replace in _observe_window_blind, never str.format -- the JSON schema later in
+# this template has literal braces that .format() would choke on) with a goal-neutral
+# sentence about what the dataset itself is, if the user's original instruction said so (see
+# state.py's dataset_description field). No goal, window name, intensity range, or other
+# candidate's information is ever interpolated into this prompt -- only that one field.
 BLIND_WINDOW_OBSERVATION_PROMPT_TEMPLATE = """
 Observe the provided images of one scientific volume-rendering candidate.
 
 The provided images show the same rendered candidate from different camera viewpoints, each
-preceded by its own opaque id (e.g. "view_0", "view_1", ...).
+preceded by its own opaque id (e.g. "view_0", "view_1", ...). The identifiers view_0,
+view_1, and so on are arbitrary -- they do not indicate the semantic front, back, left,
+right, top, or bottom of the object, since the camera's starting orientation for this sweep
+was arbitrary.
+__DATASET_CONTEXT_BLOCK__
+You do not know the user's intended visualization goal. Do not guess it, and do not mention
+it.
 
-The identifiers view_0, view_1, and so on are arbitrary. They do not indicate the semantic
-front, back, left, right, top, or bottom of the object -- the camera's starting orientation
-for this sweep was arbitrary, so no such labels are meaningful here.
+Look across all the views together and identify what this candidate looks like -- a specific
+object, material, or structure type -- based only on visible evidence (shape, proportions,
+how structures are arranged), never from color alone, general familiarity, or assumptions
+about what the dataset or user might want. State the specific evidence that supports your
+identification. Leave it null only if the evidence is genuinely ambiguous or fits several
+different things equally well -- do not withhold a reasonably well-supported identification
+out of excess caution, but never force one.
 
-You do not know the user's intended visualization goal. Do not guess it.
-
-Inspect each view independently first. Then summarize visual properties that are
-consistently supported across one or more views.
-
-Describe only visual evidence directly supported by the images.
-
-Do not infer object identity, semantic class, anatomy, or material from:
-- color,
-- overall familiarity,
-- expected dataset contents,
-- assumptions about what the user may want.
-
-Analyze general visible properties:
-
-1. Overall geometry
-   - smooth or irregular
-   - continuous or fragmented
-   - compact, elongated, layered, branching, sheet-like, tubular, or other
-   - enclosed outer surface or exposed internal structures
-
-2. Visible structures
-   - cavities or openings
-   - protrusions
-   - thin structures
-   - repeated components
-   - nested or layered regions
-   - disconnected fragments
-   - surface folds or ridges
-
-3. Image quality
-   - amount of isolated noise
-   - occlusion
-   - missing regions
-   - whether important structures appear obscured
-
-4. Cross-view consistency
-   - for every observation, record exactly which opaque view ids support it
-   - distinguish clearly visible observations from uncertain interpretations
-
-Rules:
-- Do not mention the intended goal.
-- Do not decide whether the candidate satisfies a goal.
-- Do not use color as evidence of identity or material.
-- Do not claim a structure unless you can state which view id(s) it appears in.
-- Do not treat view ids or their ordering as meaningful beyond distinguishing one image from
-  another.
-- Prefer neutral geometric descriptions over semantic labels.
-- When uncertain, explicitly mark the observation as uncertain.
-- Do not invent absent features.
+Separately, rate the image quality: how much isolated noise, fragmented debris, or occlusion
+is present.
 
 Respond with STRICT JSON ONLY, no prose outside the JSON, matching this shape:
 {
-  "per_view_observations": {
-    "view_0": ["<short observation specific to this view>", "..."],
-    "view_1": ["..."]
-  },
-  "cross_view_summary": {
-    "clear_observations": [
-      {"description": "<specific visible structure/feature>", "supporting_views": ["<view ids>"]}
-    ],
-    "uncertain_observations": [
-      {"description": "<possible but not clearly confirmed feature>", "supporting_views": ["<view ids>"]}
-    ]
+  "identification": {
+    "label": "<what this looks like, or null if genuinely ambiguous>",
+    "supporting_evidence": "<the specific visible evidence for this label; required if label is non-null>",
+    "confidence": "low | moderate | high"
   },
   "noise_and_artifacts": {
-    "isolated_fragments": "<e.g. none | low | moderate | high>",
-    "surface_noise": "<e.g. none | low | moderate | high>",
-    "occlusion": "<e.g. none | low | moderate | high>"
+    "isolated_fragments": "<none | low | moderate | high>",
+    "surface_noise": "<none | low | moderate | high>",
+    "occlusion": "<none | low | moderate | high>"
   }
 }
-
-Include an entry in "per_view_observations" for every view id you were shown, even if its
-value is an empty list.
 """
 
 # --- Stage 2: goal-aware selection from stored observations (text-only) -------------------
@@ -744,24 +715,36 @@ def render_window_previews(
 
 
 def _observe_window_blind(
-    view_images: Dict[str, str], model: Optional[str]
+    view_images: Dict[str, str], model: Optional[str], dataset_description: Optional[str] = None
 ) -> Tuple[Optional[dict], str]:
     """Stage 1: ONE LLM call per window/candidate, showing ALL of that window's rendered
     views TOGETHER as SEPARATE full-resolution images (via `extra_images`, never combined
-    into a tile) -- the prompt is fully static (BLIND_WINDOW_OBSERVATION_PROMPT_TEMPLATE),
-    so no goal, window name, intensity range, or other candidate's information is ever sent
-    in this call. Each image is preceded only by its OPAQUE view id ("view_0", ...) -- see
-    module docstring for why semantic labels (front/back/etc.) aren't used.
+    into a tile) -- the prompt is static apart from `dataset_description` (see module
+    docstring and BLIND_WINDOW_OBSERVATION_PROMPT_TEMPLATE's header comment) -- so no goal,
+    window name, intensity range, or other candidate's information is ever sent in this call.
+    Each image is preceded only by its OPAQUE view id ("view_0", ...) -- see module docstring
+    for why semantic labels (front/back/etc.) aren't used.
 
     `view_images`: {view_id: image_path}, in the order views should be shown (dict
     insertion order, as produced by render_window_previews).
 
+    `dataset_description`: optional goal-neutral sentence about what the dataset itself is
+    (e.g. "CT scan of a mouse hindlimb"), taken from VisualizationState.dataset_description
+    -- NOT the task goal. Omitted from the prompt entirely when None/empty.
+
     Returns (parsed_response_or_None, raw_response_text).
     """
     extra_images = list(view_images.items())
-    response_text = ask_chatgpt(
-        prompt=BLIND_WINDOW_OBSERVATION_PROMPT_TEMPLATE, extra_images=extra_images, model=model
+    context_block = (
+        f"\nDataset context, describing only what kind of data this is (not what to look "
+        f"for or what the user wants): {dataset_description.strip()}\n"
+        if dataset_description and dataset_description.strip()
+        else ""
     )
+    prompt = BLIND_WINDOW_OBSERVATION_PROMPT_TEMPLATE.replace(
+        "__DATASET_CONTEXT_BLOCK__", context_block
+    )
+    response_text = ask_chatgpt(prompt=prompt, extra_images=extra_images, model=model)
     parsed = extract_json_object(response_text)
     return parsed, response_text
 
@@ -1157,6 +1140,7 @@ def _evaluate_refinement_states(
     raw_responses: List[str],
     phase: str,
     iteration: int,
+    dataset_description: Optional[str] = None,
 ) -> int:
     """Populate render/observation/assessment caches and return the LLM-call count.
 
@@ -1193,7 +1177,9 @@ def _evaluate_refinement_states(
         key = _tf_state_key(candidate["state"])
         if key in observation_cache:
             continue
-        parsed, response_text = _observe_window_blind(render_cache[key], model)
+        parsed, response_text = _observe_window_blind(
+            render_cache[key], model, dataset_description=dataset_description
+        )
         observation_cache[key] = parsed
         raw_responses.append(
             f"=== {phase} iteration {iteration} {candidate['action']} blind observation ===\n"
@@ -1293,6 +1279,7 @@ def _run_local_refinement(
     multi_angle: bool,
     max_range_iterations: int,
     max_opacity_iterations: int,
+    dataset_description: Optional[str] = None,
 ) -> dict:
     """Run range then opacity search using criterion-and-artifact Pareto dominance.
 
@@ -1334,6 +1321,7 @@ def _run_local_refinement(
             raw_responses,
             "range",
             iteration,
+            dataset_description=dataset_description,
         )
         selected = _choose_dominating_candidate(
             candidates, assessment_cache, observation_cache, current_state
@@ -1423,6 +1411,7 @@ def _run_local_refinement(
             raw_responses,
             "opacity",
             iteration,
+            dataset_description=dataset_description,
         )
         selected = _choose_dominating_candidate(
             candidates, assessment_cache, observation_cache, current_state
@@ -1512,13 +1501,15 @@ def _summarize_observation(observation: Optional[dict]) -> str:
     display and human-facing reasoning text, not used in any prompt."""
     if not observation:
         return "(no observation available)"
-    summary = observation.get("cross_view_summary") or {}
-    parts = [
-        item["description"]
-        for item in summary.get("clear_observations", []) or []
-        if isinstance(item, dict) and item.get("description")
-    ]
-    return "; ".join(parts) if parts else "(no clear observations)"
+
+    identity = observation.get("identification") or {}
+    label = identity.get("label")
+    if label:
+        confidence = identity.get("confidence", "unknown")
+        evidence = identity.get("supporting_evidence", "")
+        return f"{label} ({confidence} confidence -- {evidence})"
+
+    return "(no clear identification)"
 
 
 def run_isovalue_band_selection(
@@ -1532,6 +1523,7 @@ def run_isovalue_band_selection(
     multi_angle: bool = True,
     max_range_iterations: int = DEFAULT_MAX_RANGE_ITERATIONS,
     max_opacity_iterations: int = DEFAULT_MAX_OPACITY_ITERATIONS,
+    dataset_description: Optional[str] = None,
 ) -> dict:
     """Coarse fixed-window initialization followed by in-file discrete TF refinement.
 
@@ -1559,7 +1551,9 @@ def run_isovalue_band_selection(
     candidate_observations: List[dict] = []
     llm_calls = 0
     for candidate_id, label in zip(candidate_ids, window_labels):
-        parsed, response_text = _observe_window_blind(window_view_images[label], model)
+        parsed, response_text = _observe_window_blind(
+            window_view_images[label], model, dataset_description=dataset_description
+        )
         candidate_observations.append({"candidate_id": candidate_id, "observation": parsed})
         raw_responses.append(
             f"=== {candidate_id} coarse blind observation, views={list(window_view_images[label])} ===\n"
@@ -1686,6 +1680,7 @@ def run_isovalue_band_selection(
         multi_angle=multi_angle,
         max_range_iterations=max_range_iterations,
         max_opacity_iterations=max_opacity_iterations,
+        dataset_description=dataset_description,
     )
     llm_calls += refinement["llm_calls"]
     raw_responses.extend(refinement["raw_responses"])
@@ -1776,6 +1771,7 @@ class IsovalueSpecialist(VisualizationSpecialist):
             max_opacity_iterations=int(
                 constraints.get("tf_max_opacity_iterations", DEFAULT_MAX_OPACITY_ITERATIONS)
             ),
+            dataset_description=state.dataset_description,
         )
 
         if self.on_iteration:
@@ -1841,11 +1837,18 @@ class IsovalueSpecialist(VisualizationSpecialist):
             if isinstance(e, dict) and isinstance(e.get("window"), str)
         }
         view_images_by_label = band_result.get("view_images", {})
+        candidate_verdicts = band_result.get("candidate_verdicts") or {}
 
         coarse_candidates = []
-        for window in band_result["bands"]:
+        for index, window in enumerate(band_result["bands"]):
             label = f"{WINDOW_LABEL_PREFIX}{window['low']}_{window['high']}"
             observation = observation_by_label.get(label)
+            # `band_result["bands"]` and the candidate_N ids share the same index order they
+            # were zipped in inside run_isovalue_band_selection (both windows and
+            # candidate_ids come from the same enumerate over `windows`), so this
+            # reconstructs the id -> verdict lookup without band_result needing a new field.
+            verdict = candidate_verdicts.get(f"{CANDIDATE_ID_PREFIX}{index}")
+            satisfies_goal = verdict.get("verdict") == "passes" if verdict else None
             coarse_candidates.append(
                 {
                     "label": label,
@@ -1853,7 +1856,7 @@ class IsovalueSpecialist(VisualizationSpecialist):
                     "selected": label == band_result["selected_band_label"],
                     "real_action": None,
                     "observation": _summarize_observation(observation),
-                    "satisfies_goal": None,
+                    "satisfies_goal": satisfies_goal,
                     "range": f"{window['low']}-{window['high']} (peak {window['peak']})",
                     "view_images": view_images_by_label.get(label, {}),
                 }

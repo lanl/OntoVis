@@ -32,6 +32,16 @@ Rules you must follow:
    task_id values, no dependency on a task_id that doesn't exist in this plan.
 9. State any assumptions you had to make in "assumptions" (e.g. "assuming the isovalue
    agent can expose the requested internal content").
+9b. If the user's instruction describes what the dataset itself IS (its subject, imaging
+    modality, species, specimen, etc. -- e.g. "this is a CT scan of a mouse hindlimb"),
+    extract that into "dataset_description" verbatim or lightly paraphrased. This field must
+    describe ONLY the data, never the desired outcome: strip out anything about what to
+    find, show, extract, emphasize, or fix (that belongs in "interpreted_goal"/task "goal"
+    fields instead, not here). If the instruction says nothing about what the dataset is,
+    set "dataset_description" to null -- do not guess or invent one. Some internal
+    specialists are deliberately kept blind to the user's goal and may only be shown this
+    field, so a goal-implying word here (e.g. "the skull we need to isolate") would leak
+    intent they must not have access to.
 10. Some capabilities are DIRECT: they apply an exact value the user already fully
     specified (a number, a named action, a reset) with no rendered-candidate comparison or
     visual judgment needed, and their descriptions say exactly which "constraints" they
@@ -49,6 +59,7 @@ Rules you must follow:
 RESPONSE_SCHEMA_BLOCK = """Return only schema-valid JSON with exactly this structure:
 {
   "interpreted_goal": "...",
+  "dataset_description": "<what the dataset itself is, per rule 9b, or null>",
   "tasks": [
     {
       "task_id": "...",

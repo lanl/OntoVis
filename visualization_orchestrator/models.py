@@ -31,6 +31,7 @@ class PlannedTask(BaseModel):
 
 class VisualizationPlan(BaseModel):
     interpreted_goal: str
+    dataset_description: Optional[str] = None
     tasks: List[PlannedTask]
     final_success_criteria: List[str]
     assumptions: List[str] = Field(default_factory=list)

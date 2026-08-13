@@ -1216,23 +1216,27 @@ def select_candidate_from_diagnosis(
 
     all_unclear = all(c["reference_match_quality"] == "unclear" for c in candidates)
     if all_unclear:
-        scalable_pool = [
-            c for c in candidates
-            if candidate_movement_families.get(c["candidate_id"]) in SCALABLE_MOVEMENT_FAMILIES
-        ]
-        pool = scalable_pool or candidates
-
         # Escape hatch: trust a candidate's own similarity_score (vs the TARGET) over
         # blind directional continuation, but only when it's clearly not noise -- high
         # enough in absolute terms, confident enough, AND meaningfully ahead of every
-        # other candidate in this same pool. A candidate can be a poor REFERENCE-BANK
-        # match (hence "unclear" here) while still being the best available match to the
-        # actual target -- see this function's docstring.
-        ranked_pool = sorted(
-            pool, key=lambda c: (c["similarity_score"], c["confidence"]), reverse=True
+        # other candidate. A candidate can be a poor REFERENCE-BANK match (hence "unclear"
+        # here) while still being the best available match to the actual target -- see this
+        # function's docstring. Deliberately searches ALL candidates, INCLUDING
+        # FIXED_BLIND_ACTIONS (180-degree turns, STOP) -- unlike the continuation fallback
+        # below, this check doesn't need a "sweepable" direction, only a self-reported score
+        # confident and isolated enough to trust outright, and a one-shot 180-degree action
+        # can just as easily be the objectively best move (e.g. the target is directly
+        # behind the current view) as an incremental one. Restricting this check to
+        # scalable-family candidates previously meant a FIXED_BLIND_ACTIONS candidate could
+        # never win here even with a dramatically higher, well-isolated score than every
+        # scalable candidate -- confirmed directly from a trace where a 90/0.9-confidence
+        # AZIMUTH_RIGHT_180 candidate lost to a 20-score AZIMUTH_RIGHT candidate purely
+        # because the former was pool-filtered out before scores were ever compared.
+        ranked_all = sorted(
+            candidates, key=lambda c: (c["similarity_score"], c["confidence"]), reverse=True
         )
-        standout = ranked_pool[0]
-        runner_up_score = ranked_pool[1]["similarity_score"] if len(ranked_pool) > 1 else -1
+        standout = ranked_all[0]
+        runner_up_score = ranked_all[1]["similarity_score"] if len(ranked_all) > 1 else -1
         if not (
             standout["similarity_score"] >= unclear_signal_min_similarity
             and standout["confidence"] >= unclear_signal_min_confidence
@@ -1245,7 +1249,7 @@ def select_candidate_from_diagnosis(
                 f"All {len(candidates)} candidates have unclear reference-bank grounding, but "
                 f"{standout['candidate_id']} reported a standout similarity_score="
                 f"{standout['similarity_score']} (confidence={standout['confidence']}), at least "
-                f"{unclear_signal_margin} ahead of every other candidate in this pool -- trusting "
+                f"{unclear_signal_margin} ahead of every other candidate -- trusting "
                 f"it over blind directional continuation. comparison_to_target: "
                 f"{standout['comparison_to_target']}"
             )
@@ -1255,6 +1259,15 @@ def select_candidate_from_diagnosis(
                 "selection_reason": reason,
                 "selected_diagnosis": standout,
             }
+
+        # Continuation fallback -- restricted to scalable-family candidates ONLY (unlike the
+        # escape hatch above), since repeating a fixed one-shot action (180-degree turn,
+        # STOP) can't sweep anywhere new -- see module docstring.
+        scalable_pool = [
+            c for c in candidates
+            if candidate_movement_families.get(c["candidate_id"]) in SCALABLE_MOVEMENT_FAMILIES
+        ]
+        pool = scalable_pool or candidates
 
         continuation = None
         if last_movement_family in SCALABLE_MOVEMENT_FAMILIES:

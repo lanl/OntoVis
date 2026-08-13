@@ -139,7 +139,14 @@ class VisualizationOrchestrator:
         resulting state forward for the next call."""
         plan = self.planner.plan(instruction, self.state, self.registry)
         print(f"[Orchestrator] Interpreted goal: {plan.interpreted_goal}")
+        print(f"[Orchestrator] Dataset description: {plan.dataset_description or '(none extracted)'}")
         print(f"[Orchestrator] Task graph: {[(t.task_id, t.required_capability, t.dependencies) for t in plan.tasks]}")
+
+        # Set BEFORE execution (not via a specialist state_patch, see state.py's
+        # dataset_description docstring) so goal-blind specialists can read it from `state`
+        # during this same run -- e.g. IsovalueSpecialist.run_until_complete.
+        if plan.dataset_description:
+            self.state = apply_patch(self.state, {"dataset_description": plan.dataset_description})
 
         result = self.executor.execute(plan, self.state, instruction)
         self.state = result.final_state

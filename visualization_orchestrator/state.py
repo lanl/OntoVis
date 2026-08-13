@@ -19,6 +19,16 @@ class VisualizationState:
     view_up: tuple
     zoom: float = 1.0
 
+    # Goal-neutral description of what the dataset IS (e.g. "CT scan of a mouse hindlimb"),
+    # extracted by the planner from the user's own instruction -- see
+    # planner_prompt.py's PLANNER_SYSTEM_INSTRUCTIONS. Deliberately separate from any task's
+    # "goal" field: specialists that must stay goal-blind (see
+    # specialists/isovalue_adapter.py's Stage 1) may still read this, since it says what kind
+    # of data is being looked at without saying what to find in it. Not owned by any
+    # specialist -- set once by the orchestrator after planning (VisualizationOrchestrator.run),
+    # never via a specialist's state_patch.
+    dataset_description: Optional[str] = None
+
     # Rendering and visibility state -- owned by isovalue/transfer-function/clipping specialists.
     isovalue: Optional[float] = None
     transfer_function: Optional[Any] = None
@@ -79,6 +89,7 @@ def state_summary(state: VisualizationState) -> dict:
     Large/opaque fields (transfer_function) are summarized rather than dumped in full."""
     return {
         "dataset_path": state.dataset_path,
+        "dataset_description": state.dataset_description,
         "camera_position": list(state.camera_position),
         "focal_point": list(state.focal_point),
         "view_up": list(state.view_up),
