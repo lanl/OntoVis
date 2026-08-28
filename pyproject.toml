@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ontovis"
+version = "0.1.0"
+description = "A simple knowledge graph library"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "langchain-anthropic>=1.7.0",
+    "langgraph>=1.2.11",
+    "matplotlib>=3.11.1",
+    "networkx>=3.6.1",
+    "numpy>=2.0.0",
+    "pillow>=11.0.0",
+    "python-dotenv>=1.2.3",
+    "pyvista>=0.45.0",
+    "scipy>=1.15.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ontovis"]
