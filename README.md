@@ -24,6 +24,17 @@ python main.py
 - [docs/INDEX.md](docs/INDEX.md) - Documentation index
 - [docs/README.md](docs/README.md) - Full project documentation  
 - [docs/QUICKSTART_VOLUME.md](docs/QUICKSTART_VOLUME.md) - Quick reference
+- [docs/RENDER_TOOL.md](docs/RENDER_TOOL.md) - Command-line rendering tool
+
+## Command-Line Tools
+
+```bash
+# Render volume with specific camera angle (azimuth, elevation, distance)
+python tools/render_volume.py data/volume.raw --azimuth 45 --elevation 30 --distance 2.0
+
+# Find optimal camera angle by matching reference image
+python tools/find_camera_angle.py data/volume.raw skull
+```
 
 ## Examples
 

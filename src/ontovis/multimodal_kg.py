@@ -41,6 +41,9 @@ class MultimodalKnowledgeGraph:
         self.conventions_path = self.kg_path / "conventions"
         self.conventions_path.mkdir(exist_ok=True)
 
+        self.documentation_path = self.kg_path / "documentation"
+        self.documentation_path.mkdir(exist_ok=True)
+
         # Load or initialize the graph structure
         self.graph_file = self.kg_path / "graph.json"
         self.graph = self._load_graph()
@@ -587,6 +590,44 @@ class MultimodalKnowledgeGraph:
         recommendations["learned_params"] = self.get_learned_params(dataset_name)
 
         return recommendations
+
+    # ==================== DOCUMENTATION ====================
+
+    def get_documentation(self, doc_name: str = "rendering_strategies") -> Optional[str]:
+        """Load documentation markdown file from KG.
+
+        Args:
+            doc_name: Name of the documentation file (without .md extension)
+
+        Returns:
+            Content of the documentation file, or None if not found
+        """
+        doc_path = self.documentation_path / f"{doc_name}.md"
+        if doc_path.exists():
+            return doc_path.read_text()
+        return None
+
+    def list_documentation(self) -> List[str]:
+        """List all available documentation files.
+
+        Returns:
+            List of documentation file names (without .md extension)
+        """
+        if not self.documentation_path.exists():
+            return []
+
+        return [f.stem for f in self.documentation_path.glob("*.md")]
+
+    def add_documentation(self, doc_name: str, content: str):
+        """Add or update documentation file in KG.
+
+        Args:
+            doc_name: Name of the documentation file (without .md extension)
+            content: Markdown content
+        """
+        doc_path = self.documentation_path / f"{doc_name}.md"
+        doc_path.write_text(content)
+        print(f"✓ Documentation saved: {doc_name}.md")
 
     # ==================== EXPORT & VISUALIZATION ====================
 

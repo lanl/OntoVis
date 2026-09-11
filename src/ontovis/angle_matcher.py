@@ -1,361 +1,433 @@
-"""Automatic camera angle matching against reference images.
+"""Vision-guided angle matching for finding optimal camera positions."""
 
-This module finds the optimal camera angle by:
-1. Getting reference image from knowledge graph
-2. Testing multiple camera angles in a grid search
-3. Using vision AI to compare each render to the reference
-4. Selecting the angle with the best match
-"""
-
-import json
+import io
+import base64
 from pathlib import Path
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List, Optional, Tuple, Callable
+import json
 import numpy as np
+from PIL import Image
 from datetime import datetime
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage
 
 from .config import Config
-from .render_agent_v2 import VolumeRenderAgent
 from .multimodal_kg import MultimodalKnowledgeGraph
 
 
 class AngleMatcher:
-    """Find optimal camera angle by matching against reference images."""
+    """Find optimal camera angles by comparing renders against reference images."""
 
-    def __init__(self, config_path=None):
-        """Initialize angle matcher.
+    def __init__(self, kg_path: str = ".kg", config_path: Optional[str] = None):
+        """Initialize the angle matcher.
 
         Args:
-            config_path: Path to config file
+            kg_path: Path to knowledge graph directory
+            config_path: Path to config file (optional)
         """
+        self.kg = MultimodalKnowledgeGraph(kg_path)
         self.config = Config(config_path)
-        llm_config = self.config.get_llm_config()
 
-        self.llm = ChatAnthropic(
+        # Initialize vision model
+        llm_config = self.config.get_llm_config()
+        self.vision_llm = ChatAnthropic(
             model=llm_config['model'],
             api_key=llm_config['api_key'],
             base_url=llm_config['base_url'],
-            max_tokens=4096
+            max_tokens=2048
         )
 
-        self.render_agent = VolumeRenderAgent(config_path)
-        self.kg = MultimodalKnowledgeGraph()
+        # Load search parameters from KG documentation
+        strategies = self.kg.get_documentation("rendering_strategies")
+        self._load_search_params(strategies)
 
-    def find_best_angle(
-        self,
-        volume_path: str,
-        reference_image_path: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        output_dir: Optional[str] = None,
-        search_strategy: str = "coarse_to_fine"
-    ) -> Dict[str, Any]:
-        """Find the camera angle that best matches a reference image.
+    def _load_search_params(self, strategies: Optional[str]):
+        """Extract search parameters from KG documentation.
 
         Args:
-            volume_path: Path to volume file
-            reference_image_path: Path to reference image from KG
-            metadata: Optional volume metadata
-            output_dir: Directory to save test renders
-            search_strategy: "coarse_to_fine", "grid", or "custom"
-
-        Returns:
-            Dict with best angle, match score, and all tested angles
+            strategies: Content of rendering_strategies.md
         """
-        if output_dir:
-            output_path = Path(output_dir)
-            output_path.mkdir(parents=True, exist_ok=True)
-        else:
-            output_path = Path("angle_search_results")
-            output_path.mkdir(parents=True, exist_ok=True)
+        # Default search parameters from KG strategy
+        self.coarse_azimuth = [0, 45, 90, 135, 180, 225, 270, 315]
+        self.coarse_elevation = [-90, -45, 0, 45, 90]
+        self.coarse_roll = [-90, 0, 90]
+        self.fine_step = 15
+        self.fine_window = 45
 
-        # Load reference image for comparison
-        ref_path = Path(reference_image_path)
-        if not ref_path.exists():
-            raise FileNotFoundError(f"Reference image not found: {reference_image_path}")
+        self.score_threshold_excellent = 9.5
+        self.score_threshold_good = 8.5
+        self.score_threshold_acceptable = 8.0
+        self.score_threshold_poor = 7.0
 
-        print(f"🎯 Finding best camera angle to match: {reference_image_path}")
-        print(f"📊 Search strategy: {search_strategy}\n")
-
-        # Define search space based on strategy
-        if search_strategy == "coarse_to_fine":
-            # Phase 1: Coarse grid (45° increments)
-            # Phase 2: Fine grid around best match (15° increments)
-            angles = self._coarse_to_fine_search(
-                volume_path, reference_image_path, metadata, output_path
-            )
-        elif search_strategy == "grid":
-            # Simple grid search (30° increments)
-            angles = self._generate_grid_angles(elevation_step=30, azimuth_step=30)
-        else:
-            raise ValueError(f"Unknown search strategy: {search_strategy}")
-
-        # Test all angles
-        results = []
-        for i, (elevation, azimuth) in enumerate(angles, 1):
-            print(f"Testing angle {i}/{len(angles)}: elevation={elevation}°, azimuth={azimuth}°")
-
-            # Render at this angle
-            render_path = output_path / f"test_elev{elevation}_azim{azimuth}.png"
-
-            try:
-                render_result = self.render_agent.render(
-                    volume_path=volume_path,
-                    prompt=f"Render bones with camera elevation {elevation} degrees and azimuth {azimuth} degrees",
-                    metadata=metadata,
-                    save_image=str(render_path)
-                )
-
-                if not render_result.get("rendered_image_base64"):
-                    print(f"  ⚠️  Render failed")
-                    continue
-
-                # Compare to reference
-                match_score = self._compare_to_reference(
-                    test_render_path=str(render_path),
-                    reference_path=str(ref_path)
-                )
-
-                results.append({
-                    "elevation": elevation,
-                    "azimuth": azimuth,
-                    "match_score": match_score,
-                    "render_path": str(render_path),
-                    "render_instructions": render_result.get("instructions")
-                })
-
-                print(f"  Match score: {match_score}/10")
-
-            except Exception as e:
-                print(f"  ❌ Error: {e}")
-                continue
-
-        if not results:
-            raise RuntimeError("No successful renders produced")
-
-        # Sort by match score (higher is better)
-        results.sort(key=lambda x: x["match_score"], reverse=True)
-        best = results[0]
-
-        print(f"\n✅ Best match found!")
-        print(f"   Elevation: {best['elevation']}°")
-        print(f"   Azimuth: {best['azimuth']}°")
-        print(f"   Match score: {best['match_score']}/10")
-        print(f"   Render: {best['render_path']}")
-
-        # Save summary
-        summary = {
-            "timestamp": datetime.now().isoformat(),
-            "volume_path": volume_path,
-            "reference_image": reference_image_path,
-            "search_strategy": search_strategy,
-            "best_match": best,
-            "all_results": results,
-            "angles_tested": len(results)
-        }
-
-        summary_path = output_path / "angle_search_summary.json"
-        with open(summary_path, 'w') as f:
-            json.dump(summary, f, indent=2)
-
-        print(f"\n📄 Summary saved: {summary_path}")
-
-        return summary
-
-    def _coarse_to_fine_search(
+    def compare_images(
         self,
-        volume_path: str,
-        reference_path: str,
-        metadata: Optional[Dict],
-        output_path: Path
-    ) -> List[Tuple[int, int]]:
-        """Two-phase search: coarse grid then fine refinement.
-
-        Args:
-            volume_path: Volume file path
-            reference_path: Reference image path
-            metadata: Volume metadata
-            output_path: Output directory
-
-        Returns:
-            List of (elevation, azimuth) tuples to test
-        """
-        # Phase 1: Coarse grid (45° increments)
-        print("Phase 1: Coarse grid search (45° increments)")
-        coarse_angles = self._generate_grid_angles(elevation_step=45, azimuth_step=45)
-
-        # Test coarse angles
-        coarse_results = []
-        for elevation, azimuth in coarse_angles:
-            render_path = output_path / f"coarse_elev{elevation}_azim{azimuth}.png"
-
-            try:
-                render_result = self.render_agent.render(
-                    volume_path=volume_path,
-                    prompt=f"Render bones with camera elevation {elevation} degrees and azimuth {azimuth} degrees",
-                    metadata=metadata,
-                    save_image=str(render_path)
-                )
-
-                if render_result.get("rendered_image_base64"):
-                    match_score = self._compare_to_reference(
-                        test_render_path=str(render_path),
-                        reference_path=reference_path
-                    )
-
-                    coarse_results.append({
-                        "elevation": elevation,
-                        "azimuth": azimuth,
-                        "score": match_score
-                    })
-
-                    print(f"  elev={elevation}°, azim={azimuth}° → score={match_score}/10")
-
-            except Exception as e:
-                print(f"  elev={elevation}°, azim={azimuth}° → error: {e}")
-                continue
-
-        if not coarse_results:
-            # Fallback to full grid
-            return self._generate_grid_angles(elevation_step=30, azimuth_step=30)
-
-        # Find best coarse angle
-        coarse_results.sort(key=lambda x: x["score"], reverse=True)
-        best_coarse = coarse_results[0]
-
-        print(f"\nBest coarse match: elev={best_coarse['elevation']}°, azim={best_coarse['azimuth']}°")
-        print("\nPhase 2: Fine grid search (15° increments around best match)")
-
-        # Phase 2: Fine grid around best match (±45° with 15° increments)
-        fine_angles = []
-        for elev_offset in range(-45, 60, 15):
-            for azim_offset in range(-45, 60, 15):
-                elevation = best_coarse['elevation'] + elev_offset
-                azimuth = (best_coarse['azimuth'] + azim_offset) % 360
-
-                # Keep elevation in valid range
-                if -90 <= elevation <= 90:
-                    fine_angles.append((elevation, azimuth))
-
-        return fine_angles
-
-    def _generate_grid_angles(
-        self,
-        elevation_step: int = 30,
-        azimuth_step: int = 30
-    ) -> List[Tuple[int, int]]:
-        """Generate a grid of camera angles to test.
-
-        Args:
-            elevation_step: Degrees between elevation samples
-            azimuth_step: Degrees between azimuth samples
-
-        Returns:
-            List of (elevation, azimuth) tuples
-        """
-        angles = []
-
-        # Elevation: -90 (bottom) to +90 (top)
-        for elevation in range(-90, 91, elevation_step):
-            # Azimuth: 0 to 360 (full circle)
-            for azimuth in range(0, 360, azimuth_step):
-                angles.append((elevation, azimuth))
-
-        return angles
-
-    def _compare_to_reference(
-        self,
-        test_render_path: str,
-        reference_path: str
+        candidate_image: Image.Image,
+        reference_image: Image.Image,
+        context: str = ""
     ) -> float:
-        """Compare a test render to the reference image using vision AI.
+        """Compare two images using vision model.
 
         Args:
-            test_render_path: Path to test render
-            reference_path: Path to reference image
+            candidate_image: Rendered candidate image
+            reference_image: Reference image from KG
+            context: Optional context about what to look for
 
         Returns:
-            Match score from 0-10 (10 = perfect match)
+            Similarity score from 0-10
         """
-        import base64
+        # Convert images to base64
+        def image_to_base64(img: Image.Image) -> str:
+            buffered = io.BytesIO()
+            img.save(buffered, format="PNG")
+            return base64.b64encode(buffered.getvalue()).decode()
 
-        # Load both images as base64
-        with open(test_render_path, 'rb') as f:
-            test_b64 = base64.b64encode(f.read()).decode('utf-8')
+        candidate_b64 = image_to_base64(candidate_image)
+        reference_b64 = image_to_base64(reference_image)
 
-        with open(reference_path, 'rb') as f:
-            ref_b64 = base64.b64encode(f.read()).decode('utf-8')
+        # Construct vision comparison prompt (from KG strategy)
+        prompt = f"""Compare these two medical volume renderings and rate their similarity from 0-10.
 
-        # Ask AI to compare
-        prompt = """Compare these two medical volume renderings and rate how well they match in terms of camera angle/viewpoint.
+Reference image (target - first image)
+Candidate image (rendered - second image)
 
-Reference image (target):
-[First image below]
+Consider: viewing angle, anatomical orientation, visible structures, overall perspective.
 
-Test render (candidate):
-[Second image below]
+{context}
 
-Focus on:
-1. Camera viewing angle (front, side, top, etc.)
-2. Elevation (how high/low the camera is)
-3. Rotation/orientation of the anatomy
-4. Overall viewpoint similarity
+Rate similarity 0-10:
+- 10: Perfect match
+- 8-9: Very similar (minor differences)
+- 6-7: Somewhat similar (recognizable but different)
+- 4-5: Different perspectives
+- 0-3: Very different
 
-Ignore differences in:
-- Color/brightness (we only care about angle)
-- Resolution
-- Minor rendering artifacts
+Respond with ONLY a number from 0-10."""
 
-Rate the viewpoint match from 0-10:
-- 10 = Identical viewing angle
-- 7-9 = Very similar angle, minor differences
-- 4-6 = Similar angle, noticeable differences
-- 1-3 = Different angle
-- 0 = Completely different angle
-
-Respond with ONLY a JSON object:
-{
-  "match_score": <number 0-10>,
-  "reasoning": "<brief explanation of the score>",
-  "angle_similarity": "<identical|very_similar|similar|different|very_different>"
-}
-"""
-
+        # Create message with images
         message = HumanMessage(
             content=[
                 {"type": "text", "text": prompt},
                 {
                     "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/png;base64,{ref_b64}"
-                    }
+                    "image_url": {"url": f"data:image/png;base64,{reference_b64}"}
                 },
                 {
                     "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/png;base64,{test_b64}"
-                    }
+                    "image_url": {"url": f"data:image/png;base64,{candidate_b64}"}
                 }
             ]
         )
 
-        response = self.llm.invoke([message])
+        # Get response
+        response = self.vision_llm.invoke([message])
+        score_text = response.content.strip()
 
-        # Parse JSON response
+        # Parse score
         try:
-            response_text = response.content.strip()
-            if response_text.startswith('```'):
-                lines = response_text.split('\n')
-                response_text = '\n'.join(lines[1:-1])
+            import re
+            match = re.search(r'(\d+(?:\.\d+)?)', score_text)
+            if match:
+                score = float(match.group(1))
+                return max(0.0, min(10.0, score))
+            else:
+                print(f"Warning: Could not parse score from: {score_text}")
+                return 0.0
+        except Exception as e:
+            print(f"Error parsing score: {e}")
+            return 0.0
 
-            result = json.loads(response_text)
-            match_score = float(result.get("match_score", 0))
+    def coarse_search(
+        self,
+        render_fn: Callable,
+        reference_image: Image.Image,
+        distance: float = 2.0
+    ) -> Dict[str, Any]:
+        """Perform coarse search (45° increments).
 
-            return match_score
+        Args:
+            render_fn: Function(azimuth, elevation, roll, distance) -> Image
+            reference_image: Reference image to match
+            distance: Camera distance
 
-        except (json.JSONDecodeError, ValueError) as e:
-            print(f"⚠️  Failed to parse comparison result: {e}")
-            print(f"Response: {response.content[:200]}")
-            # Return neutral score on error
-            return 5.0
+        Returns:
+            Dict with best_angles, best_score, all_results
+        """
+        print("\n" + "="*70)
+        print("PHASE 1: COARSE SEARCH (45° increments)")
+        print("="*70)
+
+        results = []
+        best_score = 0.0
+        best_angles = None
+
+        total = len(self.coarse_azimuth) * len(self.coarse_elevation) * len(self.coarse_roll)
+        count = 0
+
+        for azimuth in self.coarse_azimuth:
+            for elevation in self.coarse_elevation:
+                for roll in self.coarse_roll:
+                    count += 1
+                    print(f"\n[{count}/{total}] azimuth={azimuth}°, elevation={elevation}°, roll={roll}°", end="")
+
+                    # Render
+                    candidate_image = render_fn(azimuth, elevation, roll, distance)
+
+                    # Compare
+                    score = self.compare_images(candidate_image, reference_image)
+                    print(f" → {score:.1f}/10", end="")
+
+                    results.append({
+                        'azimuth': azimuth,
+                        'elevation': elevation,
+                        'roll': roll,
+                        'distance': distance,
+                        'score': score
+                    })
+
+                    if score > best_score:
+                        best_score = score
+                        best_angles = {'azimuth': azimuth, 'elevation': elevation, 'roll': roll, 'distance': distance}
+                        print(" ✓ NEW BEST", end="")
+
+                    # Early termination
+                    if score >= self.score_threshold_excellent:
+                        print(f"\n\n✓ Excellent match (≥{self.score_threshold_excellent})! Stopping early.")
+                        return {
+                            'best_angles': best_angles,
+                            'best_score': best_score,
+                            'all_results': results,
+                            'early_termination': True
+                        }
+
+        print(f"\n\n{'='*70}")
+        print(f"COARSE COMPLETE: Best={best_score:.1f}/10 at azimuth={best_angles['azimuth']}°, elevation={best_angles['elevation']}°, roll={best_angles['roll']}°")
+        print("="*70)
+
+        return {
+            'best_angles': best_angles,
+            'best_score': best_score,
+            'all_results': results,
+            'early_termination': False
+        }
+
+    def fine_search(
+        self,
+        render_fn: Callable,
+        reference_image: Image.Image,
+        coarse_result: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Perform fine search (15° increments around best).
+
+        Args:
+            render_fn: Function(azimuth, elevation, roll, distance) -> Image
+            reference_image: Reference image to match
+            coarse_result: Result from coarse_search
+
+        Returns:
+            Dict with best_angles, best_score, all_results
+        """
+        print("\n" + "="*70)
+        print("PHASE 2: FINE SEARCH (15° increments)")
+        print("="*70)
+
+        best_coarse = coarse_result['best_angles']
+        best_score = coarse_result['best_score']
+        best_angles = best_coarse.copy()
+
+        print(f"\nRefining around: azimuth={best_coarse['azimuth']}° ±{self.fine_window}°, elevation={best_coarse['elevation']}° ±{self.fine_window}°, roll={best_coarse['roll']}° ±{self.fine_window}°")
+
+        # Generate ranges
+        azimuth_range = range(
+            best_coarse['azimuth'] - self.fine_window,
+            best_coarse['azimuth'] + self.fine_window + 1,
+            self.fine_step
+        )
+        elevation_range = range(
+            max(-90, best_coarse['elevation'] - self.fine_window),
+            min(90, best_coarse['elevation'] + self.fine_window) + 1,
+            self.fine_step
+        )
+        roll_range = range(
+            max(-180, best_coarse['roll'] - self.fine_window),
+            min(180, best_coarse['roll'] + self.fine_window) + 1,
+            self.fine_step
+        )
+
+        results = []
+        no_improvement = 0
+        distance = best_coarse['distance']
+
+        for azimuth in azimuth_range:
+            azimuth = azimuth % 360
+
+            for elevation in elevation_range:
+                for roll in roll_range:
+                    # Skip coarse result already tested
+                    if (azimuth == best_coarse['azimuth'] and
+                        elevation == best_coarse['elevation'] and
+                        roll == best_coarse['roll']):
+                        continue
+
+                    print(f"\nazimuth={azimuth}°, elevation={elevation}°, roll={roll}°", end="")
+
+                    # Render
+                    candidate_image = render_fn(azimuth, elevation, roll, distance)
+
+                    # Compare
+                    score = self.compare_images(candidate_image, reference_image)
+                    print(f" → {score:.1f}/10", end="")
+
+                    results.append({
+                        'azimuth': azimuth,
+                        'elevation': elevation,
+                        'roll': roll,
+                        'distance': distance,
+                        'score': score
+                    })
+
+                    if score > best_score:
+                        best_score = score
+                        best_angles = {'azimuth': azimuth, 'elevation': elevation, 'roll': roll, 'distance': distance}
+                        print(" ✓ NEW BEST", end="")
+                        no_improvement = 0
+                    else:
+                        no_improvement += 1
+
+                    # Early termination
+                    if score >= self.score_threshold_excellent:
+                        print(f"\n\n✓ Excellent match (≥{self.score_threshold_excellent})!")
+                        return {
+                            'best_angles': best_angles,
+                            'best_score': best_score,
+                            'all_results': results,
+                            'early_termination': True
+                        }
+
+                    if no_improvement >= 10:
+                        print(f"\n\n⚠ No improvement after 10 tests. Stopping.")
+                        return {
+                            'best_angles': best_angles,
+                            'best_score': best_score,
+                            'all_results': results,
+                            'early_termination': True,
+                            'reason': 'diminishing_returns'
+                        }
+
+        print(f"\n\n{'='*70}")
+        print(f"FINE COMPLETE: Best={best_score:.1f}/10 at azimuth={best_angles['azimuth']}°, elevation={best_angles['elevation']}°, roll={best_angles['roll']}°")
+        print("="*70)
+
+        return {
+            'best_angles': best_angles,
+            'best_score': best_score,
+            'all_results': results,
+            'early_termination': False
+        }
+
+    def find_best_angle(
+        self,
+        render_fn: Callable,
+        reference_id: str,
+        volume_path: str,
+        distance: float = 2.0
+    ) -> Dict[str, Any]:
+        """Find best camera angle to match reference image.
+
+        Args:
+            render_fn: Function(azimuth, elevation, roll, distance) -> PIL.Image
+            reference_id: ID of reference in KG (e.g., "a_skull_front_view")
+            volume_path: Path to volume (for learned params lookup)
+            distance: Camera distance
+
+        Returns:
+            Dict with final_angles, match_score, iterations, search_strategy
+        """
+        volume_name = Path(volume_path).stem
+
+        # Check learned parameters
+        learned = self.kg.get_learned_params(volume_name)
+        if learned:
+            for entry in learned:
+                if entry.get('reference_id') == reference_id:
+                    print("\n" + "="*70)
+                    print(f"FOUND LEARNED PARAMETERS for {reference_id}")
+                    print(f"Score: {entry.get('match_score'):.1f}/10")
+                    print(f"Angles: {entry['final_angles']}")
+                    print("="*70)
+                    return {
+                        'final_angles': entry['final_angles'],
+                        'match_score': entry.get('match_score'),
+                        'iterations': 0,
+                        'search_strategy': 'learned',
+                        'from_cache': True
+                    }
+
+        # Get reference image
+        # The reference_id is the key in graph['reference_renders']
+        if reference_id not in self.kg.graph['reference_renders']:
+            raise ValueError(f"Reference '{reference_id}' not found in KG")
+
+        ref_data = self.kg.graph['reference_renders'][reference_id]
+        ref_image_path = self.kg.kg_path / ref_data['image_path']
+
+        if not ref_image_path.exists():
+            raise FileNotFoundError(f"Reference image not found: {ref_image_path}")
+
+        reference_image = Image.open(ref_image_path)
+        print(f"\nReference: {ref_image_path} ({reference_image.size})")
+
+        # Coarse search
+        coarse_result = self.coarse_search(render_fn, reference_image, distance)
+        total_iterations = len(coarse_result['all_results'])
+
+        if coarse_result.get('early_termination'):
+            result = {
+                'final_angles': coarse_result['best_angles'],
+                'match_score': coarse_result['best_score'],
+                'iterations': total_iterations,
+                'search_strategy': 'coarse',
+                'from_cache': False
+            }
+            self._store_learned_params(volume_name, reference_id, result)
+            return result
+
+        # Fine search
+        fine_result = self.fine_search(render_fn, reference_image, coarse_result)
+        total_iterations += len(fine_result['all_results'])
+
+        result = {
+            'final_angles': fine_result['best_angles'],
+            'match_score': fine_result['best_score'],
+            'iterations': total_iterations,
+            'search_strategy': 'fine',
+            'from_cache': False
+        }
+
+        self._store_learned_params(volume_name, reference_id, result)
+        return result
+
+    def _store_learned_params(self, volume_name: str, reference_id: str, result: Dict[str, Any]):
+        """Store successful match in KG.
+
+        Args:
+            volume_name: Volume dataset name
+            reference_id: Reference image ID
+            result: Match result with angles and score
+        """
+        entry = {
+            'reference_id': reference_id,
+            'final_angles': result['final_angles'],
+            'match_score': result['match_score'],
+            'iterations_taken': result['iterations'],
+            'search_strategy': result['search_strategy'],
+            'timestamp': datetime.now().isoformat()
+        }
+
+        if volume_name not in self.kg.graph['learned_params']:
+            self.kg.graph['learned_params'][volume_name] = []
+
+        self.kg.graph['learned_params'][volume_name].append(entry)
+        self.kg._save_graph()
+
+        print(f"\n✓ Stored in KG: {volume_name} → {reference_id} (score={result['match_score']:.1f}/10)")

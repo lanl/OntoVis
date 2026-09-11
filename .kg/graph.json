@@ -42,6 +42,46 @@
         "reason": "Reference of a skull linked to bones"
       },
       "added": "2026-09-10T18:13:13.651937"
+    },
+    {
+      "source": "a_skull_front_view",
+      "relationship": "depicts",
+      "target": "bones",
+      "properties": {
+        "inferred": true,
+        "reason": "Reference of a skull linked to bones"
+      },
+      "added": "2026-09-11T13:41:44.848463"
+    },
+    {
+      "source": "a_skull_side_view",
+      "relationship": "depicts",
+      "target": "bones",
+      "properties": {
+        "inferred": true,
+        "reason": "Reference of a skull linked to bones"
+      },
+      "added": "2026-09-11T13:41:44.848868"
+    },
+    {
+      "source": "a_skull_front_view",
+      "relationship": "depicts",
+      "target": "bones",
+      "properties": {
+        "inferred": true,
+        "reason": "Reference of a skull linked to bones"
+      },
+      "added": "2026-09-11T13:53:13.961545"
+    },
+    {
+      "source": "a_skull_side_view",
+      "relationship": "depicts",
+      "target": "bones",
+      "properties": {
+        "inferred": true,
+        "reason": "Reference of a skull linked to bones"
+      },
+      "added": "2026-09-11T13:53:13.961965"
     }
   ],
   "conventions": {
@@ -64,7 +104,7 @@
       ],
       "medical_rationale": "User specified: bones should be displayed in white",
       "references": [],
-      "added": "2026-09-10T18:13:13.650268"
+      "added": "2026-09-11T13:53:13.959289"
     }
   },
   "reference_renders": {
@@ -79,7 +119,7 @@
       "description": "Reference image for a skull from front view",
       "render_params": null,
       "dataset_info": null,
-      "added": "2026-09-10T18:13:13.651466",
+      "added": "2026-09-11T13:53:13.961525",
       "image_exists": true
     },
     "a_skull_side_view": {
@@ -93,13 +133,13 @@
       "description": "Reference image for a skull from side view",
       "render_params": null,
       "dataset_info": null,
-      "added": "2026-09-10T18:13:13.651930",
+      "added": "2026-09-11T13:53:13.961954",
       "image_exists": true
     }
   },
   "dataset_knowledge": {},
   "learned_params": {},
-  "last_modified": "2026-09-10T18:13:13.652283",
+  "last_modified": "2026-09-11T13:53:13.962678",
   "rules": {
     "preference": [
       {
@@ -115,6 +155,20 @@
           "preference": "front view"
         },
         "added": "2026-09-10T18:13:13.652273"
+      },
+      {
+        "text": "show the front view first",
+        "parsed_data": {
+          "preference": "front view"
+        },
+        "added": "2026-09-11T13:41:44.849306"
+      },
+      {
+        "text": "show the front view first",
+        "parsed_data": {
+          "preference": "front view"
+        },
+        "added": "2026-09-11T13:53:13.962667"
       }
     ],
     "rendering": [
@@ -131,6 +185,20 @@
           "instruction": "maximize the use of the space but do not crop"
         },
         "added": "2026-09-10T18:13:13.652275"
+      },
+      {
+        "text": "when displaying an image, maximize the use of the space but do not crop",
+        "parsed_data": {
+          "instruction": "maximize the use of the space but do not crop"
+        },
+        "added": "2026-09-11T13:41:44.849308"
+      },
+      {
+        "text": "when displaying an image, maximize the use of the space but do not crop",
+        "parsed_data": {
+          "instruction": "maximize the use of the space but do not crop"
+        },
+        "added": "2026-09-11T13:53:13.962670"
       }
     ],
     "definition": [
@@ -151,6 +219,24 @@
           "condition": "part of the anatomy is cut off at the edges"
         },
         "added": "2026-09-10T18:13:13.652278"
+      },
+      {
+        "text": "an image is cropped if part of the anatomy is cut off at the edges",
+        "parsed_data": {
+          "entity": "image",
+          "state": "cropped",
+          "condition": "part of the anatomy is cut off at the edges"
+        },
+        "added": "2026-09-11T13:41:44.849310"
+      },
+      {
+        "text": "an image is cropped if part of the anatomy is cut off at the edges",
+        "parsed_data": {
+          "entity": "image",
+          "state": "cropped",
+          "condition": "part of the anatomy is cut off at the edges"
+        },
+        "added": "2026-09-11T13:53:13.962672"
       }
     ],
     "rendering_strategy": [
@@ -174,6 +260,34 @@
           "instruction": "start zoomed out (distance 5.0 or higher) and gradually zoom in until the anatomy fills most of the frame without being cropped"
         },
         "added": "2026-09-10T18:13:13.652280"
+      },
+      {
+        "text": "when rendering bone structures, use a high threshold value (typically above intensity 100) to isolate bones from soft tissue",
+        "parsed_data": {
+          "instruction": "bone structures, use a high threshold value (typically above intensity 100) to isolate bones from soft tissue"
+        },
+        "added": "2026-09-11T13:41:44.849301"
+      },
+      {
+        "text": "when rendering, start zoomed out (distance 5.0 or higher) and gradually zoom in until the anatomy fills most of the frame without being cropped",
+        "parsed_data": {
+          "instruction": "start zoomed out (distance 5.0 or higher) and gradually zoom in until the anatomy fills most of the frame without being cropped"
+        },
+        "added": "2026-09-11T13:41:44.849311"
+      },
+      {
+        "text": "when rendering bone structures, use a high threshold value (typically above intensity 100) to isolate bones from soft tissue",
+        "parsed_data": {
+          "instruction": "bone structures, use a high threshold value (typically above intensity 100) to isolate bones from soft tissue"
+        },
+        "added": "2026-09-11T13:53:13.962658"
+      },
+      {
+        "text": "when rendering, start zoomed out (distance 5.0 or higher) and gradually zoom in until the anatomy fills most of the frame without being cropped",
+        "parsed_data": {
+          "instruction": "start zoomed out (distance 5.0 or higher) and gradually zoom in until the anatomy fills most of the frame without being cropped"
+        },
+        "added": "2026-09-11T13:53:13.962675"
       }
     ]
   }

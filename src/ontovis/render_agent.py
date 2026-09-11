@@ -5,6 +5,7 @@ import base64
 from pathlib import Path
 from typing import Annotated, TypedDict, Optional, Dict, Any, List
 import json
+from datetime import datetime
 
 import numpy as np
 import pyvista as pv
@@ -14,6 +15,31 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 
 from .config import Config
+from .multimodal_kg import MultimodalKnowledgeGraph
+
+
+def spherical_to_cartesian(azimuth_deg, elevation_deg, radius):
+    """
+    Convert spherical coordinates to Cartesian coordinates.
+
+    Args:
+        azimuth_deg: Azimuth angle in degrees (0-360)
+                     0° = +X axis, 90° = +Y axis
+        elevation_deg: Elevation angle in degrees (-90 to 90)
+                      0° = XY plane, 90° = +Z axis
+        radius: Distance from origin
+
+    Returns:
+        tuple: (x, y, z) Cartesian coordinates
+    """
+    azimuth = np.radians(azimuth_deg)
+    elevation = np.radians(elevation_deg)
+
+    x = radius * np.cos(elevation) * np.cos(azimuth)
+    y = radius * np.cos(elevation) * np.sin(azimuth)
+    z = radius * np.sin(elevation)
+
+    return x, y, z
 
 
 class RenderState(TypedDict):
@@ -26,16 +52,18 @@ class RenderState(TypedDict):
     histogram_summary: Optional[Dict[str, Any]]
     render_params: Optional[Dict[str, Any]]
     rendered_image: Optional[str]
+    output_dir: Optional[str]  # Directory for storing intermediate outputs
 
 
 class VolumeRenderAgent:
     """Agent for rendering 3D volumes with AI-guided parameter selection."""
 
-    def __init__(self, config_path=None):
+    def __init__(self, config_path=None, kg_path=".kg"):
         """Initialize the volume rendering agent.
 
         Args:
             config_path: Path to the config file (optional)
+            kg_path: Path to knowledge graph directory (default: .kg)
         """
         self.config = Config(config_path)
         llm_config = self.config.get_llm_config()
@@ -46,6 +74,9 @@ class VolumeRenderAgent:
             base_url=llm_config['base_url'],
             max_tokens=4096
         )
+
+        # Initialize knowledge graph
+        self.kg = MultimodalKnowledgeGraph(kg_path)
 
         self.graph = self._build_graph()
 
@@ -124,6 +155,7 @@ class VolumeRenderAgent:
             dict: Updated state with histogram_summary
         """
         volume_data = state.get("volume_data")
+        output_dir = state.get("output_dir")
 
         if volume_data is None:
             raise ValueError("No volume data available")
@@ -160,6 +192,30 @@ class VolumeRenderAgent:
             'dtype': str(volume_data.dtype)
         }
 
+        # Save histogram plot if output directory is specified
+        if output_dir:
+            import matplotlib.pyplot as plt
+
+            plt.figure(figsize=(10, 6))
+            plt.bar(bin_centers, hist, width=bin_edges[1] - bin_edges[0], color='steelblue', alpha=0.7)
+            plt.xlabel('Intensity')
+            plt.ylabel('Frequency')
+            plt.title('Volume Intensity Histogram')
+
+            # Mark peaks
+            if peaks.size > 0:
+                plt.plot(bin_centers[peaks], hist[peaks], 'ro', markersize=8, label='Detected Peaks')
+                plt.legend()
+
+            plt.grid(True, alpha=0.3)
+            plt.tight_layout()
+
+            histogram_path = Path(output_dir) / '01_histogram.png'
+            plt.savefig(histogram_path, dpi=150, bbox_inches='tight')
+            plt.close()
+
+            print(f"  📊 Saved histogram: {histogram_path}")
+
         return {
             "histogram_summary": histogram_summary
         }
@@ -177,8 +233,18 @@ class VolumeRenderAgent:
         user_prompt = state.get("user_prompt")
         metadata = state.get("metadata", {})
 
+        # Load rendering strategies from KG documentation
+        kg_strategies = self.kg.get_documentation("rendering_strategies")
+        if not kg_strategies:
+            kg_strategies = "No additional rendering strategies available."
+
         # Construct prompt for LLM
-        analysis_prompt = f"""You are a scientific visualization expert. Based on the user's request and volume statistics, determine optimal rendering parameters.
+        analysis_prompt = f"""You are a scientific visualization expert. Based on the user's request, volume statistics, and knowledge graph strategies, determine optimal rendering parameters.
+
+=== KNOWLEDGE GRAPH RENDERING STRATEGIES ===
+{kg_strategies}
+
+=== VOLUME DATA ANALYSIS ===
 
 Dataset Information:
 - Shape: {histogram_summary['shape']}
@@ -193,7 +259,10 @@ User's Request: "{user_prompt}"
 
 Please provide rendering parameters as a JSON object with the following structure:
 {{
-  "camera_position": [x, y, z],  // Camera position relative to volume center
+  "camera_azimuth": 0-360,      // Horizontal rotation (0=+X, 90=+Y, 180=-X, 270=-Y)
+  "camera_elevation": -90 to 90, // Vertical angle (0=side, 90=top, -90=bottom)
+  "camera_distance": 1.0-3.0,    // Distance multiplier (1.0=close, 2.0=standard, 3.0=far)
+  "camera_roll": -180 to 180,    // Camera roll around viewing axis (0=default, ±90=rotated)
   "opacity_mapping": [
     {{"value": intensity, "opacity": 0.0-1.0}},
     // IMPORTANT: For sparse datasets (median near 0), use aggressive opacity:
@@ -221,7 +290,12 @@ Consider:
 2. Whether to make background transparent or visible
 3. Appropriate color schemes (medical: grayscale/bone colors; scientific: heat maps)
 4. Opacity curves that highlight the requested features
-5. Camera angle for best visualization
+5. Camera angle for best visualization:
+   - For "front face view": azimuth=270, elevation=0, roll=-90 (person upright)
+   - For "side profile": azimuth=0, elevation=0, roll=-90
+   - For "top view": azimuth=0, elevation=90, roll=0
+   - For diagonal 3D view: azimuth=45, elevation=30, roll=0
+6. Use roll to correct volume orientation (e.g., make lying person appear upright)
 
 Respond ONLY with the JSON object, no additional text.
 """
@@ -246,6 +320,14 @@ Respond ONLY with the JSON object, no additional text.
             # Fallback to default parameters
             render_params = self._get_default_params(histogram_summary)
 
+        # Save parameters to file if output directory is specified
+        output_dir = state.get("output_dir")
+        if output_dir:
+            params_path = Path(output_dir) / '02_render_params.json'
+            with open(params_path, 'w') as f:
+                json.dump(render_params, f, indent=2)
+            print(f"  📋 Saved parameters: {params_path}")
+
         return {
             "render_params": render_params,
             "messages": [message, response]
@@ -265,7 +347,10 @@ Respond ONLY with the JSON object, no additional text.
         mid = (vmin + vmax) / 2
 
         return {
-            "camera_position": [1.5, 1.5, 1.5],
+            "camera_azimuth": 45.0,
+            "camera_elevation": 30.0,
+            "camera_distance": 2.0,
+            "camera_roll": 0.0,
             "opacity_mapping": [
                 {"value": vmin, "opacity": 0.0},
                 {"value": mid * 0.5, "opacity": 0.1},
@@ -377,13 +462,56 @@ Respond ONLY with the JSON object, no additional text.
         volume_actor.prop.diffuse = lighting.get("diffuse", 0.6)
         volume_actor.prop.specular = lighting.get("specular", 0.3)
 
-        # Set camera position
-        cam_pos = render_params.get("camera_position", [1.5, 1.5, 1.5])
+        # Set camera position using spherical coordinates
+        azimuth = render_params.get("camera_azimuth", 45.0)
+        elevation = render_params.get("camera_elevation", 30.0)
+        distance = render_params.get("camera_distance", 2.0)
+        roll = render_params.get("camera_roll", 0.0)
+
         center = np.array(volume_data.shape) * np.array(scale) / 2
+
+        # Calculate camera position
+        max_dim = max(volume_data.shape)
+        scaled_distance = distance * max_dim
+
+        cam_x, cam_y, cam_z = spherical_to_cartesian(azimuth, elevation, scaled_distance)
+        camera_position = center + np.array([cam_x, cam_y, cam_z])
+
+        # Calculate proper up vector with roll
+        view_dir = center - camera_position
+        view_dir = view_dir / np.linalg.norm(view_dir)
+
+        # Default up vector (Z-axis)
+        base_up = np.array([0.0, 0.0, 1.0])
+
+        # If view_dir is parallel to Z, use Y as base_up
+        if abs(np.dot(view_dir, base_up)) > 0.99:
+            base_up = np.array([0.0, 1.0, 0.0])
+
+        # Calculate right vector
+        right = np.cross(base_up, view_dir)
+        right = right / np.linalg.norm(right)
+
+        # Calculate corrected up vector
+        up = np.cross(view_dir, right)
+        up = up / np.linalg.norm(up)
+
+        # Apply roll rotation using Rodrigues' formula
+        if roll != 0:
+            roll_rad = np.radians(roll)
+            cos_roll = np.cos(roll_rad)
+            sin_roll = np.sin(roll_rad)
+
+            k_dot_v = np.dot(view_dir, up)
+            k_cross_v = np.cross(view_dir, up)
+
+            up = up * cos_roll + k_cross_v * sin_roll + view_dir * k_dot_v * (1 - cos_roll)
+            up = up / np.linalg.norm(up)
+
         plotter.camera_position = [
-            (center[0] * cam_pos[0], center[1] * cam_pos[1], center[2] * cam_pos[2]),
+            tuple(camera_position),
             tuple(center),
-            (0, 0, 1)
+            tuple(up)
         ]
 
         # Render
@@ -392,6 +520,15 @@ Respond ONLY with the JSON object, no additional text.
         # Capture screenshot
         img_bytes = plotter.screenshot(return_img=True)
         plotter.close()
+
+        # Save rendered image to output directory if specified
+        output_dir = state.get("output_dir")
+        if output_dir:
+            from PIL import Image
+            img = Image.fromarray(img_bytes)
+            render_path = Path(output_dir) / '03_final_render.png'
+            img.save(render_path)
+            print(f"  🎨 Saved render: {render_path}")
 
         # Convert to base64
         from PIL import Image
@@ -410,7 +547,10 @@ Respond ONLY with the JSON object, no additional text.
         volume_path: str,
         prompt: str,
         metadata: Optional[Dict[str, Any]] = None,
-        save_image: Optional[str] = None
+        save_image: Optional[str] = None,
+        output_base_dir: str = "renders",
+        use_angle_matching: bool = False,
+        reference_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Render a volume dataset based on a natural language prompt.
 
@@ -424,15 +564,36 @@ Respond ONLY with the JSON object, no additional text.
                    - "Show only high-density structures"
             metadata: Dictionary with dataset metadata (dimensions, dtype for .raw files)
             save_image: Optional path to save rendered image
+            output_base_dir: Base directory for storing intermediate outputs (default: "renders")
+            use_angle_matching: If True, use vision-guided angle matching instead of LLM
+            reference_id: Reference image ID for angle matching (e.g., "a_skull_front_view")
 
         Returns:
             dict: Results containing:
                 - rendered_image_base64: Base64-encoded PNG
                 - render_params: Parameters used for rendering
                 - explanation: Why these parameters were chosen
+                - output_dir: Directory where intermediate outputs are stored
+                - angle_match_result: (if use_angle_matching=True) Angle matching details
         """
         if metadata is None:
             metadata = {}
+
+        # Create unique output directory for this interaction
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        volume_name = Path(volume_path).stem
+        output_dir = Path(output_base_dir) / f"{timestamp}_{volume_name}"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save the prompt
+        prompt_path = output_dir / '00_prompt.txt'
+        with open(prompt_path, 'w') as f:
+            f.write(f"User Prompt:\n{prompt}\n\n")
+            f.write(f"Volume: {volume_path}\n")
+            f.write(f"Metadata: {json.dumps(metadata, indent=2)}\n")
+
+        print(f"\n📁 Output directory: {output_dir}")
+        print(f"  📝 Saved prompt: {prompt_path}")
 
         initial_state = {
             "messages": [],
@@ -442,19 +603,23 @@ Respond ONLY with the JSON object, no additional text.
             "volume_data": None,
             "histogram_summary": None,
             "render_params": None,
-            "rendered_image": None
+            "rendered_image": None,
+            "output_dir": str(output_dir)
         }
 
         result = self.graph.invoke(initial_state)
 
-        # Save image if requested
+        # Save image if requested (backward compatibility)
         if save_image and result.get("rendered_image"):
             image_data = base64.b64decode(result["rendered_image"])
             with open(save_image, 'wb') as f:
                 f.write(image_data)
 
+        print(f"  ✅ Rendering complete!\n")
+
         return {
             "rendered_image_base64": result.get("rendered_image"),
             "render_params": result.get("render_params"),
-            "explanation": result.get("render_params", {}).get("explanation", "")
+            "explanation": result.get("render_params", {}).get("explanation", ""),
+            "output_dir": str(output_dir)
         }

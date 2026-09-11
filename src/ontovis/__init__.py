@@ -1,9 +1,10 @@
 from .graph import KnowledgeGraph
 from .vision_agent import VisionAgent
 from .volume_agent import VolumeAnalysisAgent
-from .render_agent_v2 import VolumeRenderAgent
+from .render_agent import VolumeRenderAgent  # Updated version with roll support and KG integration
 from .smart_render_agent import SmartVolumeRenderAgent
 from .multimodal_kg import MultimodalKnowledgeGraph
+from .angle_matcher import AngleMatcher
 from .kg_tool import KGTool
 from .kg_markdown_parser import parse_kg_markdown, KGMarkdownParser
 from .kg_natural_parser import parse_natural_language_kg, KGNaturalParser
@@ -18,6 +19,7 @@ __all__ = [
     "VolumeRenderAgent",
     "SmartVolumeRenderAgent",
     "MultimodalKnowledgeGraph",
+    "AngleMatcher",
     "KGTool",
     "parse_kg_markdown",
     "KGMarkdownParser",

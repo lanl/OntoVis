@@ -580,99 +580,191 @@ def list_recent_renders(count: int = 10) -> str:
 
 
 @tool
-def find_matching_angle(volume_path: str, reference_category: str, search_strategy: str = "coarse_to_fine") -> str:
-    """Automatically find the camera angle that best matches a reference image from the knowledge graph.
+def match_reference_angle(
+    volume_path: str,
+    reference_id: str,
+    dimensions_x: int = None,
+    dimensions_y: int = None,
+    dimensions_z: int = None,
+    dtype: str = "uint8",
+    distance: float = 2.0
+) -> str:
+    """Use vision-guided angle matching to find the best camera angles to match a reference image from the KG.
 
-    This tool tests multiple camera angles and uses vision AI to compare each render
-    against the reference image, returning the best matching angle.
+    This uses iterative search with vision model comparison:
+    - Phase 1: Coarse search (45° increments, ~120 tests)
+    - Phase 2: Fine search (15° increments, up to 343 tests)
+    - Compares each render vs reference using vision model (0-10 score)
+    - Stores successful match in KG learned_params for instant reuse
+    - Next time: uses cached angles (instant!)
 
     Args:
-        volume_path: Path to the volume file to render
-        reference_category: Category of reference image in KG (e.g., "skull", "bone")
-        search_strategy: "coarse_to_fine" (default, faster) or "grid" (exhaustive)
+        volume_path: Path to volume file (e.g., "data/3d_datasets/vis_male_256x256x128_uint8.raw")
+        reference_id: Reference ID from KG (e.g., "a_skull_front_view", "a_skull_side_view")
+        dimensions_x: X dimension for .raw files
+        dimensions_y: Y dimension for .raw files
+        dimensions_z: Z dimension for .raw files
+        dtype: Data type (default: "uint8")
+        distance: Camera distance multiplier (default: 2.0)
 
     Returns:
-        Best matching camera angle with elevation and azimuth values
+        Best matching angles with score and iteration count
     """
     run_mgr = get_run_manager()
     kg_tool = get_kg_tool()
 
     try:
-        # Get reference image from KG
-        refs = kg_tool.kg.get_reference_renders(category=reference_category, quality="good")
+        # Check if reference exists
+        if reference_id not in kg_tool.kg.graph['reference_renders']:
+            available = list(kg_tool.kg.graph['reference_renders'].keys())
+            return f"""❌ Reference '{reference_id}' not found in KG.
 
-        if not refs:
-            return f"No reference images found for category: {reference_category}"
+Available references:
+{chr(10).join(f'  - {ref}' for ref in available)}
 
-        # Use the first reference
-        ref = refs[0]
-        ref_image_path = kg_tool.kg.kg_path / ref['image_path']
+Use: match_reference_angle(volume_path="...", reference_id="a_skull_front_view")
+"""
 
-        if not ref_image_path.exists():
-            return f"Reference image not found at: {ref_image_path}"
-
-        # Create output directory for this search
-        output_dir = run_mgr.renders_dir / "angle_search" / f"{reference_category}_{run_mgr.timestamp}"
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        # Get volume metadata
-        metadata = None
+        # Prepare metadata
+        metadata = {}
         if volume_path.endswith('.raw'):
-            # Try to infer from filename
-            stem = Path(volume_path).stem
-            parts = stem.split('_')
-            if len(parts) >= 2:
-                try:
-                    dims_str = parts[1]  # e.g., "256x256x128"
-                    dims = tuple(map(int, dims_str.split('x')))
-                    dtype = parts[2] if len(parts) > 2 else 'uint8'
-                    metadata = {'dimensions': dims, 'dtype': dtype}
-                except:
-                    pass
+            if dimensions_x and dimensions_y and dimensions_z:
+                metadata = {
+                    'dimensions': [dimensions_x, dimensions_y, dimensions_z],
+                    'dtype': dtype
+                }
+            else:
+                # Try to infer from filename
+                import re
+                match = re.search(r'(\d+)x(\d+)x(\d+)', Path(volume_path).stem)
+                if match:
+                    metadata = {
+                        'dimensions': list(map(int, match.groups())),
+                        'dtype': dtype
+                    }
+                else:
+                    return "❌ Error: .raw files require dimensions (dimensions_x, dimensions_y, dimensions_z)"
 
-        # Log the operation
-        run_mgr.log_operation(
-            operation="find_matching_angle",
-            details={
-                "volume_path": volume_path,
-                "reference_category": reference_category,
-                "reference_image": str(ref_image_path),
-                "search_strategy": search_strategy,
-                "output_dir": str(output_dir)
-            }
-        )
+        # Create render function
+        import numpy as np
+        import pyvista as pv
+        from PIL import Image
 
-        # Find best angle
-        matcher = AngleMatcher()
+        volume_data = np.fromfile(volume_path, dtype=metadata['dtype'])
+        dims = tuple(metadata['dimensions'])
+        volume_data = volume_data.reshape(dims)
+
+        def render_fn(azimuth, elevation, roll, dist):
+            plotter = pv.Plotter(off_screen=True, window_size=(800, 800))
+            grid = pv.ImageData()
+            grid.dimensions = np.array(dims) + 1
+            grid.spacing = (1, 1, 1)
+            grid.origin = (0, 0, 0)
+            grid.point_data["values"] = volume_data.flatten(order="F")
+            plotter.add_volume(grid, cmap="gray_r", opacity="linear", shade=True)
+            plotter.set_background("black")
+
+            center = np.array([d / 2.0 for d in dims])
+            radius = max(dims) * dist
+            az_rad, el_rad = np.radians(azimuth), np.radians(elevation)
+            x = radius * np.cos(el_rad) * np.cos(az_rad)
+            y = radius * np.cos(el_rad) * np.sin(az_rad)
+            z = radius * np.sin(el_rad)
+            camera_position = center + np.array([x, y, z])
+
+            view_dir = (center - camera_position) / np.linalg.norm(center - camera_position)
+            base_up = np.array([0., 0., 1.])
+            if abs(np.dot(view_dir, base_up)) > 0.99:
+                base_up = np.array([0., 1., 0.])
+            right = np.cross(base_up, view_dir) / np.linalg.norm(np.cross(base_up, view_dir))
+            up = np.cross(view_dir, right) / np.linalg.norm(np.cross(view_dir, right))
+
+            if roll != 0:
+                roll_rad = np.radians(roll)
+                cos_r, sin_r = np.cos(roll_rad), np.sin(roll_rad)
+                k_dot_v = np.dot(view_dir, up)
+                k_cross_v = np.cross(view_dir, up)
+                up = up * cos_r + k_cross_v * sin_r + view_dir * k_dot_v * (1 - cos_r)
+                up /= np.linalg.norm(up)
+
+            plotter.camera_position = [tuple(camera_position), tuple(center), tuple(up)]
+            img_array = plotter.screenshot(return_img=True)
+            plotter.close()
+            return Image.fromarray(img_array)
+
+        # Log operation
+        run_mgr.log_operation("match_reference_angle", {
+            "volume_path": volume_path,
+            "reference_id": reference_id,
+            "dimensions": metadata.get('dimensions')
+        })
+
+        # Initialize matcher and find best angle
+        matcher = AngleMatcher(kg_path=str(kg_tool.kg.kg_path))
+
+        run_mgr.logger.info(f"Starting vision-guided angle search for {reference_id}...")
+
         result = matcher.find_best_angle(
+            render_fn=render_fn,
+            reference_id=reference_id,
             volume_path=volume_path,
-            reference_image_path=str(ref_image_path),
-            metadata=metadata,
-            output_dir=str(output_dir),
-            search_strategy=search_strategy
+            distance=distance
         )
 
-        best = result['best_match']
+        # Save final render to run directory
+        final_render = render_fn(
+            result['final_angles']['azimuth'],
+            result['final_angles']['elevation'],
+            result['final_angles']['roll'],
+            result['final_angles']['distance']
+        )
+        output_path = run_mgr.get_render_path(f"matched_{reference_id}.png")
+        final_render.save(output_path)
 
-        output = f"✅ Found best matching camera angle!\n\n"
-        output += f"Reference: {reference_category}\n"
-        output += f"Reference image: {ref_image_path.name}\n\n"
-        output += f"Best Match:\n"
-        output += f"  Elevation: {best['elevation']}° (0=eye level, 90=top view, -90=bottom view)\n"
-        output += f"  Azimuth: {best['azimuth']}° (0=front, 90=right, 180=back, 270=left)\n"
-        output += f"  Match score: {best['match_score']}/10\n"
-        output += f"  Render: {best['render_path']}\n\n"
-        output += f"Tested {result['angles_tested']} angles using '{search_strategy}' strategy\n"
-        output += f"Summary: {output_dir}/angle_search_summary.json\n\n"
-        output += f"To render at this angle, use:\n"
-        output += f'render_volume(volume_path="{volume_path}", '
-        output += f'prompt="Render bones with camera elevation {best["elevation"]} degrees '
-        output += f'and azimuth {best["azimuth"]} degrees")'
+        # Format result
+        angles = result['final_angles']
+        cached = result.get('from_cache', False)
+        cache_str = " (from cache! ⚡)" if cached else ""
+
+        output = f"""✅ Angle Matching Complete{cache_str}
+
+Reference: {reference_id}
+Match Score: {result['match_score']:.1f}/10
+Strategy: {result['search_strategy']}
+Iterations: {result['iterations']}
+
+Best Angles:
+  Azimuth:   {angles['azimuth']}° (0=+X, 90=+Y, 180=-X, 270=-Y)
+  Elevation: {angles['elevation']}° (0=horizontal, 90=top, -90=bottom)
+  Roll:      {angles['roll']}° (camera rotation)
+  Distance:  {angles['distance']}
+
+Saved: {output_path}
+"""
+
+        if not cached:
+            output += f"""
+⭐ Result stored in KG! Next time this reference is matched, it will be instant (uses cached angles).
+"""
+
+        output += f"""
+To render at these angles, use:
+render_volume(
+    volume_path="{volume_path}",
+    prompt="Show bones from azimuth {angles['azimuth']}, elevation {angles['elevation']}, roll {angles['roll']}",
+    dimensions_x={metadata['dimensions'][0]},
+    dimensions_y={metadata['dimensions'][1]},
+    dimensions_z={metadata['dimensions'][2]}
+)
+"""
+
+        run_mgr.logger.info(f"Angle matching complete: score={result['match_score']:.1f}, iterations={result['iterations']}")
 
         return output
 
     except Exception as e:
-        return f"Error finding matching angle: {e}"
+        run_mgr.logger.error(f"Error in angle matching: {e}", exc_info=True)
+        return f"❌ Error matching angles: {e}"
 
 
 @tool
@@ -750,7 +842,7 @@ def create_interactive_agent(run_mgr: RunManager):
         list_files,
         list_recent_renders,
         analyze_image,
-        find_matching_angle,
+        match_reference_angle,
         kg_query_convention,
         kg_get_recommendations,
         kg_get_dataset_info,
