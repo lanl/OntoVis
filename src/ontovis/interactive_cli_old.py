@@ -15,7 +15,7 @@ from langgraph.graph.message import add_messages
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.ontovis import VolumeAnalysisAgent, VolumeRenderAgent, Config
+from src.ontovis import VolumeAnalysisAgent, VolumeRenderAgent, VisionAgent, SmartVolumeRenderAgent, Config
 
 
 # Define tools that wrap our agents
@@ -199,6 +199,142 @@ def list_files(directory: str = "data") -> str:
         return f"Error listing files: {e}"
 
 
+@tool
+def analyze_image(
+    image_path: str,
+    prompt: str = "Describe this image in detail."
+) -> str:
+    """Analyze an image using vision AI capabilities.
+
+    Use this when the user wants to:
+    - Understand what's in an image
+    - Describe image contents
+    - Extract entities or relationships from images
+    - Analyze visualizations, charts, or renderings
+    - Get information about structure or orientation from images
+
+    Args:
+        image_path: Path to image file (.jpg, .jpeg, .png, .gif, .webp)
+        prompt: What to analyze in the image (default: general description)
+
+    Returns:
+        Analysis results describing the image content
+    """
+    try:
+        agent = VisionAgent()
+
+        analysis = agent.analyze(
+            image_path=image_path,
+            prompt=prompt
+        )
+
+        return f"""Image Analysis Complete!
+
+Image: {image_path}
+
+Analysis:
+{analysis}
+
+You can ask follow-up questions about this image or analyze other images.
+"""
+
+    except FileNotFoundError:
+        return f"Error: Image not found at {image_path}"
+    except Exception as e:
+        return f"Error analyzing image: {e}"
+
+
+@tool
+def smart_render_volume(
+    volume_path: str,
+    prompt: str,
+    dimensions_x: int = None,
+    dimensions_y: int = None,
+    dimensions_z: int = None,
+    dtype: str = "uint8",
+    output_path: str = None,
+    max_iterations: int = 5,
+    save_intermediates: bool = False
+) -> str:
+    """Render a 3D volume with automatic framing adjustment using vision AI.
+
+    This tool iteratively renders the volume and uses vision AI to check if the
+    volume properly fills the image frame (not too small, not cropped). It adjusts
+    the camera distance automatically until the framing is optimal.
+
+    Use this when the user wants:
+    - A well-framed 3D visualization with proper sizing
+    - To ensure the full volume is visible without cropping
+    - To avoid too much empty space around the volume
+    - Better automatic framing than the basic render tool
+    - To see all intermediate renders (set save_intermediates=True)
+
+    Args:
+        volume_path: Path to volume file
+        prompt: What to render (e.g., "Show the bones", "Visualize at threshold 100")
+        dimensions_x: X dimension (required for .raw files)
+        dimensions_y: Y dimension (required for .raw files)
+        dimensions_z: Z dimension (required for .raw files)
+        dtype: Data type for .raw files (default: uint8)
+        output_path: Where to save the image (default: auto-generated)
+        max_iterations: Maximum iterations for adjustment (default: 5)
+        save_intermediates: Save all iteration images to see progression (default: False)
+
+    Returns:
+        Rendering results with framing feedback
+    """
+    try:
+        # Setup output directory for intermediates if requested
+        output_dir = "render_iterations" if save_intermediates else None
+
+        agent = SmartVolumeRenderAgent(
+            max_iterations=max_iterations,
+            save_intermediates=save_intermediates,
+            output_dir=output_dir
+        )
+
+        metadata = {}
+        if volume_path.endswith('.raw'):
+            if not all([dimensions_x, dimensions_y, dimensions_z]):
+                return "Error: .raw files require dimensions_x, dimensions_y, dimensions_z"
+            metadata['dimensions'] = [dimensions_x, dimensions_y, dimensions_z]
+            metadata['dtype'] = dtype
+
+        if output_path is None:
+            output_path = Path(volume_path).stem + "_smart_render.png"
+
+        results = agent.render(
+            volume_path=volume_path,
+            prompt=prompt,
+            metadata=metadata,
+            save_image=output_path
+        )
+
+        iterations = results.get('iterations', 1)
+        all_iterations = results.get('all_iterations', [])
+
+        intermediate_info = ""
+        if save_intermediates and all_iterations:
+            intermediate_info = f"\n\nAll {len(all_iterations)} iteration(s) saved to {output_dir}/:\n"
+            for iter_info in all_iterations:
+                intermediate_info += f"  - {Path(iter_info['path']).name} (adjustment: {iter_info['adjustment']})\n"
+
+        return f"""Smart Rendering Complete!
+
+Saved to: {output_path}
+Iterations: {iterations} (automatically adjusted framing using vision AI)
+
+The volume has been rendered with optimal framing - it fills the image properly
+without being cropped or too small. The vision AI verified the framing across
+{iterations} iteration(s) to ensure proper sizing.{intermediate_info}
+
+You can ask me to render differently or analyze other datasets.
+"""
+
+    except Exception as e:
+        return f"Error in smart rendering: {e}"
+
+
 # Build the agent
 def create_interactive_agent():
     """Create the conversational agent with tools."""
@@ -215,7 +351,7 @@ def create_interactive_agent():
         max_tokens=4096
     )
 
-    tools = [analyze_volume, render_volume, list_files]
+    tools = [analyze_volume, render_volume, smart_render_volume, list_files, analyze_image]
     llm_with_tools = llm.bind_tools(tools)
 
     # Define agent logic
@@ -283,6 +419,8 @@ def main():
 I have access to these tools:
 - **analyze_volume**: Analyze intensity distributions, get statistics, identify features
 - **render_volume**: Create 3D visualizations based on your prompts
+- **smart_render_volume**: Create optimally-framed 3D visualizations using iterative vision AI feedback
+- **analyze_image**: Analyze images using vision AI (describe contents, extract information)
 - **list_files**: Show available data files
 
 Just tell me what you want to do in natural language, and I'll use the right tools!""")

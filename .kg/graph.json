@@ -1,0 +1,180 @@
+{
+  "version": "1.0",
+  "created": "2026-09-10T15:54:52.825735",
+  "entities": {},
+  "relationships": [
+    {
+      "source": "a_skull_front_view",
+      "relationship": "depicts",
+      "target": "bones",
+      "properties": {
+        "inferred": true,
+        "reason": "Reference of a skull linked to bones"
+      },
+      "added": "2026-09-10T15:54:52.826817"
+    },
+    {
+      "source": "a_skull_side_view",
+      "relationship": "depicts",
+      "target": "bones",
+      "properties": {
+        "inferred": true,
+        "reason": "Reference of a skull linked to bones"
+      },
+      "added": "2026-09-10T15:54:52.827197"
+    },
+    {
+      "source": "a_skull_front_view",
+      "relationship": "depicts",
+      "target": "bones",
+      "properties": {
+        "inferred": true,
+        "reason": "Reference of a skull linked to bones"
+      },
+      "added": "2026-09-10T18:13:13.651476"
+    },
+    {
+      "source": "a_skull_side_view",
+      "relationship": "depicts",
+      "target": "bones",
+      "properties": {
+        "inferred": true,
+        "reason": "Reference of a skull linked to bones"
+      },
+      "added": "2026-09-10T18:13:13.651937"
+    }
+  ],
+  "conventions": {
+    "bones": {
+      "name": "bones",
+      "description": "Bones structure",
+      "color": {
+        "rgb": [
+          255,
+          255,
+          255
+        ],
+        "name": "white",
+        "hex": "#ffffff"
+      },
+      "intensity_range": null,
+      "opacity_range": [
+        0.8,
+        1.0
+      ],
+      "medical_rationale": "User specified: bones should be displayed in white",
+      "references": [],
+      "added": "2026-09-10T18:13:13.650268"
+    }
+  },
+  "reference_renders": {
+    "a_skull_front_view": {
+      "id": "a_skull_front_view",
+      "image_path": "images/skull_front.jpg",
+      "category": "a_skull",
+      "quality": "good",
+      "tags": [
+        "front_view"
+      ],
+      "description": "Reference image for a skull from front view",
+      "render_params": null,
+      "dataset_info": null,
+      "added": "2026-09-10T18:13:13.651466",
+      "image_exists": true
+    },
+    "a_skull_side_view": {
+      "id": "a_skull_side_view",
+      "image_path": "images/skull_side.jpg",
+      "category": "a_skull",
+      "quality": "good",
+      "tags": [
+        "side_view"
+      ],
+      "description": "Reference image for a skull from side view",
+      "render_params": null,
+      "dataset_info": null,
+      "added": "2026-09-10T18:13:13.651930",
+      "image_exists": true
+    }
+  },
+  "dataset_knowledge": {},
+  "learned_params": {},
+  "last_modified": "2026-09-10T18:13:13.652283",
+  "rules": {
+    "preference": [
+      {
+        "text": "show the front view first",
+        "parsed_data": {
+          "preference": "front view"
+        },
+        "added": "2026-09-10T15:54:52.827765"
+      },
+      {
+        "text": "show the front view first",
+        "parsed_data": {
+          "preference": "front view"
+        },
+        "added": "2026-09-10T18:13:13.652273"
+      }
+    ],
+    "rendering": [
+      {
+        "text": "when displaying an image, maximize the use of the space but do not crop",
+        "parsed_data": {
+          "instruction": "maximize the use of the space but do not crop"
+        },
+        "added": "2026-09-10T15:54:52.827768"
+      },
+      {
+        "text": "when displaying an image, maximize the use of the space but do not crop",
+        "parsed_data": {
+          "instruction": "maximize the use of the space but do not crop"
+        },
+        "added": "2026-09-10T18:13:13.652275"
+      }
+    ],
+    "definition": [
+      {
+        "text": "an image is cropped if you part of the image is cut off. A non cropped image should have the background color everywhere around the image",
+        "parsed_data": {
+          "entity": "image",
+          "state": "cropped",
+          "condition": "you part of the image is cut off. A non cropped image should have the background color everywhere around the image"
+        },
+        "added": "2026-09-10T15:54:52.827771"
+      },
+      {
+        "text": "an image is cropped if part of the anatomy is cut off at the edges",
+        "parsed_data": {
+          "entity": "image",
+          "state": "cropped",
+          "condition": "part of the anatomy is cut off at the edges"
+        },
+        "added": "2026-09-10T18:13:13.652278"
+      }
+    ],
+    "rendering_strategy": [
+      {
+        "text": "when rendering, zoom out and render a small image and then keep zooming in until it is cropped then scale back until it is not cropped",
+        "parsed_data": {
+          "instruction": "zoom out and render a small image and then keep zooming in until it is cropped then scale back until it is not cropped"
+        },
+        "added": "2026-09-10T15:54:52.827773"
+      },
+      {
+        "text": "when rendering bone structures, use a high threshold value (typically above intensity 100) to isolate bones from soft tissue",
+        "parsed_data": {
+          "instruction": "bone structures, use a high threshold value (typically above intensity 100) to isolate bones from soft tissue"
+        },
+        "added": "2026-09-10T18:13:13.652269"
+      },
+      {
+        "text": "when rendering, start zoomed out (distance 5.0 or higher) and gradually zoom in until the anatomy fills most of the frame without being cropped",
+        "parsed_data": {
+          "instruction": "start zoomed out (distance 5.0 or higher) and gradually zoom in until the anatomy fills most of the frame without being cropped"
+        },
+        "added": "2026-09-10T18:13:13.652280"
+      }
+    ]
+  }
+}

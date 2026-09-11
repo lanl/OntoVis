@@ -7,13 +7,14 @@ AI-powered 3D volume analysis and visualization library.
 ```bash
 uv pip install -e .
 cp .config.example .config  # Add your API key
-python examples/interactive_cli.py
+python main.py
 ```
 
 ## Features
 
 - 🔬 **Volume Analysis** - AI identifies features from intensity distributions
 - 🎨 **3D Rendering** - Natural language controlled visualization
+- 🤖 **Smart Rendering** - Iterative vision-guided framing for optimal results
 - 💬 **Interactive CLI** - Chat with AI that uses agents as tools
 
 ## Documentation
@@ -36,6 +37,12 @@ agent.analyze_volume('data/volume.raw', 'CT scan of foot',
 # Render
 from ontovis import VolumeRenderAgent  
 agent = VolumeRenderAgent()
+agent.render('data/volume.raw', 'Show the bones',
+             metadata={'dimensions': [256,256,256], 'dtype': 'uint8'})
+
+# Smart Render (with automatic framing)
+from ontovis import SmartVolumeRenderAgent
+agent = SmartVolumeRenderAgent()
 agent.render('data/volume.raw', 'Show the bones',
              metadata={'dimensions': [256,256,256], 'dtype': 'uint8'})
 ```

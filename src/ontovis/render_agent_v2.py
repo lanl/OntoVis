@@ -135,6 +135,8 @@ Provide rendering instructions as JSON:
   "color": [r, g, b],     // RGB 0-255
   "opacity": 0.0-1.0,     // Surface opacity
   "camera_distance": float,  // Camera distance multiplier (1.0=close, 2.0=medium, 5.0+=far, 10.0+=very far)
+  "camera_elevation": float,  // Camera elevation angle in degrees (0=eye level, 90=top view, -90=bottom view)
+  "camera_azimuth": float,    // Camera azimuth angle in degrees (0=front, 90=right side, 180=back, 270=left side)
   "background": [r, g, b],     // RGB 0-255
   "explanation": "Why these parameters based on the prompt and data"
 }}
@@ -146,6 +148,11 @@ Guidelines:
 - Choose colors that match the prompt (white for bones, pink for tissue, etc.)
 - Camera distance: 1.5-2.5=normal view, 3-5=overview, 6-10=far view, 10+=bird's eye
 - If user says "zoom out", "far away", "distant": use distance 5.0 or higher
+- Camera angles: Extract elevation and azimuth from prompt (e.g., "elevation 10 degrees" → 10, "azimuth 45 degrees" → 45)
+  - Front view: azimuth 0, elevation 0
+  - Side view: azimuth 90 or 270
+  - Top view: elevation 90
+  - If no angles specified: use elevation 0, azimuth 0
 
 Respond with ONLY the JSON object.
 """
@@ -171,6 +178,8 @@ Respond with ONLY the JSON object.
                 "color": [255, 255, 255],
                 "opacity": 1.0,
                 "camera_distance": 2.0,
+                "camera_elevation": 0,
+                "camera_azimuth": 0,
                 "background": [0, 0, 0],
                 "explanation": "Using default parameters"
             }
@@ -217,13 +226,31 @@ Respond with ONLY the JSON object.
                 show_edges=False
             )
 
-            # Camera
+            # Camera - use spherical coordinates (elevation, azimuth)
             center = np.array(volume_data.shape) / 2
             distance = instructions["camera_distance"]
+
+            # Get angles (default to front view if not specified)
+            elevation_deg = instructions.get("camera_elevation", 0)
+            azimuth_deg = instructions.get("camera_azimuth", 0)
+
+            # Convert to radians
+            elevation = np.radians(elevation_deg)
+            azimuth = np.radians(azimuth_deg)
+
+            # Calculate camera position using spherical coordinates
+            # Elevation: 0 = eye level, 90 = top view, -90 = bottom view
+            # Azimuth: 0 = front, 90 = right, 180 = back, 270 = left
+            radius = np.max(volume_data.shape) * distance
+
+            cam_x = center[0] + radius * np.cos(elevation) * np.sin(azimuth)
+            cam_y = center[1] + radius * np.cos(elevation) * np.cos(azimuth)
+            cam_z = center[2] + radius * np.sin(elevation)
+
             plotter.camera_position = [
-                (center[0] * distance, center[1] * distance, center[2] * distance),
-                tuple(center),
-                (0, 0, 1)
+                (cam_x, cam_y, cam_z),  # Camera position
+                tuple(center),           # Focal point (look at center)
+                (0, 0, 1)               # View up vector
             ]
 
             # Render
@@ -286,8 +313,12 @@ Respond with ONLY the JSON object.
 
         # Save if requested
         if save_image and result.get("rendered_image"):
+            # Ensure parent directory exists (important for parallel renders)
+            save_path = Path(save_image)
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+
             image_data = base64.b64decode(result["rendered_image"])
-            with open(save_image, 'wb') as f:
+            with open(save_path, 'wb') as f:
                 f.write(image_data)
 
         return {

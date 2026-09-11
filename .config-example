@@ -1,0 +1,8 @@
+# Configuration file for OntoVis
+# Add your API configuration
+
+[llm]
+base_url = <url-name>
+model = <model-name>"
+# TODO Change to env var name
+api_key = <key-here>

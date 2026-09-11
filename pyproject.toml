@@ -7,8 +7,9 @@ name = "ontovis"
 version = "0.1.0"
 description = "A simple knowledge graph library"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
+    "langchain-openai>=1.6.1",
     "langchain-anthropic>=1.7.0",
     "langgraph>=1.2.11",
     "matplotlib>=3.11.1",

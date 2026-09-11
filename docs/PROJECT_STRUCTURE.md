@@ -2,130 +2,187 @@
 
 ## Overview
 
+OntoVis is an AI-powered 3D volume analysis and visualization library with professional software engineering practices including run management, structured logging, and organized artifact storage.
+
+## Entry Point
+
+**`main.py`** - Main entry point for the application
+
+```bash
+# Start interactive CLI
+python main.py
+
+# With custom run name
+python main.py --run-name my_analysis
+
+# Management commands
+python main.py --list-runs
+python main.py --latest
+python main.py --cleanup 10
+```
+
+## Directory Structure
+
 ```
 OntoVis/
-├── src/ontovis/              # Core library package
-├── examples/                 # Examples and test scripts
-├── data/                     # Volume datasets (not in git)
-├── *.md                      # Documentation
-├── .config                   # API configuration (not in git)
-└── pyproject.toml           # Project dependencies
+├── main.py                       # Entry point
+├── README.md                     # Quick start guide
+├── PROJECT_STRUCTURE.md          # This file
+├── pyproject.toml                # Project metadata and dependencies
+├── .config.example               # Example configuration
+├── .config                       # Your API keys (gitignored)
+│
+├── src/ontovis/                  # Main package
+│   ├── __init__.py               # Package exports
+│   ├── config.py                 # Configuration loader
+│   ├── run_manager.py            # Run management system
+│   ├── interactive_cli.py        # Interactive CLI (promoted from examples/)
+│   │
+│   ├── volume_agent.py           # Volume analysis agent
+│   ├── render_agent_v2.py        # Volume rendering agent
+│   ├── smart_render_agent.py    # Smart render with vision feedback
+│   ├── vision_agent.py           # Vision analysis agent
+│   ├── multimodal_kg.py          # Knowledge graph
+│   └── graph.py                  # Original KG (deprecated)
+│
+├── examples/                     # Example scripts
+│   ├── example_kg_setup.py       # Setup KG with conventions
+│   ├── example_kg_add_references.py
+│   ├── example_smart_render.py
+│   ├── example_smart_render_with_intermediates.py
+│   └── example_vision.py
+│
+├── docs/                         # Documentation
+│   ├── INDEX.md                  # Documentation index
+│   ├── README.md                 # Full project documentation
+│   ├── QUICKSTART_VOLUME.md      # Quick reference
+│   ├── SMART_RENDER.md           # Smart rendering guide
+│   ├── VIEWING_INTERMEDIATES.md  # Intermediate renders
+│   ├── KNOWLEDGE_GRAPH.md        # KG documentation
+│   └── RUN_MANAGEMENT.md         # Run management guide
+│
+├── runs/                         # Run outputs (auto-created)
+│   ├── 20260909_143022/          # Individual run
+│   │   ├── metadata.json
+│   │   ├── SUMMARY.txt
+│   │   ├── logs/
+│   │   │   ├── run.log
+│   │   │   └── operations.jsonl
+│   │   ├── renders/
+│   │   ├── histograms/
+│   │   └── artifacts/
+│   └── ...
+│
+├── .kg/                          # Knowledge graph storage
+│   ├── graph.json
+│   ├── images/
+│   │   ├── skeleton/
+│   │   ├── skull/
+│   │   └── learned_renders/
+│   └── ...
+│
+├── 3d_datasets/                  # Volume datasets
+│   ├── vis_male_128x256x256_uint8.raw
+│   ├── foot_256x256x256_uint8.raw
+│   └── skull_256x256x256_uint8.raw
+│
+└── images/                       # Documentation images
 ```
 
-## Core Library (`src/ontovis/`)
+## Core Components
 
-The main package with reusable components:
+### 1. Run Management (`src/ontovis/run_manager.py`)
 
-| File | Description |
-|------|-------------|
-| `__init__.py` | Package exports: KnowledgeGraph, VisionAgent, VolumeAnalysisAgent, Config |
-| `config.py` | Configuration manager (reads `.config` file) |
-| `graph.py` | KnowledgeGraph class for entity-relationship graphs |
-| `visualizer.py` | GraphVisualizer for rendering knowledge graphs |
-| `vision_agent.py` | VisionAgent for analyzing images with Claude |
-| `volume_agent.py` | VolumeAnalysisAgent for 3D volume dataset analysis |
+Manages execution runs with logging and artifact organization.
 
-## Examples Directory (`examples/`)
+**Classes:**
+- `RunManager` - Manages a single run
+- `RunRegistry` - Query and manage all runs
 
-All example scripts, tests, and utilities:
+**Features:**
+- Unique run IDs
+- Structured logging (file + console)
+- Organized artifact storage
+- Metadata tracking
+- Operations log (JSONL format)
 
-### Volume Analysis
-| File | Purpose |
-|------|---------|
-| `analyze_foot.py` | **Universal CLI** - Analyze any volume dataset |
-| `download_and_analyze.py` | Download and analyze scientific datasets |
-| `example_volume_analysis.py` | Various volume analysis examples |
-| `test_volume_agent.py` | Volume agent test suite |
+### 2. Interactive CLI (`src/ontovis/interactive_cli.py`)
 
-### Other Examples
-| File | Purpose |
-|------|---------|
-| `example_vision.py` | Vision agent examples |
-| `main.py` | Basic knowledge graph example |
-| `test_setup.py` | Verify configuration |
+Chat-based interface with AI agents as tools.
 
-### Debug Tools
-| File | Purpose |
-|------|---------|
-| `debug_api.py` | Test Anthropic API connection |
-| `debug_api_bedrock.py` | Test Bedrock API connection |
-| `diagnose_endpoint.py` | Diagnose endpoint issues |
+**Tools:**
+- `analyze_volume` - Volume analysis
+- `render_volume` - Standard rendering
+- `smart_render_volume` - Vision-guided rendering
+- `analyze_image` - Vision AI analysis
+- `list_files` - File browsing
 
-## Documentation Files (Root)
+### 3. Agents
 
-| File | Description |
-|------|-------------|
-| `README.md` | Main project documentation |
-| `VOLUME_ANALYSIS.md` | Complete volume analysis guide |
-| `QUICKSTART_VOLUME.md` | Quick reference for volume analysis |
-| `FORMATS.md` | Volume file format guide (.raw, .npy, .dat) |
-| `IMPLEMENTATION_SUMMARY.md` | Technical implementation details |
-| `PROJECT_STRUCTURE.md` | This file |
+#### Volume Analysis Agent (`volume_agent.py`)
+- Histogram analysis
+- Intensity statistics
+- Feature identification
+- AI-powered interpretation
 
-## Configuration
+#### Volume Render Agent (`render_agent_v2.py`)
+- Natural language controlled rendering
+- PyVista-based visualization
+- Transfer function generation
 
-| File | Purpose |
-|------|---------|
-| `.config.example` | Template configuration file |
-| `.config` | Your actual API configuration (git-ignored) |
-| `pyproject.toml` | Python dependencies and build config |
-| `.gitignore` | Excludes config, datasets, generated files |
+#### Smart Render Agent (`smart_render_agent.py`)
+- Iterative rendering with vision feedback
+- Automatic framing optimization
+- Saves intermediate renders (optional)
 
-## Data Directory (`data/`)
+#### Vision Agent (`vision_agent.py`)
+- Image analysis
+- Entity extraction
+- Vision-based quality assessment
 
-Store volume datasets here (git-ignored):
-- `.raw` files from scientific datasets
-- `.npy` files from NumPy arrays
-- `.dat` files with custom formats
+### 4. Knowledge Graph (`multimodal_kg.py`)
 
-## Usage Patterns
+Multimodal knowledge storage for rendering conventions.
 
-### Import the Library
-```python
-from ontovis import VolumeAnalysisAgent, VisionAgent, KnowledgeGraph
+**Stores:**
+- Anatomical conventions (colors, intensities)
+- Colormaps (bone_window, heat_map, etc.)
+- Reference images (good/bad examples)
+- Dataset knowledge
+- Learned parameters
+
+### 5. Configuration (`config.py`)
+
+Loads API keys and settings from `.config` file.
+
+## Workflow
+
+### Typical Usage Flow
+
+```
+1. User runs: python main.py
+   ↓
+2. RunManager creates unique run directory
+   ↓
+3. Interactive CLI starts with logging
+   ↓
+4. User interacts with AI agents
+   ↓
+5. All renders → runs/RUN_ID/renders/
+   All histograms → runs/RUN_ID/histograms/
+   All logs → runs/RUN_ID/logs/
+   ↓
+6. User exits
+   ↓
+7. Run finalized with summary
 ```
 
-### Run Examples
+### Example Session
+
 ```bash
-# From project root
-uv run python examples/test_volume_agent.py
-uv run python examples/analyze_foot.py data/volume.raw -x 256 -y 256 -z 256 -d "description"
-uv run python examples/download_and_analyze.py bonsai
-```
+$ python main.py --run-name skull_analysis
 
-### Test Setup
-```bash
-uv run python examples/test_setup.py
-```
-
-## Development Workflow
-
-1. **Library code** goes in `src/ontovis/`
-2. **Example scripts** go in `examples/`
-3. **Documentation** goes in root `.md` files
-4. **Data files** go in `data/` (git-ignored)
-5. **Generated outputs** (histograms, etc.) stay in root or examples/ (git-ignored)
-
-## File Organization Principles
-
-- ✅ **Core library**: Reusable, well-tested components in `src/ontovis/`
-- ✅ **Examples**: Self-contained scripts in `examples/`
-- ✅ **Documentation**: Comprehensive guides in root directory
-- ✅ **Clean root**: Minimal clutter, only essential config/docs
-- ✅ **Git-ignored**: Config files, datasets, generated outputs
-
-## Import Paths
-
-From anywhere in the project:
-```python
-# Works because package is installed with `uv pip install -e .`
-from ontovis import VolumeAnalysisAgent
-from ontovis.config import Config
-```
-
-## Adding New Features
-
-1. **New agent/component**: Add to `src/ontovis/`, export in `__init__.py`
-2. **New example**: Add to `examples/`, document in `examples/README.md`
-3. **New documentation**: Add markdown file in root directory
-4. **New test**: Add test script to `examples/`
+OntoVis v0.1.0
+====================
+Run initialized: 20260909_143022_skull_analysis
+Run directory: /path/to/runs/20260909_143022_skull_analysis

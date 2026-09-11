@@ -1,0 +1,14 @@
+runs
+.venv
+.ipynb_checkpoints
+3d_datasets
+docs
+uv.lock
+examples
+.claude
+angle_search*
+temp
+.DS_Store
+__pycache__
+.python-version
+.config

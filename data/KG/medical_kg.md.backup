@@ -1,0 +1,9 @@
+- when displaying bones, make them white
+- images/skull_front.jpg shows the reference image for a skull from a front view
+- images/skull_side.jpg shows the reference image from for a skull from a side view
+- show the front view first
+- when displaying an image, maximize the use of the space but do not crop
+- an image is cropped if you part of the image is cut off. A non cropped image should have the background color everywhere around the image
+- use spherical cooridnates when rendering and change the value of phi and theta to get different angles and r to zoom in and out
+- when rendering, zoom out and render a small image and then keep zooming in until it is cropped then scale back until it is not cropped
+- when asked for front view, compare with the knowledge graph to know what the front view should look like and do the match
