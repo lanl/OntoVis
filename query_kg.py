@@ -37,8 +37,10 @@ def run_query(graph: Graph, query: str) -> None:
             print("  ".join(c.ljust(w) for c, w in zip(row, widths)))
 
         print(f"\n({len(rows)} row{'s' if len(rows) != 1 else ''})")
+    elif results.type == "ASK":
+        print(results.askAnswer)
     else:
-        print(f"{len(results)} result(s)" if results.type == "ASK" else "OK")
+        print("OK")
 
 
 def main() -> None:
