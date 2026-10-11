@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Ontology — volume_rendering_ontology</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --border:         rgba(11,11,11,0.10);
+    --series-1:       #2a78d6;
+    --series-2:       #eb6834;
+    --series-3:       #1baf7a;
+    --series-4:       #eda100;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --page-plane:     #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --border:         rgba(255,255,255,0.10);
+      --series-1:       #3987e5;
+      --series-2:       #d95926;
+      --series-3:       #199e70;
+      --series-4:       #c98500;
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --border:         rgba(255,255,255,0.10);
+    --series-1:       #3987e5;
+    --series-2:       #d95926;
+    --series-3:       #199e70;
+    --series-4:       #c98500;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page-plane);
+    color: var(--text-primary);
+  }
+  .viz-root {
+    max-width: 1400px;
+    margin: 24px auto;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px 24px;
+  }
+  h1 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    color: var(--text-primary);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 16px;
+  }
+  .controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .controls input {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--page-plane);
+    color: var(--text-primary);
+  }
+  svg { display: block; width: 100%; height: 760px; }
+  .link {
+    stroke: var(--gridline);
+    stroke-width: 1.4px;
+  }
+  .link-label {
+    fill: var(--text-muted);
+    font-size: 9px;
+  }
+  .node circle {
+    stroke: var(--surface-1);
+    stroke-width: 2px;
+    cursor: pointer;
+  }
+  .node text {
+    fill: var(--text-primary);
+    font-size: 11px;
+    font-weight: 600;
+    pointer-events: none;
+  }
+  .node.dim circle { opacity: 0.15; }
+  .node.dim text { opacity: 0.15; }
+  .link.dim { opacity: 0.08; }
+  .link-label.dim { opacity: 0.08; }
+  .tooltip {
+    position: absolute;
+    display: none;
+    max-width: 320px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    pointer-events: none;
+    z-index: 10;
+  }
+  .tooltip strong {
+    color: var(--text-primary);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="viz-root" style="position: relative;">
+  <h1>Ontology — volume_rendering_ontology</h1>
+  <p class="subtitle">Concepts and rules from volume_rendering_ontology.md</p>
+  <div class="controls">
+    <label>Search: <input id="search" type="text" placeholder="concept name..." /></label>
+    <span id="count"></span>
+  </div>
+  <svg id="chart"></svg>
+  <div class="tooltip" id="tooltip"></div>
+</div>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+const data = {"nodes": [{"id": "VolumeRendering", "definition": "A family of techniques for visualizing 3D scalar or vector fields by displaying samples of the volumetric data directly, without first converting it to an explicit surface representation.", "colorRole": "series-2"}, {"id": "DirectVolumeRendering", "definition": "An approach that renders a volume by compositing contributions from samples throughout the 3D domain, using a transfer function to map data values to color and opacity.", "colorRole": "series-3"}, {"id": "IndirectVolumeRendering", "definition": "An approach that first extracts an explicit geometric surface from the volume and then renders that surface with standard polygon rendering.", "colorRole": "series-4"}, {"id": "RayCasting", "definition": "A direct volume rendering algorithm that casts a ray from the camera through each pixel, samples the volume along the ray, and composites the samples into a final pixel color.", "colorRole": "series-1"}, {"id": "Splatting", "definition": "A direct volume rendering algorithm that projects each voxel onto the image plane as a reconstruction kernel (\"splat\") and accumulates overlapping splats.", "colorRole": "series-2"}, {"id": "TextureBasedRendering", "definition": "A direct volume rendering algorithm that resamples the volume onto textured slices rendered and blended by graphics hardware.", "colorRole": "series-3"}, {"id": "ShearWarpRendering", "definition": "A direct volume rendering algorithm that shears the volume into an object space where viewing rays are axis-aligned, enabling fast slice-based compositing before warping the result into image space.", "colorRole": "series-4"}, {"id": "IsosurfaceExtraction", "definition": "An indirect volume rendering technique that extracts a polygonal surface representing all points in the volume equal to a given scalar threshold.", "colorRole": "series-1"}, {"id": "MarchingCubes", "definition": "An isosurface extraction algorithm that processes the volume cell by cell, generating triangles based on which cell corners lie above or below the threshold.", "colorRole": "series-2"}, {"id": "TransferFunction", "definition": "A mapping from scalar data values to visual properties, typically color and opacity, that controls what is seen in a direct volume rendering.", "colorRole": "series-3"}, {"id": "ColorMapping", "definition": "The component of a transfer function that assigns a color to each data value.", "colorRole": "series-4"}, {"id": "OpacityMapping", "definition": "The component of a transfer function that assigns an opacity to each data value, controlling the visibility of structures.", "colorRole": "series-1"}, {"id": "PreIntegratedTransferFunction", "definition": "An optimized transfer function evaluation that precomputes the color/opacity integral between consecutive sample pairs to reduce sampling artifacts.", "colorRole": "series-2"}, {"id": "Sampling", "definition": "The process of evaluating the volume's scalar field at discrete points along a viewing ray.", "colorRole": "series-3"}, {"id": "Interpolation", "definition": "The method used to estimate a scalar value at a non-grid-aligned sample point, such as trilinear interpolation.", "colorRole": "series-4"}, {"id": "Compositing", "definition": "The process of accumulating color and opacity contributions from samples along a ray into a single pixel value.", "colorRole": "series-1"}, {"id": "FrontToBackCompositing", "definition": "A compositing order that accumulates samples starting nearest the camera, enabling early ray termination.", "colorRole": "series-2"}, {"id": "BackToFrontCompositing", "definition": "A compositing order that accumulates samples starting farthest from the camera.", "colorRole": "series-3"}, {"id": "AlphaBlending", "definition": "The standard compositing operator that blends a new sample's color and opacity into the accumulated result using the \"over\" operator.", "colorRole": "series-4"}, {"id": "MaximumIntensityProjection", "definition": "A compositing method that selects the maximum data value along each ray instead of blending opacity-weighted contributions.", "colorRole": "series-1"}, {"id": "GradientEstimation", "definition": "The computation of the local gradient of the scalar field, used to estimate surface normals for shading.", "colorRole": "series-2"}, {"id": "CentralDifferenceGradient", "definition": "A gradient estimation method that approximates the gradient using finite differences between neighboring samples.", "colorRole": "series-3"}, {"id": "Shading", "definition": "The application of a lighting model to volume samples, using estimated normals to enhance depth and structure perception.", "colorRole": "series-4"}, {"id": "PhongShading", "definition": "A local illumination model combining ambient, diffuse, and specular reflection terms, commonly applied in volume shading.", "colorRole": "series-1"}, {"id": "AmbientOcclusion", "definition": "A shading technique that approximates soft shadowing from nearby occluding structures within the volume to improve depth perception.", "colorRole": "series-2"}, {"id": "EmptySpaceSkipping", "definition": "An acceleration technique that skips regions of the volume known to be empty or fully transparent.", "colorRole": "series-3"}, {"id": "EarlyRayTermination", "definition": "An acceleration technique that stops sampling along a ray once accumulated opacity reaches full occlusion.", "colorRole": "series-4"}, {"id": "SpatialAccelerationStructure", "definition": "A data structure that organizes the volume to quickly identify and skip empty or irrelevant regions.", "colorRole": "series-1"}, {"id": "Octree", "definition": "A hierarchical spatial acceleration structure that recursively subdivides the volume into eight octants.", "colorRole": "series-2"}, {"id": "GPUAcceleration", "definition": "The use of graphics hardware, such as fragment or compute shaders, to parallelize sampling, compositing, and shading.", "colorRole": "series-3"}, {"id": "LevelOfDetail", "definition": "A technique that renders coarser representations of the volume at a distance or during interaction, trading quality for performance.", "colorRole": "series-4"}], "links": [{"source": 0, "target": 1, "label": "hasApproach", "cardinality": "1..*"}, {"source": 0, "target": 2, "label": "hasApproach", "cardinality": "1..*"}, {"source": 1, "target": 3, "label": "includesAlgorithm", "cardinality": "1..*"}, {"source": 1, "target": 4, "label": "includesAlgorithm", "cardinality": "1..*"}, {"source": 1, "target": 5, "label": "includesAlgorithm", "cardinality": "1..*"}, {"source": 1, "target": 6, "label": "includesAlgorithm", "cardinality": "1..*"}, {"source": 2, "target": 7, "label": "includesAlgorithm", "cardinality": "1..*"}, {"source": 7, "target": 8, "label": "implementedBy", "cardinality": "1..*"}, {"source": 3, "target": 9, "label": "uses", "cardinality": "1"}, {"source": 3, "target": 13, "label": "uses", "cardinality": "1"}, {"source": 3, "target": 15, "label": "uses", "cardinality": "1"}, {"source": 3, "target": 20, "label": "uses", "cardinality": "0..1"}, {"source": 3, "target": 25, "label": "acceleratedBy", "cardinality": "0..*"}, {"source": 3, "target": 26, "label": "acceleratedBy", "cardinality": "0..*"}, {"source": 3, "target": 27, "label": "acceleratedBy", "cardinality": "0..*"}, {"source": 3, "target": 29, "label": "acceleratedBy", "cardinality": "0..*"}, {"source": 4, "target": 9, "label": "uses", "cardinality": "1"}, {"source": 5, "target": 9, "label": "uses", "cardinality": "1"}, {"source": 6, "target": 9, "label": "uses", "cardinality": "1"}, {"source": 13, "target": 14, "label": "uses", "cardinality": "1"}, {"source": 9, "target": 10, "label": "has", "cardinality": "1"}, {"source": 9, "target": 11, "label": "has", "cardinality": "1"}, {"source": 9, "target": 12, "label": "variant", "cardinality": "0..1"}, {"source": 15, "target": 16, "label": "order", "cardinality": "1"}, {"source": 15, "target": 17, "label": "order", "cardinality": "1"}, {"source": 15, "target": 18, "label": "operator", "cardinality": "1"}, {"source": 15, "target": 19, "label": "operator", "cardinality": "1"}, {"source": 20, "target": 21, "label": "method", "cardinality": "1"}, {"source": 20, "target": 22, "label": "enables", "cardinality": "1"}, {"source": 22, "target": 23, "label": "model", "cardinality": "1..*"}, {"source": 22, "target": 24, "label": "model", "cardinality": "1..*"}, {"source": 27, "target": 28, "label": "implementedBy", "cardinality": "1..*"}, {"source": 29, "target": 30, "label": "enables", "cardinality": "0..1"}]};
+
+const root = document.querySelector('.viz-root');
+const colorOf = (role) => getComputedStyle(root).getPropertyValue('--' + role).trim();
+
+document.getElementById('count').textContent =
+  data.nodes.length + ' concepts, ' + data.links.length + ' relations';
+
+const svg = d3.select('#chart');
+const width = svg.node().clientWidth || 1300;
+const height = 760;
+svg.attr('viewBox', `0 0 ${width} ${height}`);
+
+const simulation = d3.forceSimulation(data.nodes)
+  .force('link', d3.forceLink(data.links).id((d, i) => i).distance(130).strength(0.5))
+  .force('charge', d3.forceManyBody().strength(-320))
+  .force('center', d3.forceCenter(width / 2, height / 2))
+  .force('collide', d3.forceCollide(42));
+
+const link = svg.append('g')
+  .selectAll('line')
+  .data(data.links)
+  .join('line')
+  .attr('class', 'link');
+
+const linkLabel = svg.append('g')
+  .selectAll('text')
+  .data(data.links)
+  .join('text')
+  .attr('class', 'link-label')
+  .text(d => d.label + ' [' + d.cardinality + ']');
+
+const node = svg.append('g')
+  .selectAll('g')
+  .data(data.nodes)
+  .join('g')
+  .attr('class', 'node')
+  .call(d3.drag()
+    .on('start', (event, d) => { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+    .on('drag', (event, d) => { d.fx = event.x; d.fy = event.y; })
+    .on('end', (event, d) => { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }));
+
+node.append('circle')
+  .attr('r', 22)
+  .attr('fill', d => colorOf(d.colorRole));
+
+node.append('text')
+  .attr('text-anchor', 'middle')
+  .attr('dy', 36)
+  .text(d => d.id);
+
+const tooltip = document.getElementById('tooltip');
+
+node.on('mouseenter', (event, d) => {
+  tooltip.innerHTML = `<strong>${d.id}</strong><div style="margin-top:6px;">${d.definition || ''}</div>`;
+  tooltip.style.display = 'block';
+}).on('mousemove', (event) => {
+  const bounds = root.getBoundingClientRect();
+  tooltip.style.left = (event.clientX - bounds.left + 16) + 'px';
+  tooltip.style.top = (event.clientY - bounds.top + 8) + 'px';
+}).on('mouseleave', () => {
+  tooltip.style.display = 'none';
+});
+
+simulation.on('tick', () => {
+  link
+    .attr('x1', d => d.source.x)
+    .attr('y1', d => d.source.y)
+    .attr('x2', d => d.target.x)
+    .attr('y2', d => d.target.y);
+
+  linkLabel
+    .attr('x', d => (d.source.x + d.target.x) / 2)
+    .attr('y', d => (d.source.y + d.target.y) / 2 - 4);
+
+  node.attr('transform', d => `translate(${d.x},${d.y})`);
+});
+
+const searchInput = document.getElementById('search');
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (!q) {
+    node.classed('dim', false);
+    link.classed('dim', false);
+    linkLabel.classed('dim', false);
+    return;
+  }
+  const matched = new Set(data.nodes.filter(n => n.id.toLowerCase().includes(q)).map(n => n.id));
+  node.classed('dim', d => !matched.has(d.id));
+  link.classed('dim', d => !matched.has(d.source.id) && !matched.has(d.target.id));
+  linkLabel.classed('dim', d => !matched.has(d.source.id) && !matched.has(d.target.id));
+});
+</script>
+</body>
+</html>
